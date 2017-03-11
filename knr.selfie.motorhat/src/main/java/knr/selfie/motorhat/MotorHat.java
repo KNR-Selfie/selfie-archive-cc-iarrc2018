@@ -10,22 +10,26 @@ import com.pi4j.platform.PlatformAlreadyAssignedException;
 import com.pi4j.util.Console;
 
 public class MotorHat {
-
-    public static final int PCA9685_ADDR = 0x60; // address pin not connected (FLOATING)
+	
+	// PCA9685 device - I2C address
+    public static final int PCA9685_ADDR = 0x60; 
     
     public static final byte MODE1 = (byte)0x00;
     public static final byte MODE2 = (byte)0x01;
     
+    // PWM
     public static final byte LED2_ON_L = (byte)0x0E;
     public static final byte LED2_ON_H = (byte)0x0F;
     public static final byte LED2_OFF_L = (byte)0x10;
     public static final byte LED2_OFF_H = (byte)0x11;
     
+    // IN2
     public static final byte LED3_ON_L = (byte)0x12;
     public static final byte LED3_ON_H = (byte)0x13;
     public static final byte LED3_OFF_L = (byte)0x14;
     public static final byte LED3_OFF_H = (byte)0x15;
     
+    // IN3
     public static final byte LED4_ON_L = (byte)0x16;
     public static final byte LED4_ON_H = (byte)0x17;
     public static final byte LED4_OFF_L = (byte)0x18;
