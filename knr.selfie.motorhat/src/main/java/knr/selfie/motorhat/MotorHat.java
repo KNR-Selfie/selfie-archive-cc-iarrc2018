@@ -13,6 +13,7 @@ public class MotorHat {
 	
 	// PCA9685 device - I2C address
     public static final int PCA9685_ADDR = 0x60; 
+    public static final int BROADCAST = 0x00;
     
     public static final byte MODE1 = (byte)0x00;
     public static final byte MODE2 = (byte)0x01;
@@ -57,54 +58,101 @@ public class MotorHat {
         console.promptForExit();
         
        
-
         // get the I2C bus to communicate on
         I2CBus i2c = I2CFactory.getInstance(I2CBus.BUS_1);
 
-  
         I2CDevice device = i2c.getDevice(PCA9685_ADDR);
         
-        device.write(MODE1, (byte)0x01);
+        I2CDevice broadcast = i2c.getDevice(BROADCAST);
         
-        console.println("... reading MODE1 register");
+        broadcast.write((byte)0x06);
+        Thread.sleep(5000);
+        
         int mode1 = device.read(MODE1);
         console.println("MODE1 = " + String.format("0x%02x", mode1));
         
-        device.write(MODE2, (byte)0x04);
+        if((byte)mode1==0x11){
+        	console.println("USTAWIANIE MODÓW");
+	        int mode2 = device.read(MODE2);
+	        console.println("MODE2 = " + String.format("0x%02x", mode2));
+	        
+	        device.write(MODE2,(byte)(mode2 | 0x08));
+	        Thread.sleep(500);
+	        
+	        mode2 = device.read(MODE2);
+	        console.println("MODE2 = " + String.format("0x%02x", mode2));
+	        
+	        device.write(MODE1,(byte)(mode1 & ~0x10));
+	        Thread.sleep(500);
+	        
+	        mode1 = device.read(MODE1);
+	        console.println("MODE1 = " + String.format("0x%02x", mode1));
+        }
+        console.println("USTAWIANIE LEDÓW");
+        	//*****************LED2
+        	device.write(LED2_ON_L, (byte)0xFF);
+        	device.write(LED2_ON_H, (byte)0x10);
+        	Thread.sleep(500);
+        	
+        	device.write(LED2_OFF_L, (byte)0x00);
+        	device.write(LED2_OFF_H, (byte)0x00);
+        	Thread.sleep(500);
+        	
+        	mode1 = device.read(LED2_ON_L);
+            console.println("LED2_ON_L = " + String.format("0x%02x", mode1));
+            mode1 = device.read(LED2_ON_H);
+            console.println("LED2_ON_H = " + String.format("0x%02x", mode1));
+            
+            mode1 = device.read(LED2_OFF_L);
+            console.println("LED2_OFF_L = " + String.format("0x%02x", mode1));
+            mode1 = device.read(LED2_OFF_H);
+            console.println("LED2_OFF_H = " + String.format("0x%02x", mode1));
+            //************************LED3
+            device.write(LED3_ON_L, (byte)0xFF);
+        	device.write(LED3_ON_H, (byte)0x10);
+        	Thread.sleep(500);
+        	
+        	device.write(LED3_OFF_L, (byte)0x00);
+        	device.write(LED3_OFF_H, (byte)0x00);
+        	Thread.sleep(500);
+        	
+        	mode1 = device.read(LED3_ON_L);
+            console.println("LED3_ON_L = " + String.format("0x%02x", mode1));
+            mode1 = device.read(LED3_ON_H);
+            console.println("LED3_ON_H = " + String.format("0x%02x", mode1));
+            
+            mode1 = device.read(LED3_OFF_L);
+            console.println("LED3_OFF_L = " + String.format("0x%02x", mode1));
+            mode1 = device.read(LED3_OFF_H);
+            console.println("LED3_OFF_H = " + String.format("0x%02x", mode1));
+          //************************LED4
+            device.write(LED4_ON_L, (byte)0xFF);
+        	device.write(LED4_ON_H, (byte)0x10);
+        	Thread.sleep(500);
+        	
+        	device.write(LED4_OFF_L, (byte)0x00);
+        	device.write(LED4_OFF_H, (byte)0x00);
+        	Thread.sleep(500);
+        	
+        	mode1 = device.read(LED4_ON_L);
+            console.println("LED4_ON_L = " + String.format("0x%02x", mode1));
+            mode1 = device.read(LED4_ON_H);
+            console.println("LED4_ON_H = " + String.format("0x%02x", mode1));
+            
+            mode1 = device.read(LED4_OFF_L);
+            console.println("LED4_OFF_L = " + String.format("0x%02x", mode1));
+            mode1 = device.read(LED4_OFF_H);
+            console.println("LED4_OFF_H = " + String.format("0x%02x", mode1));
+            
+            Thread.sleep(2000);
+            
+            i2c.close();
+        	
+        //}else{
+        //	System.out.println("dupa");
+        //}
         
-        console.println("... reading MODE2 register");
-        int mode2= device.read(MODE2);
-        console.println("MODE2 = " + String.format("0x%02x", mode2));
         
-        Thread.sleep(500);
-        
-        mode1 = device.read(MODE1);
-        console.println("MODE1 = " + String.format("0x%02x", mode1));
-        mode1 = (byte)mode1 & ~(byte)0x10;
-        device.write(MODE1, (byte)mode1);
-        
-        Thread.sleep(500);
-        mode1 = device.read(MODE1);
-        console.println("MODE1 = " + String.format("0x%02x", mode1));
-        
-        device.write(MODE1, (byte)((byte)(mode1) | 0x80));
-        mode1 = device.read(MODE1);
-        console.println("MODE1 = " + String.format("0x%02x", mode1));
-
- 
-
-        device.write(LED4_ON_H, (byte)0x10);
-        device.write(LED4_ON_L, (byte)0xFF);
-        
-        device.write(LED2_ON_H, (byte)0x10);
-        device.write(LED2_ON_L, (byte)0xFF);
-        
-        device.write(LED3_OFF_H, (byte)0x10);
-        device.write(LED3_OFF_L, (byte)0xFF);
-        
-        console.println("bxbtbxt");
-        
-        Thread.sleep(5000);
 
   
     }
