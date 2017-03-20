@@ -2,7 +2,12 @@
 .classpath
 .project
 .settings/
+.metadata/
+.recommenders/
 
 # Maven
 log/
 target/
+
+# Files containg private data
+*/remotedebug.xml
