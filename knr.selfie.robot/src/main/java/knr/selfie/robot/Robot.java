@@ -38,6 +38,8 @@ public class Robot {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		System.out.println("KONIEC");
 	}
 
 }
