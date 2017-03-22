@@ -1,7 +1,6 @@
 package knr.selfie.robot;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 import com.pi4j.io.i2c.I2CBus;
 import com.pi4j.io.i2c.I2CDevice;
@@ -9,65 +8,26 @@ import com.pi4j.io.i2c.I2CFactory;
 import com.pi4j.io.i2c.I2CFactory.UnsupportedBusNumberException;
 
 public class I2CController {
+    public static final int PWMA = 2;
+    public static final int IN_A1 = 3;
+    public static final int IN_A2 = 4;
+    public static final int IN_B2 = 5;
+    public static final int IN_B1 = 6;
+    public static final int PWMB = 7;
 	
 	private static final int BROADCAST_ADDR = 0x00;
 	
-    public static final byte MODE1 = (byte)0x00;
-    public static final byte MODE2 = (byte)0x01;
+    private static final byte MODE1 = (byte)0x00;
+    private static final byte MODE2 = (byte)0x01;
     
-    // PWM channel
-    public static final byte LED2_ON_L = (byte)0x0E;
-    public static final byte LED2_ON_H = (byte)0x0F;
-    public static final byte LED2_OFF_L = (byte)0x10;
-    public static final byte LED2_OFF_H = (byte)0x11;
+    private static final byte LED0_ON_L = (byte)0x06;
+    private static final byte LED0_ON_H = (byte)0x07;
+    private static final byte LED0_OFF_L = (byte)0x08;
+    private static final byte LED0_OFF_H = (byte)0x09;
     
-    // IN2 
-    public static final byte LED3_ON_L = (byte)0x12;
-    public static final byte LED3_ON_H = (byte)0x13;
-    public static final byte LED3_OFF_L = (byte)0x14;
-    public static final byte LED3_OFF_H = (byte)0x15;
+
     
-    // IN1
-    public static final byte LED4_ON_L = (byte)0x16;
-    public static final byte LED4_ON_H = (byte)0x17;
-    public static final byte LED4_OFF_L = (byte)0x18;
-    public static final byte LED4_OFF_H = (byte)0x19;
-    
- // BIN1
-    public static final byte LED5_ON_L = (byte)0x1A;
-    public static final byte LED5_ON_H = (byte)0x1B;
-    public static final byte LED5_OFF_L = (byte)0x1C;
-    public static final byte LED5_OFF_H = (byte)0x1D;
-    
- // BIN2
-    public static final byte LED6_ON_L = (byte)0x1E;
-    public static final byte LED6_ON_H = (byte)0x1F;
-    public static final byte LED6_OFF_L = (byte)0x20;
-    public static final byte LED6_OFF_H = (byte)0x21;
-    
- // B PWM
-    public static final byte LED7_ON_L = (byte)0x22;
-    public static final byte LED7_ON_H = (byte)0x23;
-    public static final byte LED7_OFF_L = (byte)0x24;
-    public static final byte LED7_OFF_H = (byte)0x25;
-    
-    // PWMC
-    public static final byte LED8_ON_L = (byte)0x26;
-    public static final byte LED8_ON_H = (byte)0x27;
-    public static final byte LED8_OFF_L = (byte)0x28;
-    public static final byte LED8_OFF_H = (byte)0x29;
-    
-    // IN_C2
-    public static final byte LED9_ON_L = (byte)0x2A;
-    public static final byte LED9_ON_H = (byte)0x2B;
-    public static final byte LED9_OFF_L = (byte)0x2C;
-    public static final byte LED9_OFF_H = (byte)0x2D;
-    
-    // IN1_C1
-    public static final byte LED10_ON_L = (byte)0x2E;
-    public static final byte LED10_ON_H = (byte)0x2F;
-    public static final byte LED10_OFF_L = (byte)0x30;
-    public static final byte LED10_OFF_H = (byte)0x31;
+
 	
 	private static I2CBus i2c;
 	private static I2CDevice device;
@@ -91,74 +51,70 @@ public class I2CController {
 	void doShits() throws InterruptedException, IOException{
 			
 		
-		device.write(LED2_ON_L, (byte)0x00);
-		device.write(LED2_ON_H, (byte)0x00);
-		device.write(LED2_OFF_L, (byte)0xFF);
-    	device.write(LED2_OFF_H, (byte)0x0F);
+//		this.analogWrite(2, 4096);
+//    	
+//    	this.digitalWrite(3, true);
+//    	
+//    	this.digitalWrite(4, false);
+//    	
+//    	this.digitalWrite(5, false);
+//    	
+//    	this.digitalWrite(6, true);
+//    	
+//    	this.analogWrite(7, 2000);
+//    	
+//    	TimeUnit.SECONDS.sleep(2);
+//    	
+//		device.write(LED2_ON_L, (byte)0x00);
+//		device.write(LED2_ON_H, (byte)0x00);
+//		device.write(LED2_OFF_L, (byte)0xFF);
+//    	device.write(LED2_OFF_H, (byte)0x0F);
+//    	
+//    	this.digitalWrite(3, false);
+//    	
+//    	this.digitalWrite(4, true);
+//    	
+//    	this.digitalWrite(5, true);
+//    	
+//    	this.digitalWrite(6, false);
+//    	
+//    	device.write(LED7_ON_L, (byte)0x00);
+//		device.write(LED7_ON_H, (byte)0x00);
+//		device.write(LED7_OFF_L, (byte)0xFF);
+//    	device.write(LED7_OFF_H, (byte)0x0F);
+//    	
+//    	TimeUnit.SECONDS.sleep(2);
+//    	
+//		device.write(LED2_ON_L, (byte)0x00);
+//		device.write(LED2_ON_H, (byte)0x00);
+//		device.write(LED2_OFF_L, (byte)0xFF);
+//    	device.write(LED2_OFF_H, (byte)0x0F);
+//    	
+//    	this.digitalWrite(3, true);
+//    	
+//    	this.digitalWrite(4, false);
+//    	
+//    	this.digitalWrite(5, false);
+//    	
+//    	this.digitalWrite(6, true);
+//    	
+//    	device.write(LED7_ON_L, (byte)0x00);
+//		device.write(LED7_ON_H, (byte)0x00);
+//		device.write(LED7_OFF_L, (byte)0xFF);
+//    	device.write(LED7_OFF_H, (byte)0x0F);
+//    	
+//    	TimeUnit.SECONDS.sleep(2);
+//    	
+//    	this.digitalWrite(3, false);
+//    	
+//    	this.digitalWrite(4, false);
+//    	
+//    	this.digitalWrite(5, false);
+//    	
+//    	this.digitalWrite(6, false);
+//    	
+//    	TimeUnit.SECONDS.sleep(1);
     	
-    	device.write(LED3_ON_L, (byte)0x00);
-		device.write(LED3_ON_H, (byte)0x00);
-		device.write(LED3_OFF_L, (byte)0x00);
-    	device.write(LED3_OFF_H, (byte)0x00);
-    	
-    	device.write(LED4_ON_L, (byte)0x00);
-		device.write(LED4_ON_H, (byte)0x10);
-		device.write(LED4_OFF_L, (byte)0x00);
-    	device.write(LED4_OFF_H, (byte)0x00);
-    	
-    	device.write(LED5_ON_L, (byte)0x00);
-		device.write(LED5_ON_H, (byte)0x10);
-		device.write(LED5_OFF_L, (byte)0x00);
-    	device.write(LED5_OFF_H, (byte)0x00);
-    	
-    	device.write(LED6_ON_L, (byte)0x00);
-		device.write(LED6_ON_H, (byte)0x00);
-		device.write(LED6_OFF_L, (byte)0x00);
-    	device.write(LED6_OFF_H, (byte)0x00);
-    	
-    	device.write(LED7_ON_L, (byte)0x00);
-		device.write(LED7_ON_H, (byte)0x00);
-		device.write(LED7_OFF_L, (byte)0xFF);
-    	device.write(LED7_OFF_H, (byte)0x0F);
-    	
-    	TimeUnit.SECONDS.sleep(5);
-    	
-		device.write(LED2_ON_L, (byte)0x00);
-		device.write(LED2_ON_H, (byte)0x00);
-		device.write(LED2_OFF_L, (byte)0xFF);
-    	device.write(LED2_OFF_H, (byte)0x0F);
-    	
-    	device.write(LED3_ON_L, (byte)0x00);
-		device.write(LED3_ON_H, (byte)0x10);
-		device.write(LED3_OFF_L, (byte)0x00);
-    	device.write(LED3_OFF_H, (byte)0x00);
-    	
-    	device.write(LED4_ON_L, (byte)0x00);
-		device.write(LED4_ON_H, (byte)0x00);
-		device.write(LED4_OFF_L, (byte)0x00);
-    	device.write(LED4_OFF_H, (byte)0x00);
-    	
-    	device.write(LED5_ON_L, (byte)0x00);
-		device.write(LED5_ON_H, (byte)0x00);
-		device.write(LED5_OFF_L, (byte)0x00);
-    	device.write(LED5_OFF_H, (byte)0x00);
-    	
-    	device.write(LED6_ON_L, (byte)0x00);
-		device.write(LED6_ON_H, (byte)0x10);
-		device.write(LED6_OFF_L, (byte)0x00);
-    	device.write(LED6_OFF_H, (byte)0x00);
-    	
-    	device.write(LED7_ON_L, (byte)0x00);
-		device.write(LED7_ON_H, (byte)0x00);
-		device.write(LED7_OFF_L, (byte)0xFF);
-    	device.write(LED7_OFF_H, (byte)0x0F);
-    	
-
-    	
-    	TimeUnit.SECONDS.sleep(5);
-    	
-    	this.reset();
-		
 	}
 	
 	void init() throws IOException, InterruptedException{
@@ -192,43 +148,49 @@ public class I2CController {
         Thread.sleep(500);
 	}
 	
-//	// value: 0-100%
-//	void writePWM(int ledAddr, int precent) throws IOException{
-//		int value = (int) precent * 4096 / 100;
-//		byte lsb = (byte) (value & 0xFF);
-//		byte msb = (byte) ((value >> 8) & 0xFF);
-//		System.out.println(value);
-//		System.out.println("lsb = " + String.format("0x%02x", lsb));
-//		System.out.println("msb = " + String.format("0x%02x", msb));
-//		
-//		switch(ledAddr){
-//		case 2:	device.write(LED2_ON_L, lsb);
-//				device.write(LED2_ON_H, msb);
-//				device.write(LED2_OFF_L, (byte)0x00);
-//	        	device.write(LED2_OFF_H, (byte)0x00);
-//		case 3:	device.write(LED3_ON_L, lsb);
-//				device.write(LED3_ON_H, msb);
-//				device.write(LED3_OFF_L, (byte)0x00);
-//	        	device.write(LED3_OFF_H, (byte)0x00);
-//		case 4:	device.write(LED4_ON_L, lsb);
-//				device.write(LED4_ON_H, msb);
-//				device.write(LED4_OFF_L, (byte)0x00);
-//	        	device.write(LED4_OFF_H, (byte)0x00);
-//		case 5:	device.write(LED5_ON_L, lsb);
-//				device.write(LED5_ON_H, msb);
-//				device.write(LED5_OFF_L, (byte)0x00);
-//		    	device.write(LED5_OFF_H, (byte)0x00);
-//		case 6:	device.write(LED6_ON_L, lsb);
-//				device.write(LED6_ON_H, msb);
-//				device.write(LED6_OFF_L, (byte)0x00);
-//		    	device.write(LED6_OFF_H, (byte)0x00);
-//		case 7:	device.write(LED7_ON_L, lsb);
-//				device.write(LED7_ON_H, msb);
-//				device.write(LED7_OFF_L, (byte)0x00);
-//		    	device.write(LED7_OFF_H, (byte)0x00);
-//		}
-//	}
+	void digitalWrite(int ledAddr, boolean state){
+		try {
+			device.write(LED0_ON_L + 4*ledAddr, (byte)0x00);
+			device.write(LED0_OFF_L + 4*ledAddr, (byte)0x00);
+	    	device.write(LED0_OFF_H + 4*ledAddr, (byte)0x00);
+	    	if(state){
+	    		device.write(LED0_ON_H + 4*ledAddr, (byte)0x10);
+	    	}else{
+	    		device.write(LED0_ON_H + 4*ledAddr, (byte)0x00);
+	    	}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
 	
-	
+	void analogWrite(int ledAddr, int value){
+		try {
+			if(value>=4096){
+				
+					device.write(LED0_ON_L + 4*ledAddr, (byte)0x00);
+			
+				device.write(LED0_ON_H + 4*ledAddr, (byte)0x10);
+				device.write(LED0_OFF_L + 4*ledAddr, (byte)0x00);
+		    	device.write(LED0_OFF_H + 4*ledAddr, (byte)0x00);
+			}else if(value<0){
+				device.write(LED0_ON_L + 4*ledAddr, (byte)0x00);
+				device.write(LED0_ON_H + 4*ledAddr, (byte)0x00);
+				device.write(LED0_OFF_L + 4*ledAddr, (byte)0x00);
+		    	device.write(LED0_OFF_H + 4*ledAddr, (byte)0x00);
+			}else{
+				byte lsb = (byte) (value & 0xFF);
+				byte msb = (byte) ((value >> 8) & 0xFF);
+				device.write(LED0_ON_L + 4*ledAddr, (byte)0x00);
+				device.write(LED0_ON_H + 4*ledAddr, (byte)0x00);
+				device.write(LED0_OFF_L + 4*ledAddr, lsb);
+		    	device.write(LED0_OFF_H + 4*ledAddr, msb);
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
 }

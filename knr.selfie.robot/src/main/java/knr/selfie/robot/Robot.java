@@ -21,10 +21,9 @@ public class Robot {
 		System.out.println("OpenCV works fine!");
 		
 		// Create MotorController
-		MotorController mc = new MotorController();
-		
 		try {
-			mc.controlMotor();
+			MotorHat mh = new MotorHat();
+
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -38,6 +37,8 @@ public class Robot {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		
 		
 		System.out.println("KONIEC");
 	}
