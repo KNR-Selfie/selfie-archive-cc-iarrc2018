@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="deploy" default="remotedebug" basedir=".">
+  <property name="raspberrypi" value="192.168.1.150" />
+  <property name="raspberryfolder" value="~" />
+  <property name="username" value="pi" />
+  <property name="password" value="dRzewo123" />
+
+  <target name="remotedebug">
+    <first id="jars">
+      <fileset dir="target" includes="**/*jar-with-dependencies.jar" />
+    </first>
+    <pathconvert pathsep="," property="jar.path" refid="jars" />
+    <basename file="${jar.path}" property="jar.filename" />
+    <echo>"Found application ${jar.path}"</echo>
+
+    <echo>"Copying application to ${raspberrypi}:${raspberryfolder}/${jar.filename}"</echo>
+    <scp localfile="${jar.path}" todir="${username}:${password}@${raspberrypi}:${raspberryfolder}" trust="true" />
+
+    <echo>"Starting ${raspberrypi}:${raspberryfolder}/${jar.filename} in debug mode"</echo>
+    <sshexec host="${raspberrypi}" username="${username}" password="${password}" failonerror="true" usepty="true" command="sudo java -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=4000,suspend=y -jar ${jar.filename}" trust="true"/>
+  </target>
+</project>
