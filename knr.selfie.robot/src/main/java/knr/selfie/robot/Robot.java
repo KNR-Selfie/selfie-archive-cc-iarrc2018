@@ -18,7 +18,13 @@ public class Robot {
         
         // Print OpenCV info
         System.out.println(Core.NATIVE_LIBRARY_NAME.toString());
-		System.out.println("OpenCV works fine!");
+		//System.out.println("OpenCV works fine!");
+		
+		
+		
+		
+		
+		
 		
 		// Create MotorController
 		try {
