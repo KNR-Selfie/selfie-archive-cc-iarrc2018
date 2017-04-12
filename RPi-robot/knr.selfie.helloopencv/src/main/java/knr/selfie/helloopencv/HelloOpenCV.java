@@ -35,6 +35,8 @@ public class HelloOpenCV {
             Mat frame = new Mat();
             camera.read(frame);
             Imgcodecs.imwrite("capture.jpg", frame);
+            
+            camera.release();
 	}
 
 }
