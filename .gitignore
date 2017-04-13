@@ -4,6 +4,7 @@
 .settings/
 .metadata/
 .recommenders/
+.jar
 
 # Maven
 log/
