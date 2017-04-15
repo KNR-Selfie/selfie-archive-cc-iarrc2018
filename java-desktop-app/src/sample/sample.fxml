@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+
+<GridPane alignment="center" hgap="5.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="480.0" prefWidth="640.0" vgap="5.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.Controller">
+    <children>
+        <GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="450.0" prefWidth="600.0" GridPane.rowIndex="5">
+            <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" minWidth="10.0" prefWidth="100.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            </rowConstraints>
+            <children>
+                <Slider fx:id="predkosc" majorTickUnit="10.0" minorTickCount="5" onDragDetected="#speeder" orientation="VERTICAL" prefHeight="100.0" prefWidth="14.0" scaleY="2.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" translateX="17.0" translateY="-80.0" GridPane.rowIndex="2">
+                    <cursor>
+                        <Cursor fx:constant="MOVE" />
+                    </cursor></Slider>
+                <Button fx:id="guzik" mnemonicParsing="false" onAction="#discover" text="Szukaj Urządzenia" translateX="30.0" translateY="50.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                <Button fx:id="up" alignment="CENTER" mnemonicParsing="false" onAction="#up" scaleX="3.0" scaleY="3.0" text="Up" translateX="70.0" translateY="210.0" GridPane.columnIndex="1" />
+                <Button fx:id="left" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#left" scaleX="3.0" scaleY="3.0" text="Left" textAlignment="CENTER" translateX="160.0" translateY="140.0" GridPane.rowIndex="1" />
+                <Button fx:id="right" mnemonicParsing="false" onAction="#right" scaleX="2.0" scaleY="3.0" text="Right" translateX="-40.0" translateY="140.0" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                <Button fx:id="down" mnemonicParsing="false" onAction="#down" scaleX="2.0" scaleY="3.0" text="Down" translateX="62.0" translateY="140.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                <Button fx:id="getter" mnemonicParsing="false" onAction="#getData" text="Pobieranie Danych" translateX="40.0" GridPane.columnIndex="1" />
+
+            </children>
+        </GridPane>
+    </children>
+    <columnConstraints>
+        <ColumnConstraints />
+        <ColumnConstraints />
+        <ColumnConstraints />
+        <ColumnConstraints />
+        <ColumnConstraints />
+        <ColumnConstraints maxWidth="44.0" minWidth="0.0" prefWidth="0.0" />
+        <ColumnConstraints maxWidth="44.0" minWidth="0.0" prefWidth="0.0" />
+        <ColumnConstraints maxWidth="44.0" minWidth="0.0" prefWidth="0.0" />
+    </columnConstraints>
+    <rowConstraints>
+        <RowConstraints />
+        <RowConstraints />
+        <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" />
+        <RowConstraints />
+        <RowConstraints />
+        <RowConstraints maxHeight="165.0" minHeight="165.0" prefHeight="165.0" />
+        <RowConstraints maxHeight="0.0" minHeight="0.0" prefHeight="0.0" />
+        <RowConstraints />
+        <RowConstraints />
+        <RowConstraints />
+        <RowConstraints />
+        <RowConstraints />
+        <RowConstraints maxHeight="0.0" minHeight="0.0" prefHeight="0.0" />
+        <RowConstraints maxHeight="0.0" minHeight="0.0" prefHeight="0.0" />
+        <RowConstraints />
+        <RowConstraints />
+        <RowConstraints />
+    </rowConstraints>
+</GridPane>
