@@ -5,6 +5,7 @@
 .metadata/
 .recommenders/
 .jar
+.save 
 
 # Maven
 log/
