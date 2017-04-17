@@ -12,4 +12,4 @@ log/
 target/
 
 # Files containg private data
-*/remotedebug.xml
+/*/remotedebug.xml
