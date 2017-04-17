@@ -19,18 +19,8 @@ public class MotorHat {
         
         mA = new Motor(I2CController.IN_A1,I2CController.IN_A2,I2CController.PWMA);
         mB = new Motor(I2CController.IN_B1,I2CController.IN_B2,I2CController.PWMB);
-		for (int i=0; i<20; i++){
-			motorGo(mA, true, 4096);
-			motorGo(mB, true, 4096);
-			
-			Thread.sleep(1000);
-			
-			motorGo(mA, true, 4096);
-			motorGo(mB, false, 4096);
-			
-			Thread.sleep(500);
-		}
-	    i2c.reset();	        	
+
+	    //i2c.reset();	        	
             
 	}
 	
