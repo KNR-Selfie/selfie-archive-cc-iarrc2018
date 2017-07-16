@@ -66,9 +66,20 @@ int main(int argc, char** argv)
 		detected_middle_bottom_pos = ROI_horizontal_pos + min(left_bottom_pos, right_bottom_pos) + abs(left_bottom_pos - right_bottom_pos) / 2;
 		detected_middle_pos = ROI_horizontal_pos + min(detected_middle_top_pos, detected_middle_bottom_pos) + abs(detected_middle_top_pos - detected_middle_bottom_pos) / 2;
 		
+		//GUI part
 		cout << "Middle: " << detected_middle_pos << endl;
 		
+		Rect ROI_rec(
+		ROI_horizontal_pos,
+		ROI_vertical_pos,
+		ROI_width,
+		ROI_height);
+		
+		display_main_ROI(real_frame, Rect ROI_rec)
+		display_detected_main_ROI_info(real_frame, ROI_horizontal_pos, ROI_vertical_pos, ROI_width, ROI_height,  left_top_pos,  right_top_pos,  left_bottom_pos,  right_bottom_pos,  detected_middle_top_pos,  detected_middle_bottom_pos,  detected_middle_pos)
+		
 		display_windows(real_frame, main_ROI_frame);
+		//GUI part
 		
 		if (waitKey(50) != -1)
         {
