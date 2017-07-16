@@ -103,3 +103,31 @@ void display_detected_main_ROI_info(Mat &frame, int ROI_horizontal_pos, int ROI_
 		8,
 		0);
 }
+
+void display_text(Mat &frame, int ROI_horizontal_pos, int ROI_vertical_pos, int ROI_width, int ROI_height, unsigned short detected_middle_pos, double bisector_angle_rad, double bisector_angle_st)
+{
+	string s_1, s_2, s_3;
+	stringstream out_1, out_2, out_3;
+
+	out_1 << "Kat [rad]: " << bisector_angle_rad;
+	s_1 = out_1.str();
+	out_2 << "Kat [st]:  " << bisector_angle_st;
+	s_2 = out_2.str();
+	out_3 << "Srodek:  " << detected_middle_pos;
+	s_3 = out_3.str();
+
+	putText(frame, s_1, Point(310, 30), CV_FONT_HERSHEY_COMPLEX, 1, Scalar(255, 96, 0), 2, 8);
+	putText(frame, s_2, Point(310, 70), CV_FONT_HERSHEY_COMPLEX, 1, Scalar(0, 96, 255), 2, 8);
+	putText(frame, s_3, Point(310, 110), CV_FONT_HERSHEY_COMPLEX, 1, Scalar(0, 255, 0), 2, 8);
+
+	putText(
+		frame, 
+		"ROI", 
+		Point(ROI_horizontal_pos, ROI_vertical_pos - 15),
+		FONT_HERSHEY_SIMPLEX,
+		1,
+		Scalar(0, 100, 200),
+		2,
+		8,
+		0);
+}

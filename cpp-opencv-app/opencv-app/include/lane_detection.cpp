@@ -71,3 +71,17 @@ void search_to_right_bottom_main_ROI(Mat frame, unsigned short &right_bottom_pos
 		}
 	}
 }
+
+void calculate_bisector(int ROI_height, unsigned short detected_middle_bottom_pos, unsigned short detected_middle_top_pos, double &bisector_angle_rad, double &bisector_angle_st)
+{
+	double a = ROI_height;
+	double b = detected_middle_bottom_pos - detected_middle_top_pos;
+	bisector_angle_rad = atan(a / b);
+
+	if(bisector_angle_rad < 0)
+	{
+		bisector_angle_rad = 3 + bisector_angle_rad;
+	}
+
+	bisector_angle_st = bisector_angle_rad * 180 / 3.1416;
+}

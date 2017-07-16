@@ -32,6 +32,9 @@ unsigned short detected_middle_pos = 320;
 unsigned short detected_middle_top_pos = 0;
 unsigned short detected_middle_bottom_pos = ROI_width;
 
+double bisector_angle_rad = 0.5;
+double bisector_angle_st = 90;
+
 int main(int argc, char** argv)
 {
     if(!start_camera(CAM_INDEX, CAM_WIDTH, CAM_HEIGHT))
@@ -66,6 +69,8 @@ int main(int argc, char** argv)
 		detected_middle_bottom_pos = ROI_horizontal_pos + min(left_bottom_pos, right_bottom_pos) + abs(left_bottom_pos - right_bottom_pos) / 2;
 		detected_middle_pos = ROI_horizontal_pos + min(detected_middle_top_pos, detected_middle_bottom_pos) + abs(detected_middle_top_pos - detected_middle_bottom_pos) / 2;
 		
+		calculate_bisector(ROI_height, detected_middle_bottom_pos, detected_middle_top_pos, bisector_angle_rad, bisector_angle_st);
+		
 		//GUI part
 		cout << "Middle: " << detected_middle_pos << endl;
 		
@@ -77,7 +82,7 @@ int main(int argc, char** argv)
 		
 		display_main_ROI(real_frame, ROI_rec);
 		display_detected_main_ROI_info(real_frame, ROI_horizontal_pos, ROI_vertical_pos, ROI_width, ROI_height,  left_top_pos,  right_top_pos,  left_bottom_pos,  right_bottom_pos,  detected_middle_top_pos,  detected_middle_bottom_pos,  detected_middle_pos);
-		
+		void display_text(real_frame, ROI_horizontal_pos, ROI_vertical_pos, ROI_width, ROI_height, detected_middle_pos, bisector_angle_rad, bisector_angle_st);
 		display_windows(real_frame, main_ROI_frame);
 		//GUI part
 		
