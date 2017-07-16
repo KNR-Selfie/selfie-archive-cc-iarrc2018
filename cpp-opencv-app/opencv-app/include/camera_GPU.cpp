@@ -1,4 +1,4 @@
-#include "camera.h"
+#include "camera_GPU.h"
 
 bool start_camera(unsigned short camera_index, unsigned short camera_width, unsigned short camera_height)
 {
@@ -7,7 +7,7 @@ bool start_camera(unsigned short camera_index, unsigned short camera_width, unsi
     if (camera.isOpened())
     {
         cout << "Camera opened properly on port 0" << endl;
-		cout << "Resolution: " << camera.get(CV_CAP_PROP_FRAME_WIDTH) << " x " << camera.get(CV_CAP_PROP_FRAME_HEIGHT) << endl;
+	cout << "Resolution: " << camera.get(CV_CAP_PROP_FRAME_WIDTH) << " x " << camera.get(CV_CAP_PROP_FRAME_HEIGHT) << endl;
 		
         return 1;
     }	
@@ -22,12 +22,12 @@ bool start_camera(unsigned short camera_index, unsigned short camera_width, unsi
 bool destroy_handlers(unsigned short camera_index)
 {
 	camera.release();
-    gpu::resetDevice();
+    	gpu::resetDevice();
 }
 
 bool set_CUDA_device(unsigned short CUDA_device_index)
 {
-	//Check of apropriate GPU module with CUDA enabled
+    //Check of apropriate GPU module with CUDA enabled
     if(!gpu::getCudaEnabledDeviceCount())
     {
 		cout << "No CUDA module detected!" << endl;
