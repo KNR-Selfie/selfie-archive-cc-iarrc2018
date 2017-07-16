@@ -12,10 +12,10 @@
 Mat real_frame;
 Mat main_ROI_frame;
 
-unsigned short compared_level = 115;
+int compared_level = 115;
 
-unsigned short ROI_width = 620, ROI_height = 100;
-unsigned short ROI_horizontal_pos = 9, ROI_vertical_pos = 200;
+int ROI_width = 620, ROI_height = 100;
+int ROI_horizontal_pos = 9, ROI_vertical_pos = 200;
 	
 unsigned short horizontal_start_position_top = ROI_width / 2;
 unsigned short horizontal_start_position_bottom = ROI_width / 2;

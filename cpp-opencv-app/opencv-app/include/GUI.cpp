@@ -8,7 +8,7 @@ void wait_for_user()
     getchar();
 }
 
-void create_windows_trackbars(unsigned short &compared_level_main, unsigned short &ROI_horizontal_pos, unsigned short &ROI_height)
+void create_windows_trackbars(int &compared_level_main, int &ROI_vertical_pos, int &ROI_height)
 {
 	//Initializing GUI windows
     namedWindow(0[window_name], CV_WINDOW_AUTOSIZE);
