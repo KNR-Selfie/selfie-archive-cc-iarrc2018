@@ -45,6 +45,6 @@ int main(int argc, char* argv[])
         }
     }
 
-	destroy_handlers();
+	destroy_handlers(argv[1]);
     return 0;
 }

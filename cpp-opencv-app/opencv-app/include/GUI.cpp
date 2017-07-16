@@ -1,5 +1,7 @@
 #include "GUI.h"
 
+string window_name[] = {"Camera vision", "ROI", "Settings"};
+
 void wait_for_user()
 {
     cout << "Press enter to continue ";

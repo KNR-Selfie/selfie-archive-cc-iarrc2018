@@ -1,6 +1,6 @@
 #include "camera_GPU.h"
 
-bool start_camera(unsigned short camera_index, unsigned short camera_width, unsigned short camera_height)
+bool start_camera(char** camera_index, unsigned short camera_width, unsigned short camera_height)
 {
     camera.open(camera_index);
     
@@ -67,7 +67,9 @@ bool set_CUDA_device(unsigned short CUDA_device_index)
 
 Mat get_frame(unsigned short camera_index)
 {
-	camera >> frame;
+        Mat frame;	
+
+        camera >> frame;
 	
 	if(!frame.data)
 	{
