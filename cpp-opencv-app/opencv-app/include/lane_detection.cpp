@@ -1,6 +1,6 @@
 #include "lane_detection.h"
 
-void search_to_left_top_main_ROI(Mat frame, unsigned short &left_top_pos, bool &top_left_line_visible, unsigned short ROI_width, unsigned short ROI_height)
+void search_to_left_top_main_ROI(Mat frame, unsigned short &left_top_pos, bool &top_left_line_visible, unsigned short ROI_width, unsigned short ROI_height, unsigned short horizontal_start_position_top)
 {
 	left_top_pos = 0;
 	top_left_line_visible = false;
@@ -18,7 +18,7 @@ void search_to_left_top_main_ROI(Mat frame, unsigned short &left_top_pos, bool &
 	}
 }
 
-void search_to_right_top_main_ROI(Mat frame, unsigned short &right_top_pos, bool &top_right_line_visible, unsigned short ROI_width, unsigned short ROI_height)
+void search_to_right_top_main_ROI(Mat frame, unsigned short &right_top_pos, bool &top_right_line_visible, unsigned short ROI_width, unsigned short ROI_height, unsigned short horizontal_start_position_top)
 {
 	right_top_pos = ROI_width - 1;
 	top_right_line_visible = false;
@@ -36,7 +36,7 @@ void search_to_right_top_main_ROI(Mat frame, unsigned short &right_top_pos, bool
 	}
 }
 
-void search_to_left_bottom_main_ROI(Mat frame, unsigned short &left_bottom_pos, bool &bottom_left_line_visible, unsigned short ROI_width, unsigned short ROI_height)
+void search_to_left_bottom_main_ROI(Mat frame, unsigned short &left_bottom_pos, bool &bottom_left_line_visible, unsigned short ROI_width, unsigned short ROI_height, unsigned short horizontal_start_position_bottom)
 {
 	left_bottom_pos = 0;
 	bottom_left_line_visible = false;
@@ -54,7 +54,7 @@ void search_to_left_bottom_main_ROI(Mat frame, unsigned short &left_bottom_pos, 
 	}
 }
 
-void search_to_right_bottom_main_ROI(Mat frame, unsigned short &right_bottom_pos, bool &bottom_right_line_visible, unsigned short ROI_width, unsigned short ROI_height)
+void search_to_right_bottom_main_ROI(Mat frame, unsigned short &right_bottom_pos, bool &bottom_right_line_visible, unsigned short ROI_width, unsigned short ROI_height, unsigned short horizontal_start_position_bottom)
 {
 	right_bottom_pos = ROI_width - 1;
 	bottom_right_line_visible = false;

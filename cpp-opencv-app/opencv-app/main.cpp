@@ -44,7 +44,7 @@ int main(int argc, char** argv)
 		return 0;
 	}
 	
-	create_windows_trackbars(compared_level, ROI_horizontal_pos, ROI_height)
+	create_windows_trackbars(compared_level, ROI_horizontal_pos, ROI_height);
 	
 	wait_for_user();
 	
@@ -54,10 +54,10 @@ int main(int argc, char** argv)
 		real_frame = get_frame(CAM_INDEX);
 		main_ROI_frame = filter_frame(real_frame, compared_level, ROI_horizontal_pos, ROI_vertical_pos, ROI_width, ROI_height);
 		
-		search_to_left_top_main_ROI(frame, left_top_pos, top_left_line_visible, ROI_width, ROI_height);
-		search_to_right_top_main_ROI(frame, right_top_pos, top_right_line_visible, ROI_width, ROI_height);
-		search_to_left_bottom_main_ROI(frame, left_bottom_pos, bottom_left_line_visible, ROI_width, ROI_height);
-		search_to_right_bottom_main_ROI(ROI_frame, right_bottom_pos, bottom_right_line_visible, ROI_width, ROI_height);
+		search_to_left_top_main_ROI(frame, left_top_pos, top_left_line_visible, ROI_width, ROI_height, horizontal_start_position_top);
+		search_to_right_top_main_ROI(frame, right_top_pos, top_right_line_visible, ROI_width, ROI_height, horizontal_start_position_top);
+		search_to_left_bottom_main_ROI(frame, left_bottom_pos, bottom_left_line_visible, ROI_width, ROI_height, horizontal_start_position_bottom);
+		search_to_right_bottom_main_ROI(ROI_frame, right_bottom_pos, bottom_right_line_visible, ROI_width, ROI_height, horizontal_start_position_bottom);
 		
 		horizontal_start_position_top = min(left_top_pos, right_top_pos) + abs(right_top_pos - left_top_pos) / 2;
 		horizontal_start_position_bottom = min(left_bottom_pos, right_bottom_pos) + abs(right_bottom_pos - left_bottom_pos) / 2;;	
