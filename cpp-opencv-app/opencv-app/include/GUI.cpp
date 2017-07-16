@@ -8,6 +8,22 @@ void wait_for_user()
     getchar();
 }
 
+void create_windows_trackbars(unsigned short &compared_level_main, unsigned short &ROI_horizontal_pos, unsigned short &ROI_height)
+{
+	//Initializing GUI windows
+    namedWindow(0[window_name], CV_WINDOW_AUTOSIZE);
+    namedWindow(1[window_name], CV_WINDOW_AUTOSIZE);
+    namedWindow(2[window_name], CV_WINDOW_NORMAL);
+
+    //Trackbar to set level of threshold of main search
+    createTrackbar("Threshold", window_name[2], &compared_level_main, 255, NULL);
+    //Trackbar to set ROI height
+    createTrackbar("ROI height", window_name[2], &ROI_height, 200, NULL);
+    //Trackbar to set ROI vertical position
+    createTrackbar("ROI ver", window_name[2], &ROI_vertical_pos, 400, NULL);
+
+}
+
 void display_windows(Mat frame_1, Mat frame_2)
 {
 	imshow(0[window_name], frame_1);		//Camera vision 

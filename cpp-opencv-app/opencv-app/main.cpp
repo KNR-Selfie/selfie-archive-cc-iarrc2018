@@ -12,9 +12,25 @@
 Mat real_frame;
 Mat main_ROI_frame;
 
-unsigned short compared_level_main = 115;
+unsigned short compared_level = 115;
+
 unsigned short ROI_width = 620, ROI_height = 100;
 unsigned short ROI_horizontal_pos = 9, ROI_vertical_pos = 200;
+	
+unsigned short horizontal_start_position_top = ROI_width / 2;
+unsigned short horizontal_start_position_bottom = ROI_width / 2;
+
+unsigned short left_top_pos = 0, right_top_pos = ROI_width - 1;
+unsigned short left_bottom_pos = 0, right_bottom_pos = ROI_width - 1;
+
+bool top_left_line_visible = false;
+bool bottom_left_line_visible = false;
+bool top_right_line_visible = false;
+bool bottom_right_line_visible = false;
+
+unsigned short detected_middle_pos = 320;
+unsigned short detected_middle_top_pos = 0;
+unsigned short detected_middle_bottom_pos = ROI_width;
 
 int main(int argc, char** argv)
 {
@@ -28,13 +44,29 @@ int main(int argc, char** argv)
 		return 0;
 	}
 	
+	create_windows_trackbars(compared_level, ROI_horizontal_pos, ROI_height)
+	
 	wait_for_user();
 	
     //Main loop
     while(true)
     {
 		real_frame = get_frame(CAM_INDEX);
-		main_ROI_frame = filter_frame(real_frame, compared_level_main, ROI_horizontal_pos, ROI_vertical_pos, ROI_width, ROI_height);
+		main_ROI_frame = filter_frame(real_frame, compared_level, ROI_horizontal_pos, ROI_vertical_pos, ROI_width, ROI_height);
+		
+		search_to_left_top_main_ROI(frame, left_top_pos, top_left_line_visible, ROI_width, ROI_height);
+		search_to_right_top_main_ROI(frame, right_top_pos, top_right_line_visible, ROI_width, ROI_height);
+		search_to_left_bottom_main_ROI(frame, left_bottom_pos, bottom_left_line_visible, ROI_width, ROI_height);
+		search_to_right_bottom_main_ROI(ROI_frame, right_bottom_pos, bottom_right_line_visible, ROI_width, ROI_height);
+		
+		horizontal_start_position_top = min(left_top_pos, right_top_pos) + abs(right_top_pos - left_top_pos) / 2;
+		horizontal_start_position_bottom = min(left_bottom_pos, right_bottom_pos) + abs(right_bottom_pos - left_bottom_pos) / 2;;	
+		
+		detected_middle_top_pos = ROI_horizontal_pos + min(left_top_pos, right_top_pos) + abs(left_top_pos - right_top_pos) / 2;
+		detected_middle_bottom_pos = ROI_horizontal_pos + min(left_bottom_pos, right_bottom_pos) + abs(left_bottom_pos - right_bottom_pos) / 2;
+		detected_middle_pos = ROI_horizontal_pos + min(detected_middle_top_pos, detected_middle_bottom_pos) + abs(detected_middle_top_pos - detected_middle_bottom_pos) / 2;
+		
+		cout << "Middle: " << detected_middle_pos << endl;
 		
 		display_windows(real_frame, main_ROI_frame);
 		
@@ -45,6 +77,6 @@ int main(int argc, char** argv)
         }
     }
 
-	destroy_handlers(CAM_INDEX);
+	destroy_handlers();
     return 0;
 }

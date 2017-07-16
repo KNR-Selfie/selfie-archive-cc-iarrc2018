@@ -19,10 +19,10 @@ bool start_camera(int camera_index, unsigned short camera_width, unsigned short 
     }
 }
 
-bool destroy_handlers(unsigned short camera_index)
+void destroy_handlers()
 {
 	camera.release();
-    	gpu::resetDevice();
+    gpu::resetDevice();
 }
 
 bool set_CUDA_device(unsigned short CUDA_device_index)
