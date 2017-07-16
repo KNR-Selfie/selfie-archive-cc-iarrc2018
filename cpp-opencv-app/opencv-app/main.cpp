@@ -1,4 +1,4 @@
-#include "include/camera.cpp"
+#include "include/camera_GPU.cpp"
 #include "include/GUI.cpp"
 #include "include/lane_detection.cpp"
 #include "include/sign_detection.cpp"
