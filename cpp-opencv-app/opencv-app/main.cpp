@@ -47,9 +47,9 @@ int main(int argc, char** argv)
 		return 0;
 	}
 	
-	create_windows_trackbars(compared_level, ROI_horizontal_pos, ROI_height);
-	
 	wait_for_user();
+	
+	create_windows_trackbars(compared_level, ROI_horizontal_pos, ROI_height);
 	
     //Main loop
     while(true)
