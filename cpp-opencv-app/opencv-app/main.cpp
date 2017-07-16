@@ -4,7 +4,7 @@
 #include "include/sign_detection.cpp"
 #include "include/UART.cpp"
 
-//#define CAM_INDEX 0
+#define CAM_INDEX 0
 #define CUDA_INDEX 0
 #define CAM_WIDTH 640
 #define CAM_HEIGHT 480
@@ -16,14 +16,14 @@ unsigned short compared_level_main = 115;
 unsigned short ROI_width = 620, ROI_height = 100;
 unsigned short ROI_horizontal_pos = 9, ROI_vertical_pos = 200;
 
-int main(int argc, char** argv[])
+int main(int argc, char** argv)
 {
-    if(!start_camera(argv[1], CAM_WIDTH, CAM_HEIGHT))
+    if(!start_camera(CAM_INDEX, CAM_WIDTH, CAM_HEIGHT))
     {
         return 0;
     }
 
-	if(!bool set_CUDA_device(CUDA_INDEX))
+	if(!set_CUDA_device(CUDA_INDEX))
 	{
 		return 0;
 	}
@@ -33,8 +33,8 @@ int main(int argc, char** argv[])
     //Main loop
     while(true)
     {
-		real_frame = get_frame(argv[1]);
-		main_ROI_frame = filter_frame(real_frame, unsigned short compared_level_main, unsigned short ROI_horizontal_pos, unsigned short ROI_vertical_pos, unsigned short ROI_width, unsigned short ROI_height);
+		real_frame = get_frame(CAM_INDEX);
+		main_ROI_frame = filter_frame(real_frame, compared_level_main, ROI_horizontal_pos, ROI_vertical_pos, ROI_width, ROI_height);
 		
 		display_windows(real_frame, main_ROI_frame);
 		
@@ -45,6 +45,6 @@ int main(int argc, char** argv[])
         }
     }
 
-	destroy_handlers(argv[1]);
+	destroy_handlers(CAM_INDEX);
     return 0;
 }
