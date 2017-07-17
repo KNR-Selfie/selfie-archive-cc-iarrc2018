@@ -71,6 +71,8 @@ int main(int argc, char** argv)
 		
 		calculate_bisector(ROI_height, detected_middle_bottom_pos, detected_middle_top_pos, bisector_angle_rad, bisector_angle_st);
 		
+		send_UART_data();
+		
 		//GUI part
 		cout << "Middle: " << detected_middle_pos << endl;
 		
