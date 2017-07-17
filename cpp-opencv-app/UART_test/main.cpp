@@ -1,4 +1,4 @@
-#pragma pack(1)
+//#pragma pack(1)
 #include <iostream>
 #include <stdio.h>
 #include <bitset>
