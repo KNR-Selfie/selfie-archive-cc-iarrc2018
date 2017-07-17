@@ -26,7 +26,7 @@ struct data_frame
 	unsigned short data_5 : 11;
 	unsigned short data_6 : 11;
 	unsigned short data_7 : 11;
-	unsigned char flags = 0;
+	unsigned char flags;
 	unsigned char end_byte;
 } __attribute__((packed));
 

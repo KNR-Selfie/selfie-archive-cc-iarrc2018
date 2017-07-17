@@ -54,6 +54,7 @@ int main(int argc, char** argv)
 	else
 	{
 		unia_danych.dane.sync_byte = 0xff;
+		unia.dane.flags = 0b00000000;
 		unia_danych.dane.end_byte = 0xff;
 	}
 	
