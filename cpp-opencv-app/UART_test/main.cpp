@@ -62,7 +62,7 @@ int main()
 	cout << bitset<8>(unia.dane.flags) << endl;
 	cout << bitset<8>(unia.dane.end_byte) << endl;
 
-	system("pause");
+	getchar();
 
 	return 0;
 }
