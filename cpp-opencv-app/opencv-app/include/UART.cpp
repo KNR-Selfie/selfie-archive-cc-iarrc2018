@@ -65,5 +65,8 @@ bool UART_set()
 
 void send_UART_data()
 {
-	
+	for(int i = 0; i < 14; i++)
+    {
+		check = write(fd, &unia_danych.data_to_send[i], 14);
+    }
 }

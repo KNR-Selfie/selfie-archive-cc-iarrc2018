@@ -76,9 +76,9 @@ int main(int argc, char** argv)
 		
 		calculate_bisector(ROI_height, detected_middle_bottom_pos, detected_middle_top_pos, bisector_angle_rad, bisector_angle_st);
 		
-		unia_danych.dane.sync_byte = 0xff;
-		unia_danych.dane.data_0 = 10;
-		unia_danych.dane.data_1 = 11;
+		//UART part
+		unia_danych.dane.data_0 = detected_middle_pos;
+		unia_danych.dane.data_1 = bisector_angle_st;
 		unia_danych.dane.data_2 = 12;
 		unia_danych.dane.data_3 = 13;
 		unia_danych.dane.data_4 = 14;
@@ -86,9 +86,9 @@ int main(int argc, char** argv)
 		unia_danych.dane.data_6 = 16;
 		unia_danych.dane.data_7 = 17;
 		unia_danych.dane.flags = 0b00000000;
-		unia_danych.dane.end_byte = 0xff;
 		
 		send_UART_data();
+		//UART part
 		
 		//GUI part
 		cout << "Middle: " << detected_middle_pos << endl;
