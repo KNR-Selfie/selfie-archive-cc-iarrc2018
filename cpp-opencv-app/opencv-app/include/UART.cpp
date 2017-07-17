@@ -3,12 +3,12 @@
 bool UART_set()
 {
     fd = open("/dev/ttyTHS1", O_RDWR | O_NOCTTY | O_NDELAY);
-    if (fd == -1)
-    {
-		cout << "\033[1;31m Opening Serial port failed\033[0m\n" << endl;
-		return 0;
-    }
-    else
+    //if (fd == -1)
+    //{
+		//cout << "\033[1;31m Opening Serial port failed\033[0m\n" << endl;
+		//return 0;
+    //}
+    //else
     {
 		cout << "\033[1;32m Opening Serial port succeded\033[0m\n" << endl;
     }
