@@ -27,9 +27,9 @@ bool UART_set()
     options.c_cflag |= (CLOCAL | CREAD);
 	
     //Enable parity
-    options.c_cflag |= PARENB
+    options.c_cflag |= PARENB;
 	//Set parity to even
-	options.c_cflag &= ~PARODD
+	options.c_cflag &= ~PARODD;
 	
     //2 stop bits
     options.c_cflag |= CSTOPB;
