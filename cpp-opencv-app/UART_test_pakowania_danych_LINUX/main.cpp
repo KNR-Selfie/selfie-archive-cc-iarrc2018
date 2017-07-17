@@ -23,7 +23,7 @@ struct data_frame
 union frame
 {
 	data_frame dane;
-	unsigned char data_to_send[18];
+	unsigned char data_to_send[14];
 };
 
 int main()

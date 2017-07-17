@@ -1,16 +1,16 @@
 #include "UART.h"
 
-void UART_set()
+bool UART_set()
 {
-    //Open port for UART
-    fd = open("/dev/ttyTHS1", O_RDWR | O_NOCTTY | O_NDELAY);  //albo /ttyTHS1
+    fd = open("/dev/ttyTHS1", O_RDWR | O_NOCTTY | O_NDELAY);
     if (fd == -1)
     {
-  	cout << "\033[1;31m Opening Serial port failed\033[0m\n" << endl;
+		cout << "\033[1;31m Opening Serial port failed\033[0m\n" << endl;
+		return 0;
     }
     else
     {
-	cout << "\033[1;32m Opening Serial port succeded\033[0m\n" << endl;
+		cout << "\033[1;32m Opening Serial port succeded\033[0m\n" << endl;
     }
 
     cout << "\033[1;33m Setting Serial options\033[0m\n" << endl;
@@ -26,11 +26,13 @@ void UART_set()
     //Enable the receiver and set local mode
     options.c_cflag |= (CLOCAL | CREAD);
 	
-    //No parity
-    options.c_cflag &= ~PARENB;
+    //Enable parity
+    options.c_cflag |= PARENB
+	//Set parity to even
+	options.c_cflag &= ~PARODD
 	
-    //1 stop bit
-    options.c_cflag &= ~CSTOPB;
+    //2 stop bits
+    options.c_cflag |= CSTOPB;
 	
     //Mask the character size bits and set 8 data bits
     options.c_cflag &= ~CSIZE;
@@ -58,6 +60,7 @@ void UART_set()
     tcflush(fd, TCIOFLUSH);	
 	
     cout << "\033[1;32m Serial options set \033[0m\n" << endl;
+	return 1;
 }
 
 void send_UART_data()

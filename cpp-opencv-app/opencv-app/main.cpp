@@ -47,6 +47,11 @@ int main(int argc, char** argv)
 		return 0;
 	}
 	
+	if(!UART_set())
+	{
+		return 0;
+	}
+	
 	wait_for_user();
 	
 	create_windows_trackbars(compared_level, ROI_horizontal_pos, ROI_height);
@@ -70,6 +75,18 @@ int main(int argc, char** argv)
 		detected_middle_pos = ROI_horizontal_pos + min(detected_middle_top_pos, detected_middle_bottom_pos) + abs(detected_middle_top_pos - detected_middle_bottom_pos) / 2;
 		
 		calculate_bisector(ROI_height, detected_middle_bottom_pos, detected_middle_top_pos, bisector_angle_rad, bisector_angle_st);
+		
+		unia_danych.dane.sync_byte = 0xff;
+		unia_danych.dane.data_0 = 10;
+		unia_danych.dane.data_1 = 11;
+		unia_danych.dane.data_2 = 12;
+		unia_danych.dane.data_3 = 13;
+		unia_danych.dane.data_4 = 14;
+		unia_danych.dane.data_5 = 15;
+		unia_danych.dane.data_6 = 16;
+		unia_danych.dane.data_7 = 17;
+		unia_danych.dane.flags = 0b00000000;
+		unia_danych.dane.end_byte = 0xff;
 		
 		send_UART_data();
 		
