@@ -51,6 +51,11 @@ int main(int argc, char** argv)
 	{
 		return 0;
 	}
+	else
+	{
+		unia_danych.dane.sync_byte = 0xff;
+		unia_danych.dane.end_byte = 0xff;
+	}
 	
 	wait_for_user();
 	

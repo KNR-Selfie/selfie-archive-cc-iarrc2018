@@ -17,7 +17,7 @@ struct termios options;
 
 struct data_frame
 {
-	unsigned char sync_byte = 0xff;
+	unsigned char sync_byte;
 	unsigned short data_0 : 11;
 	unsigned short data_1 : 11;
 	unsigned short data_2 : 11;
@@ -27,7 +27,7 @@ struct data_frame
 	unsigned short data_6 : 11;
 	unsigned short data_7 : 11;
 	unsigned char flags = 0;
-	unsigned char end_byte = 0xff;
+	unsigned char end_byte;
 } __attribute__((packed));
 
 union frame
