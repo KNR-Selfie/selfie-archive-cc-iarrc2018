@@ -18,7 +18,7 @@
 using namespace std;
 using namespace cv;
 
-//UART structures
+//UART structures 
 struct sigaction saio;
 struct termios options;
 

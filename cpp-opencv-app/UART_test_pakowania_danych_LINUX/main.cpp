@@ -42,7 +42,7 @@ int main()
 	unia.dane.flags = 0b00000000;
 	unia.dane.end_byte = 0xff;
 
-	//Show results
+	//Show results 
 	for (int i = 0; i <= 13; i++)
 	{
 		cout << bitset<8>(unia.data_to_send[i]) << endl;
