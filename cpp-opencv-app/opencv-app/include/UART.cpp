@@ -22,9 +22,6 @@ bool UART_set()
     //Set the baud rates to 115200
     cfsetispeed(&options, B115200);
     cfsetospeed(&options, B115200);
-
-    //Enable the receiver and set local mode
-    options.c_cflag |= (CLOCAL | CREAD);
 	
     //Enable parity
     options.c_cflag |= PARENB;
@@ -37,21 +34,6 @@ bool UART_set()
     //Mask the character size bits and set 8 data bits
     options.c_cflag &= ~CSIZE;
     options.c_cflag |= CS8;
-
-    //Disable hardware flow control
-    options.c_cflag &= ~CRTSCTS;
-
-    //Choosing raw input
-    options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
-
-    //
-    options.c_cflag |= (CLOCAL | CREAD);
-
-    //Disabling software flow control
-    options.c_iflag &= ~(IXON | IXOFF | IXANY);
-
-    //
-    options.c_oflag &= ~OPOST;
 
    //Set the new options for the port...
     tcsetattr(fd, TCSANOW, &options);
@@ -67,6 +49,7 @@ void send_UART_data()
 {
 	for(int i = 0; i < 14; i++)
     {
-		check = write(fd, &unia_danych.data_to_send[i], 14);
+		//cout << (int)unia_danych.data_to_send[i] << endl;
+		check = write(fd, &unia_danych.data_to_send[i], 1);
     }
 }

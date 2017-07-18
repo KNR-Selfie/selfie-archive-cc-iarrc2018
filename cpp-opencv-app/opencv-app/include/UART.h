@@ -33,7 +33,7 @@ struct data_frame
 union frame
 {
 	data_frame dane;
-	unsigned char data_to_send[14];
+	char data_to_send[14];
 };
 
 frame unia_danych;

@@ -83,15 +83,15 @@ int main(int argc, char** argv)
 		calculate_bisector(ROI_height, detected_middle_bottom_pos, detected_middle_top_pos, bisector_angle_rad, bisector_angle_st);
 		
 		//UART part
-		unia_danych.dane.data_0 = 0xff;
-		unia_danych.dane.data_1 = 0xff;
-		unia_danych.dane.data_2 = 0xff;
-		unia_danych.dane.data_3 = 0;
-		unia_danych.dane.data_4 = 0;
-		unia_danych.dane.data_5 = 0;
-		unia_danych.dane.data_6 = 0;
-		unia_danych.dane.data_7 = 0;
-		unia_danych.dane.flags = 0b00000001;
+		unia_danych.dane.data_0 = 0b11111111111;
+		unia_danych.dane.data_1 = 0b11111111111;
+		unia_danych.dane.data_2 = 0b11111111111;
+		unia_danych.dane.data_3 = 0b11111111111;
+		unia_danych.dane.data_4 = 0b11111111111;
+		unia_danych.dane.data_5 = 0b11111111111;
+		unia_danych.dane.data_6 = 0b11111111111;
+		unia_danych.dane.data_7 = 0b11111111111;
+		unia_danych.dane.flags = 0xff;
 		
 		send_UART_data();
 		//UART part
