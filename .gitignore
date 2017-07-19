@@ -13,6 +13,9 @@ target/
 
 #OpenCV
 build/
+.md~
+.cpp~
+.h~
 
 # Files containg private data
 **/remotedebug.xml
