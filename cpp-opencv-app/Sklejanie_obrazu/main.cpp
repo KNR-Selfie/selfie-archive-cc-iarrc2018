@@ -2,6 +2,7 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <iostream>
+#include <stdio.h>
 
 using namespace std;
 using namespace cv;
@@ -9,19 +10,19 @@ using namespace cv;
 string window_name[] = {"Camera 1", "Camera 2", "Settings", "Result"};
 
 Mat frame_1, frame_2;
-Mat result_frame(1300,480, CV_8UC3, Scalar(0,0,255));
+Mat result_frame(480, 1280, CV_8UC3, Scalar(0,255,0));
 
-int X_pos = 600;
+int X_pos = 640;
 int width = 640, height = 480;
 
 int main(int, char**)
 {
     VideoCapture camera_1, camera_2;
     camera_1.open(1);
-	camera_1.open(2);
+	camera_2.open(2);
     
     //Check if camera opened properly
-    if (camera_1.isOpened() && camera_2.isOpen())
+    if (camera_1.isOpened() && camera_2.isOpened())
     {
         cout << "Cameras opened properly on port 1 & 2" << endl;
     }	
@@ -42,18 +43,18 @@ int main(int, char**)
 	namedWindow(3[window_name], CV_WINDOW_AUTOSIZE);
 
     //Trackbar
-    createTrackbar("X", window_name[2], &X_pos, 650, NULL);
+    createTrackbar("X", window_name[2], &X_pos, 640, NULL);
 
     //Main function
     while(true)
     {
         camera_1 >> frame_1;
 		camera_2 >> frame_2;
-	}
+	
 	
 	//-----
-	frame_1.copyTo(result_frame(Rect(0, 0, frame_1.cols, frame_1.rows,)));
-	frame_2.copyTo(result_frame(Rect(X_pos, 0, frame_1.cols, frame_1.rows,)));
+	frame_1.copyTo(result_frame(Rect(0, 0, frame_1.cols, frame_1.rows)));
+	frame_2.copyTo(result_frame(Rect(X_pos, 0, frame_1.cols, frame_1.rows)));
 	//-----
 	
 	imshow(0[window_name], frame_1);		
