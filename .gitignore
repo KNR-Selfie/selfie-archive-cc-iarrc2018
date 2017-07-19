@@ -16,3 +16,7 @@ build/
 
 # Files containg private data
 **/remotedebug.xml
+
+*.cpp~
+
+*.h~
