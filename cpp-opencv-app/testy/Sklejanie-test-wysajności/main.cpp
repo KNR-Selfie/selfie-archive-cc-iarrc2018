@@ -55,7 +55,7 @@ int main(int argc, char** argv)
     while(true)
     {
 		camera_left >> frame_left;
-		camera_right >> frame_2;
+		camera_right >> frame_right;
 		
 		frame_left.copyTo(result_frame(Rect(0, 0, frame_left.cols, frame_left.rows)));
 		frame_right.copyTo(result_frame(Rect(frame_left.cols, 0, frame_right.cols, frame_right.rows)));
