@@ -25,7 +25,7 @@ int main(int argc, char** argv)
 	cout << "0";
 	Mat right_frame(480, 640, CV_8UC3, Scalar(0,255,0));
 	cout << "0";
-	Mat result_frame(480, 1280, CV_8UC3, Scalar(0,255,0));
+	Mat result_frame(2000, 2000, CV_8UC3, Scalar(0,255,0));
 	cout << "0";
 
     if(!start_camera(camera_left, CAM_INDEX_LEFT, CAM_WIDTH, CAM_HEIGHT))
