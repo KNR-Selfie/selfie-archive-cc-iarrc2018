@@ -13,21 +13,14 @@
 VideoCapture camera_left, camera_right;
 int X_pos = 640;
 
-
+Mat frame_1, frame_2;
+Mat result_frame(480, 1280, CV_8UC3, Scalar(0,255,0));
 Mat main_ROI_frame;
 
 int compared_level = 115;
 
 int main(int argc, char** argv)
 {
-	cout << "0";
-	Mat left_frame(480, 640, CV_8UC3, Scalar(0,255,0));
-	cout << "0";
-	Mat right_frame(480, 640, CV_8UC3, Scalar(0,255,0));
-	cout << "0";
-	Mat result_frame(2000, 2000, CV_8UC3, Scalar(0,255,0));
-	cout << "0";
-
     if(!start_camera(camera_left, CAM_INDEX_LEFT, CAM_WIDTH, CAM_HEIGHT))
     {
         return 0;
@@ -61,15 +54,18 @@ int main(int argc, char** argv)
     //Main loop
     while(true)
     {
+		camera_left >> frame_1;
+		camera_right >> frame_2;
+	
+	
+	//-----
+	frame_1.copyTo(result_frame(Rect(0, 0, frame_1.cols, frame_1.rows)));
+	frame_2.copyTo(result_frame(Rect(X_pos, 0, frame_1.cols, frame_1.rows)));
+	//-----
+		
+		
 		cout << "1";
-		camera_left >> left_frame;// = get_frame(camera_left);
-		cout << "1";
-		camera_right >> right_frame;// = get_frame(camera_right);
-		cout << "1";
-		left_frame.copyTo(result_frame(Rect(0, 0, left_frame.cols, left_frame.rows)));
-		cout << "1";
-		//right_frame.copyTo(result_frame(Rect(20, 0, 640, 480)));
-		cout << "1";
+		
 		main_ROI_frame = filter_frame(result_frame, compared_level, ROI_horizontal_pos, ROI_vertical_pos, ROI_width, ROI_height);
 		
 		search_to_left_top_main_ROI(main_ROI_frame, left_top_pos, top_left_line_visible, ROI_width, ROI_height, horizontal_start_position_top);
