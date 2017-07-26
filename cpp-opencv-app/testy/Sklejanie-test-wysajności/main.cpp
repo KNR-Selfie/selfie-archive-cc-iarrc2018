@@ -35,7 +35,7 @@ int main(int argc, char** argv)
 	{
 		return 0;
 	}
-	
+	/*
 	if(!UART_set())
 	{
 		return 0;
@@ -46,7 +46,7 @@ int main(int argc, char** argv)
 		unia_danych.dane.flags = 0b00000000;
 		unia_danych.dane.end_byte = 0xff;
 	}
-	
+	*/
 	wait_for_user();
 	
 	create_windows_trackbars(compared_level, ROI_horizontal_pos, ROI_height);
