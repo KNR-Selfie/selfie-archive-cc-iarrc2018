@@ -13,8 +13,8 @@
 VideoCapture camera_left, camera_right;
 int X_pos = 640;
 
-Mat result_frame(480, 1280, CV_8UC3, Scalar(0,255,0));
 Mat left_frame, right_frame;
+Mat result_frame(480, 1280, CV_8UC3, Scalar(0,255,0));
 Mat main_ROI_frame;
 
 int compared_level = 115;
@@ -54,8 +54,8 @@ int main(int argc, char** argv)
     //Main loop
     while(true)
     {
-		left_frame = get_frame(camera_left);
-		right_frame = get_frame(camera_right);
+		camera_left >> left_frame;// = get_frame(camera_left);
+		camera_right >> right_frame;// = get_frame(camera_right);
 		
 		left_frame.copyTo(result_frame(Rect(0, 0, left_frame.cols, left_frame.rows)));
 		right_frame.copyTo(result_frame(Rect(X_pos, 0, left_frame.cols, left_frame.rows)));
