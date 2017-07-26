@@ -1,13 +1,13 @@
 #include "camera_GPU.h"
 
-bool start_camera(VideoCapture camera, int camera_index, unsigned short camera_width, unsigned short camera_height)
+bool start_camera(VideoCapture &camera, int camera_index, unsigned short camera_width, unsigned short camera_height)
 {
     camera.open(camera_index);
     
     if (camera.isOpened())
     {
         cout << "Camera opened properly on port 0" << endl;
-	cout << "Resolution: " << camera.get(CV_CAP_PROP_FRAME_WIDTH) << " x " << camera.get(CV_CAP_PROP_FRAME_HEIGHT) << endl;
+		cout << "Resolution: " << camera.get(CV_CAP_PROP_FRAME_WIDTH) << " x " << camera.get(CV_CAP_PROP_FRAME_HEIGHT) << endl;
 		
         return 1;
     }	
@@ -19,7 +19,7 @@ bool start_camera(VideoCapture camera, int camera_index, unsigned short camera_w
     }
 }
 
-void destroy_handlers(VideoCapture camera_left, VideoCapture camera_right)
+void destroy_handlers(VideoCapture &camera_left, VideoCapture &camera_right)
 {
 	camera_left.release();
 	camera_right.release();
@@ -66,7 +66,7 @@ bool set_CUDA_device(unsigned short CUDA_device_index)
 	return 1;
 }
 
-Mat get_frame(VideoCapture camera)
+Mat get_frame(VideoCapture &camera)
 {
         Mat frame;	
 
