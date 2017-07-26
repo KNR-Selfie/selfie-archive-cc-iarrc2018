@@ -59,7 +59,7 @@ int main(int argc, char** argv)
 	
 	
 	//-----
-	//frame_1.copyTo(result_frame(Rect(0, 0, frame_1.cols, frame_1.rows)));
+	frame_1.copyTo(result_frame(Rect(0, 0, frame_1.cols, frame_1.rows)));
 	//frame_2.copyTo(result_frame(Rect(X_pos, 0, frame_1.cols, frame_1.rows)));
 	//-----
 		
