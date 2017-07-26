@@ -66,9 +66,9 @@ int main(int argc, char** argv)
 		cout << "1";
 		camera_right >> right_frame;// = get_frame(camera_right);
 		cout << "1";
-		left_frame.copyTo(result_frame(Rect(0, 0, 640, 480)));
+		//left_frame.copyTo(result_frame(Rect(0, 0, 640, 480)));
 		cout << "1";
-		right_frame.copyTo(result_frame(Rect(20, 0, 640, 480)));
+		//right_frame.copyTo(result_frame(Rect(20, 0, 640, 480)));
 		cout << "1";
 		main_ROI_frame = filter_frame(result_frame, compared_level, ROI_horizontal_pos, ROI_vertical_pos, ROI_width, ROI_height);
 		
