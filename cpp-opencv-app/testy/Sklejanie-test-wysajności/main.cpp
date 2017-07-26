@@ -108,7 +108,7 @@ int main(int argc, char** argv)
 		display_main_ROI(result_frame, ROI_rec);
 		display_detected_main_ROI_info(result_frame, ROI_horizontal_pos, ROI_vertical_pos, ROI_width, ROI_height,  left_top_pos,  right_top_pos,  left_bottom_pos,  right_bottom_pos,  detected_middle_top_pos,  detected_middle_bottom_pos,  detected_middle_pos);
 		display_text(result_frame, ROI_horizontal_pos, ROI_vertical_pos, ROI_width, ROI_height, detected_middle_pos, bisector_angle_rad, bisector_angle_st);
-		display_windows(frame_1, frame_2);
+		display_windows(result_frame, main_ROI_frame);
 		//GUI part
 		
 		if (waitKey(50) != -1)
