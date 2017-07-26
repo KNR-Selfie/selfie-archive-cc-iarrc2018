@@ -4,6 +4,9 @@
 #include <opencv2/gpu/gpu.hpp>
 #include <cmath>
 
+int ROI_width = 1260, ROI_height = 100;
+int ROI_horizontal_pos = 9, ROI_vertical_pos = 200;
+
 unsigned short horizontal_start_position_top = ROI_width / 2;
 unsigned short horizontal_start_position_bottom = ROI_width / 2;
 

@@ -19,9 +19,6 @@ Mat main_ROI_frame;
 
 int compared_level = 115;
 
-int ROI_width = 1260, ROI_height = 100;
-int ROI_horizontal_pos = 9, ROI_vertical_pos = 200;
-
 int main(int argc, char** argv)
 {
     if(!start_camera(camera_left, CAM_INDEX_LEFT, CAM_WIDTH, CAM_HEIGHT))
@@ -115,6 +112,6 @@ int main(int argc, char** argv)
         }
     }
 
-	destroy_handlers();
+	destroy_handlers(camera_left, camera_right);
     return 0;
 }

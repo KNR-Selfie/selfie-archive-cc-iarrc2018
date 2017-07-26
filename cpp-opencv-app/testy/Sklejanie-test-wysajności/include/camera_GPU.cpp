@@ -19,7 +19,7 @@ bool start_camera(VideoCapture camera, int camera_index, unsigned short camera_w
     }
 }
 
-void destroy_handlers()
+void destroy_handlers(VideoCapture camera_left, VideoCapture camera_right)
 {
 	camera_left.release();
 	camera_right.release();
