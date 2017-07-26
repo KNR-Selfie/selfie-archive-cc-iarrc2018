@@ -4,8 +4,8 @@
 #include "include/sign_detection.cpp"
 #include "include/UART.cpp"
 
-#define CAM_INDEX_LEFT 0
-#define CAM_INDEX_RIGHT 1
+#define CAM_INDEX_LEFT 1
+#define CAM_INDEX_RIGHT 2
 #define CUDA_INDEX 0
 #define CAM_WIDTH 640
 #define CAM_HEIGHT 480
