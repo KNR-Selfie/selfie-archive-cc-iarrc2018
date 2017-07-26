@@ -11,9 +11,9 @@
 #define CAM_HEIGHT 480
 
 VideoCapture camera_left, camera_right;
-int X_pos = 640;
+//int X_pos = 640;
 
-Mat frame_1, frame_2;
+Mat frame_left, frame_right;
 Mat result_frame(480, 1280, CV_8UC3, Scalar(0,255,0));
 Mat main_ROI_frame;
 
@@ -54,17 +54,11 @@ int main(int argc, char** argv)
     //Main loop
     while(true)
     {
-		camera_left >> frame_1;
+		camera_left >> frame_left;
 		camera_right >> frame_2;
-	
-	
-	//-----
-	frame_1.copyTo(result_frame(Rect(0, 0, frame_1.cols, frame_1.rows)));
-	//frame_2.copyTo(result_frame(Rect(X_pos, 0, frame_1.cols, frame_1.rows)));
-	//-----
 		
-		
-		cout << "1";
+		frame_left.copyTo(result_frame(Rect(0, 0, frame_left.cols, frame_left.rows)));
+		frame_right.copyTo(result_frame(Rect(frame_left.cols, 0, frame_right.cols, frame_right.rows)));
 		
 		main_ROI_frame = filter_frame(result_frame, compared_level, ROI_horizontal_pos, ROI_vertical_pos, ROI_width, ROI_height);
 		
