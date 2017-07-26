@@ -6,7 +6,7 @@ bool start_camera(VideoCapture &camera, int camera_index, unsigned short camera_
     
     if (camera.isOpened())
     {
-        cout << "Camera opened properly on port 0" << endl;
+        cout << "Camera opened properly on port: " << camera_index << endl;
 		cout << "Resolution: " << camera.get(CV_CAP_PROP_FRAME_WIDTH) << " x " << camera.get(CV_CAP_PROP_FRAME_HEIGHT) << endl;
 		
         return 1;
