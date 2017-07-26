@@ -65,7 +65,7 @@ bool set_CUDA_device(unsigned short CUDA_device_index)
 	return 1;
 }
 
-Mat get_frame(unsigned short camera_index)
+Mat get_frame(VideoCapture camera)
 {
         Mat frame;	
 
