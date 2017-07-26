@@ -4,27 +4,32 @@
 #include "include/sign_detection.cpp"
 #include "include/UART.cpp"
 
-#define CAM_INDEX 0
+#define CAM_INDEX_LEFT 0
+#define CAM_INDEX_RIGHT 1
 #define CUDA_INDEX 0
 #define CAM_WIDTH 640
 #define CAM_HEIGHT 480
 
-Mat real_frame;
+VideoCapture camera_1, camera_2;
+int X_pos = 640;
+
+Mat result_frame(480, 1280, CV_8UC3, Scalar(0,255,0));
+Mat left_frame, right_frame;
 Mat main_ROI_frame;
 
 int compared_level = 115;
 
-int ROI_width = 620, ROI_height = 100;
+int ROI_width = 1260, ROI_height = 100;
 int ROI_horizontal_pos = 9, ROI_vertical_pos = 200;
 
 int main(int argc, char** argv)
 {
-    if(!start_camera(0, CAM_WIDTH, CAM_HEIGHT))
+    if(!start_camera(camera_left, CAM_INDEX_LEFT, CAM_WIDTH, CAM_HEIGHT))
     {
         return 0;
     }
 	
-	if(!start_camera(1, CAM_WIDTH, CAM_HEIGHT))
+	if(!start_camera(camera_right, CAM_INDEX_RIGHT, CAM_WIDTH, CAM_HEIGHT))
     {
         return 0;
     }
@@ -52,8 +57,13 @@ int main(int argc, char** argv)
     //Main loop
     while(true)
     {
-		real_frame = get_frame(CAM_INDEX);
-		main_ROI_frame = filter_frame(real_frame, compared_level, ROI_horizontal_pos, ROI_vertical_pos, ROI_width, ROI_height);
+		left_frame = get_frame(camera_left);
+		right_frame = get_frame(camera_right);
+		
+		frame_left.copyTo(result_frame(Rect(0, 0, frame_left.cols, frame_left.rows)));
+		frame_right.copyTo(result_frame(Rect(X_pos, 0, frame_left.cols, frame_left.rows)));
+		
+		main_ROI_frame = filter_frame(result_frame, compared_level, ROI_horizontal_pos, ROI_vertical_pos, ROI_width, ROI_height);
 		
 		search_to_left_top_main_ROI(main_ROI_frame, left_top_pos, top_left_line_visible, ROI_width, ROI_height, horizontal_start_position_top);
 		search_to_right_top_main_ROI(main_ROI_frame, right_top_pos, top_right_line_visible, ROI_width, ROI_height, horizontal_start_position_top);
@@ -92,10 +102,10 @@ int main(int argc, char** argv)
 		ROI_width,
 		ROI_height);
 		
-		display_main_ROI(real_frame, ROI_rec);
-		display_detected_main_ROI_info(real_frame, ROI_horizontal_pos, ROI_vertical_pos, ROI_width, ROI_height,  left_top_pos,  right_top_pos,  left_bottom_pos,  right_bottom_pos,  detected_middle_top_pos,  detected_middle_bottom_pos,  detected_middle_pos);
-		display_text(real_frame, ROI_horizontal_pos, ROI_vertical_pos, ROI_width, ROI_height, detected_middle_pos, bisector_angle_rad, bisector_angle_st);
-		display_windows(real_frame, main_ROI_frame);
+		display_main_ROI(result_frame, ROI_rec);
+		display_detected_main_ROI_info(result_frame, ROI_horizontal_pos, ROI_vertical_pos, ROI_width, ROI_height,  left_top_pos,  right_top_pos,  left_bottom_pos,  right_bottom_pos,  detected_middle_top_pos,  detected_middle_bottom_pos,  detected_middle_pos);
+		display_text(result_frame, ROI_horizontal_pos, ROI_vertical_pos, ROI_width, ROI_height, detected_middle_pos, bisector_angle_rad, bisector_angle_st);
+		display_windows(result_frame, main_ROI_frame);
 		//GUI part
 		
 		if (waitKey(50) != -1)

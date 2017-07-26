@@ -1,6 +1,6 @@
 #include "camera_GPU.h"
 
-bool start_camera(int camera_index, unsigned short camera_width, unsigned short camera_height)
+bool start_camera(VideoCapture camera, int camera_index, unsigned short camera_width, unsigned short camera_height)
 {
     camera.open(camera_index);
     

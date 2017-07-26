@@ -7,9 +7,7 @@
 using namespace std;
 using namespace cv;
 
-VideoCapture camera;
-
-bool start_camera(int camera_index, unsigned short camera_width, unsigned short camera_height);
+bool start_camera(VideoCapture camera, int camera_index, unsigned short camera_width, unsigned short camera_height);
 void destroy_handlers();
 bool set_CUDA_device(unsigned short CUDA_device_index);
 Mat get_frame(unsigned short camera_index);
