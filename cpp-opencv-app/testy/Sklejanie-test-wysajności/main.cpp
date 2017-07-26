@@ -13,8 +13,9 @@
 VideoCapture camera_left, camera_right;
 int X_pos = 640;
 
-Mat left_frame, right_frame;
-Mat result_frame(480, 1280, CV_8UC3, Scalar(0,255,0));
+Mat left_frame(480, 640, CV_8UC3, Scalar(200,255,200));
+Mat right_frame(480, 640, CV_8UC3, Scalar(200,255,200));
+Mat result_frame(480, 1280, CV_8UC3, Scalar(200,255,200));
 Mat main_ROI_frame;
 
 int compared_level = 115;
