@@ -10,7 +10,7 @@
 #define CAM_WIDTH 640
 #define CAM_HEIGHT 480
 
-VideoCapture camera_1, camera_2;
+VideoCapture camera_left, camera_right;
 int X_pos = 640;
 
 Mat result_frame(480, 1280, CV_8UC3, Scalar(0,255,0));
@@ -60,8 +60,8 @@ int main(int argc, char** argv)
 		left_frame = get_frame(camera_left);
 		right_frame = get_frame(camera_right);
 		
-		frame_left.copyTo(result_frame(Rect(0, 0, frame_left.cols, frame_left.rows)));
-		frame_right.copyTo(result_frame(Rect(X_pos, 0, frame_left.cols, frame_left.rows)));
+		left_frame.copyTo(result_frame(Rect(0, 0, left_frame.cols, left_frame.rows)));
+		right_frame.copyTo(result_frame(Rect(X_pos, 0, left_frame.cols, left_frame.rows)));
 		
 		main_ROI_frame = filter_frame(result_frame, compared_level, ROI_horizontal_pos, ROI_vertical_pos, ROI_width, ROI_height);
 		
