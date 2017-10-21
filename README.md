@@ -11,6 +11,9 @@ Java application for Desktop communicating via Bluetooth.
 ## cpp-opencv-app
 Computer Vision application designed to run on NVidia Jetson platform.
 
+## stm32-app
+Vehicle controller fro STM32F7 (AnyFC F7)
+
 
 ## How to contribute
 
