@@ -1,21 +1,23 @@
-#include <opencv2/core.hpp>
-#include <opencv2/highgui.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/gpu/gpu.hpp>
-
-#include <iostream>
+#include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/gpu/gpu.hpp>
+
+#include "include/GPIO.cpp"
+
+#include <iostream>
 #include <string>
-#include <cstdio>
-#include <cmath>
-#include <bitset>
-#include <termios.h>
-#include <pthread.h>
-#include <stdint.h>
-#include <fcntl.h>
-#include <cstdlib>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/ioctl.h>
+#include <cstdio>
+#include <cmath>
+#include <bitset>
+#include <termios.h>
+#include <pthread.h>
+#include <stdint.h>
+#include <fcntl.h>
+#include <cstdlib>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/ioctl.h>
 #include <sys/signal.h>
 
 #define CAM_INDEX 0
@@ -27,6 +29,8 @@ using namespace std;
 using namespace cv;
 
 //=====NEW=====
+
+jetsonGPIO yellowLED = gpio165 ;
 
 bool czy_na_skrzyzowaniu = false;
 bool ostatnio_pixel_skrzyzowania = false;
@@ -174,6 +178,13 @@ int main(int argc, char** argv)
       unia_danych.dane.end_byte = 0xff;
     }
     
+    //=====NEW=====
+
+    gpioExport(yellowLED);
+    gpioSetDirection(yellowLED,outputPin);
+
+    //=====NEW=====
+
     wait_for_user();
 
     create_windows_trackbars();	
@@ -206,7 +217,12 @@ int main(int argc, char** argv)
         
         if(czy_na_skrzyzowaniu)
         {
+          gpioSetValue(yellowLED, high);
           wypisz_o_skrzyzowaniu();
+        }
+        else
+        {
+          gpioSetValue(yellowLED, low);
         }
         
         //UART part
