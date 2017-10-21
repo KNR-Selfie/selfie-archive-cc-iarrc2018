@@ -11,11 +11,21 @@
 log/
 target/
 
-#OpenCV
+# OpenCV
 build/
 *.md~
 *.cpp~
 *.h~
+
+# STM32
+*.o
+*.elf
+*.bin
+*.hex
+*.map
+*.lst
+.*.un~
+.*.swp
 
 # Files containg private data
 **/remotedebug.xml
