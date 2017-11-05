@@ -5,41 +5,41 @@
   ******************************************************************************
   * This notice applies to any and all portions of this file
   * that are not between comment pairs USER CODE BEGIN and
-  * USER CODE END. Other portions of this file, whether
+  * USER CODE END. Other portions of this file, whether 
   * inserted by the user or by software development tools
   * are owned by their respective copyright owners.
   *
-  * Copyright (c) 2017 STMicroelectronics International N.V.
+  * Copyright (c) 2017 STMicroelectronics International N.V. 
   * All rights reserved.
   *
-  * Redistribution and use in source and binary forms, with or without
+  * Redistribution and use in source and binary forms, with or without 
   * modification, are permitted, provided that the following conditions are met:
   *
-  * 1. Redistribution of source code must retain the above copyright notice,
+  * 1. Redistribution of source code must retain the above copyright notice, 
   *    this list of conditions and the following disclaimer.
   * 2. Redistributions in binary form must reproduce the above copyright notice,
   *    this list of conditions and the following disclaimer in the documentation
   *    and/or other materials provided with the distribution.
-  * 3. Neither the name of STMicroelectronics nor the names of other
-  *    contributors to this software may be used to endorse or promote products
+  * 3. Neither the name of STMicroelectronics nor the names of other 
+  *    contributors to this software may be used to endorse or promote products 
   *    derived from this software without specific written permission.
-  * 4. This software, including modifications and/or derivative works of this
+  * 4. This software, including modifications and/or derivative works of this 
   *    software, must execute solely and exclusively on microcontroller or
   *    microprocessor devices manufactured by or for STMicroelectronics.
-  * 5. Redistribution and use of this software other than as permitted under
-  *    this license is void and will automatically terminate your rights under
-  *    this license.
+  * 5. Redistribution and use of this software other than as permitted under 
+  *    this license is void and will automatically terminate your rights under 
+  *    this license. 
   *
-  * THIS SOFTWARE IS PROVIDED BY STMICROELECTRONICS AND CONTRIBUTORS "AS IS"
-  * AND ANY EXPRESS, IMPLIED OR STATUTORY WARRANTIES, INCLUDING, BUT NOT
-  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+  * THIS SOFTWARE IS PROVIDED BY STMICROELECTRONICS AND CONTRIBUTORS "AS IS" 
+  * AND ANY EXPRESS, IMPLIED OR STATUTORY WARRANTIES, INCLUDING, BUT NOT 
+  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
   * PARTICULAR PURPOSE AND NON-INFRINGEMENT OF THIRD PARTY INTELLECTUAL PROPERTY
-  * RIGHTS ARE DISCLAIMED TO THE FULLEST EXTENT PERMITTED BY LAW. IN NO EVENT
+  * RIGHTS ARE DISCLAIMED TO THE FULLEST EXTENT PERMITTED BY LAW. IN NO EVENT 
   * SHALL STMICROELECTRONICS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
   * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-  * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-  * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+  * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, 
+  * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF 
+  * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
   * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
   * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
@@ -57,28 +57,43 @@
 /* Private variables ---------------------------------------------------------*/
 
 TIM_HandleTypeDef htim2;
+TIM_HandleTypeDef htim10;
 
 UART_HandleTypeDef huart4;
-UART_HandleTypeDef huart6;
+UART_HandleTypeDef huart1;
 DMA_HandleTypeDef hdma_uart4_rx;
 DMA_HandleTypeDef hdma_uart4_tx;
-DMA_HandleTypeDef hdma_usart6_rx;
-DMA_HandleTypeDef hdma_usart6_tx;
+DMA_HandleTypeDef hdma_usart1_rx;
+DMA_HandleTypeDef hdma_usart1_tx;
 
 osThreadId defaultTaskHandle;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
+//ID stworzonych tematów RTOS
 osThreadId blinkTID;
-osThreadId jetsonTID;
+osThreadId driveControlTID;
+osThreadId engineTID;
+osThreadId servoTID;
+osThreadId SDcardTID;
 
-uint8_t syncByte;
-uint8_t buffer[11];
-uint16_t jetsonData[8];
-uint8_t jetsonFlags[2];
+//deklaracja zmiennych u¿ywanych do komunikacji z Jetsonem
+uint8_t j_syncByte;
+uint8_t j_buffer[11];
+uint16_t j_jetsonData[8];
+uint8_t j_jetsonFlags[2];
 
-uint16_t duty_engine = 0;
-uint16_t duty_servo = 1400;
+//deklaracja zmiennych uzywanych do komunikacji z Aparaturka
+uint8_t a_syncbyte;
+uint8_t a_buffer[24];
+uint16_t a_channels[16];
+
+//inicjalizacja zmiennych globalnych - wypelnien
+uint16_t duty_engine;
+uint16_t duty_servo;
+
+uint8_t prescalerOdchylka = 3;
+uint8_t prescalerAngle = 7;
 
 /* USER CODE END PV */
 
@@ -86,9 +101,10 @@ uint16_t duty_servo = 1400;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
-static void MX_USART6_UART_Init(void);
 static void MX_UART4_Init(void);
 static void MX_TIM2_Init(void);
+static void MX_TIM10_Init(void);
+static void MX_USART1_UART_Init(void);
 void StartDefaultTask(void const * argument);
                                     
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
@@ -97,34 +113,80 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
 void blinkThread(void const * argument);
-void jetsonCommunication(void const * argument);
+void driveControl(void const * argument);
+void servoControl(void const * argument);
+void engineControl(void const * argument);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+//obsluzenie wszystkich uartow nastapi w jednej funkcji
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
 
-	if (huart->Instance == UART4) {
-
-		if(syncByte==0xFF){
-			syncByte = 0xFE;
-			HAL_UART_Receive_DMA(&huart4, &buffer, 11);
+	if (huart->Instance == UART4) //jetson
+	{
+		TIM10->CNT = 0;
+		if(j_syncByte==0xFF)
+		{
+			j_syncByte = 0xFE;
+			HAL_UART_Receive_DMA(&huart4, &j_buffer, 11);
 		}
-		else if(syncByte==0xFE){
-			jetsonData[0]  = (int16_t) ((buffer[0] |buffer[1]<<8)                          	  & 0x07FF);
-			jetsonData[1]  = (int16_t) ((buffer[1]>>3 |buffer[2]<<5)                          & 0x07FF);
-			jetsonData[2]  = (int16_t) ((buffer[2]>>6 |buffer[3]<<2 |buffer[4]<<10)  		  & 0x07FF);
-			jetsonData[3]  = (int16_t) ((buffer[4]>>1 |buffer[5]<<7)                          & 0x07FF);
-			jetsonData[4]  = (int16_t) ((buffer[5]>>4 |buffer[6]<<4)                          & 0x07FF);
-			jetsonData[5]  = (int16_t) ((buffer[6]>>7 |buffer[7]<<1 |buffer[8]<<9)  		  & 0x07FF);
-			jetsonData[6]  = (int16_t) ((buffer[8]>>2 |buffer[9]<<6)                          & 0x07FF);
-			jetsonData[7]  = (int16_t) ((buffer[9]>>5 |buffer[10]<<3)                         & 0x07FF);
-			syncByte = 0xFD;
-			HAL_UART_Receive_DMA(&huart4, &jetsonFlags, 2);
+		else if(j_syncByte==0xFE)
+		{
+			//przet³umaczenie 11x8 na u¿yteczne 8x11
+			j_jetsonData[0]  = (int16_t) ((j_buffer[0] |j_buffer[1]<<8)                          	  & 0x07FF);
+			j_jetsonData[1]  = (int16_t) ((j_buffer[1]>>3 |j_buffer[2]<<5)                          & 0x07FF);
+			j_jetsonData[2]  = (int16_t) ((j_buffer[2]>>6 |j_buffer[3]<<2 |j_buffer[4]<<10)  		  & 0x07FF);
+			j_jetsonData[3]  = (int16_t) ((j_buffer[4]>>1 |j_buffer[5]<<7)                          & 0x07FF);
+			j_jetsonData[4]  = (int16_t) ((j_buffer[5]>>4 |j_buffer[6]<<4)                          & 0x07FF);
+			j_jetsonData[5]  = (int16_t) ((j_buffer[6]>>7 |j_buffer[7]<<1 |j_buffer[8]<<9)  		  & 0x07FF);
+			j_jetsonData[6]  = (int16_t) ((j_buffer[8]>>2 |j_buffer[9]<<6)                          & 0x07FF);
+			j_jetsonData[7]  = (int16_t) ((j_buffer[9]>>5 |j_buffer[10]<<3)                         & 0x07FF);
+			j_syncByte = 0xFD;
+			HAL_UART_Receive_DMA(&huart4, &j_jetsonFlags, 2);
 		}
-		else{
-			HAL_UART_Receive_IT(&huart4, &syncByte, 1);
+		else
+		{
+			HAL_UART_Receive_DMA(&huart4, &j_syncByte, 1);
 		}
 	}
+
+	if(huart->Instance == USART1) //aparatura
+		{
+			if(a_syncbyte==0x0F)
+			{
+				a_syncbyte=0x56;
+				HAL_UART_Receive_DMA(&huart1,&a_buffer,24);
+			}
+			else if(a_buffer[22]==0x0)
+			{
+				//przet³umaczenie na u¿ytecze wartoœci 11
+				a_channels[0]  = (int16_t) ((a_buffer[0]    |a_buffer[1]<<8)                          & 0x07FF);
+				a_channels[1]  = (int16_t) ((a_buffer[1]>>3 |a_buffer[2]<<5)                          & 0x07FF);
+				a_channels[2]  = (int16_t) ((a_buffer[2]>>6 |a_buffer[3]<<2 |a_buffer[4]<<10)  		& 0x07FF);
+				a_channels[3]  = (int16_t) ((a_buffer[4]>>1 |a_buffer[5]<<7)                          & 0x07FF);
+				a_channels[4]  = (int16_t) ((a_buffer[5]>>4 |a_buffer[6]<<4)                          & 0x07FF);
+				a_channels[5]  = (int16_t) ((a_buffer[6]>>7 |a_buffer[7]<<1 |a_buffer[8]<<9)   		& 0x07FF);
+				a_channels[6]  = (int16_t) ((a_buffer[8]>>2 |a_buffer[9]<<6)                          & 0x07FF);
+				a_channels[7]  = (int16_t) ((a_buffer[9]>>5 |a_buffer[5]<<3)                         & 0x07FF);
+				a_channels[8]  = (int16_t) ((a_buffer[11]   |a_buffer[12]<<8)                         & 0x07FF);
+				a_channels[9]  = (int16_t) ((a_buffer[12]>>3|a_buffer[13]<<5)                         & 0x07FF);
+				a_channels[10] = (int16_t) ((a_buffer[13]>>6|a_buffer[14]<<2|a_buffer[15]<<10) 		& 0x07FF);
+				a_channels[11] = (int16_t) ((a_buffer[15]>>1|a_buffer[16]<<7)                         & 0x07FF);
+				a_channels[12] = (int16_t) ((a_buffer[16]>>4|a_buffer[17]<<4)                         & 0x07FF);
+				a_channels[13] = (int16_t) ((a_buffer[17]>>7|a_buffer[18]<<1|a_buffer[19]<<9)  		& 0x07FF);
+				a_channels[14] = (int16_t) ((a_buffer[19]>>2|a_buffer[20]<<6)                         & 0x07FF);
+				a_channels[15] = (int16_t) ((a_buffer[20]>>5|a_buffer[21]<<3)                         & 0x07FF);
+
+				HAL_UART_Receive_DMA(&huart1, &a_syncbyte, 1);
+			}
+			else
+			{
+				HAL_UART_Receive_DMA(&huart1, &a_syncbyte, 1);
+			}
+
+		}
+
 }
 /* USER CODE END 0 */
 
@@ -154,13 +216,15 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
-  MX_USART6_UART_Init();
   MX_UART4_Init();
   MX_TIM2_Init();
+  MX_TIM10_Init();
+  MX_USART1_UART_Init();
 
   /* USER CODE BEGIN 2 */
-  HAL_UART_Receive_DMA(&huart4, &syncByte, 1);
-
+  //uruchomienie DMA na uarcie oraz PWM
+  HAL_UART_Receive_DMA(&huart4, &j_syncByte, 1);
+  HAL_UART_Receive_DMA(&huart1, &a_syncbyte, 1);
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
   /* USER CODE END 2 */
@@ -187,8 +251,14 @@ int main(void)
   osThreadDef(blink, blinkThread, osPriorityLow, 0, 128);
   blinkTID = osThreadCreate(osThread(blink), NULL);
 
-  osThreadDef(jetson, jetsonCommunication, osPriorityAboveNormal, 0, 128);
-  jetsonTID = osThreadCreate(osThread(jetson), NULL);
+  osThreadDef(drive, driveControl, osPriorityNormal, 0, 128);
+  driveControlTID = osThreadCreate(osThread(drive), NULL);
+
+  osThreadDef(servo, servoControl, osPriorityNormal, 0, 128);
+  servoTID = osThreadCreate(osThread(servo), NULL);
+
+  osThreadDef(engine, engineControl, osPriorityNormal, 0, 128);
+  engineTID = osThreadCreate(osThread(engine), NULL);
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
@@ -266,9 +336,9 @@ void SystemClock_Config(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART6|RCC_PERIPHCLK_UART4;
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART1|RCC_PERIPHCLK_UART4;
+  PeriphClkInitStruct.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
   PeriphClkInitStruct.Uart4ClockSelection = RCC_UART4CLKSOURCE_PCLK1;
-  PeriphClkInitStruct.Usart6ClockSelection = RCC_USART6CLKSOURCE_PCLK2;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -341,12 +411,29 @@ static void MX_TIM2_Init(void)
 
 }
 
+/* TIM10 init function */
+static void MX_TIM10_Init(void)
+{
+
+  htim10.Instance = TIM10;
+  htim10.Init.Prescaler = 21599;
+  htim10.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim10.Init.Period = 49999;
+  htim10.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim10.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim10) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+
 /* UART4 init function */
 static void MX_UART4_Init(void)
 {
 
   huart4.Instance = UART4;
-  huart4.Init.BaudRate = 115200;
+  huart4.Init.BaudRate = 9600;
   huart4.Init.WordLength = UART_WORDLENGTH_9B;
   huart4.Init.StopBits = UART_STOPBITS_2;
   huart4.Init.Parity = UART_PARITY_EVEN;
@@ -362,21 +449,23 @@ static void MX_UART4_Init(void)
 
 }
 
-/* USART6 init function */
-static void MX_USART6_UART_Init(void)
+/* USART1 init function */
+static void MX_USART1_UART_Init(void)
 {
 
-  huart6.Instance = USART6;
-  huart6.Init.BaudRate = 115200;
-  huart6.Init.WordLength = UART_WORDLENGTH_9B;
-  huart6.Init.StopBits = UART_STOPBITS_2;
-  huart6.Init.Parity = UART_PARITY_EVEN;
-  huart6.Init.Mode = UART_MODE_TX_RX;
-  huart6.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart6.Init.OverSampling = UART_OVERSAMPLING_16;
-  huart6.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-  huart6.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-  if (HAL_UART_Init(&huart6) != HAL_OK)
+  huart1.Instance = USART1;
+  huart1.Init.BaudRate = 100000;
+  huart1.Init.WordLength = UART_WORDLENGTH_9B;
+  huart1.Init.StopBits = UART_STOPBITS_2;
+  huart1.Init.Parity = UART_PARITY_EVEN;
+  huart1.Init.Mode = UART_MODE_TX_RX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_TXINVERT_INIT|UART_ADVFEATURE_RXINVERT_INIT;
+  huart1.AdvancedInit.TxPinLevelInvert = UART_ADVFEATURE_TXINV_ENABLE;
+  huart1.AdvancedInit.RxPinLevelInvert = UART_ADVFEATURE_RXINV_ENABLE;
+  if (HAL_UART_Init(&huart1) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
@@ -399,12 +488,12 @@ static void MX_DMA_Init(void)
   /* DMA1_Stream4_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, 5, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);
-  /* DMA2_Stream1_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 5, 0);
-  HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
-  /* DMA2_Stream6_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA2_Stream6_IRQn, 5, 0);
-  HAL_NVIC_EnableIRQ(DMA2_Stream6_IRQn);
+  /* DMA2_Stream2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
+  /* DMA2_Stream7_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream7_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream7_IRQn);
 
 }
 
@@ -442,71 +531,120 @@ void blinkThread(void const *argument)
 {
 	while(1)
 	{
-		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_7);
+
 		osDelay(500);
 	}
 	osThreadTerminate(NULL);
 }
 
-void jetsonCommunication(void const *argument)
+void driveControl(void const *argument)
 {
-	uint8_t new = 1;
-	uint8_t old = 0;
-	TIM2->CCR4 = 2000;
-	osDelay(1000);
-	TIM2->CCR4 = 1500;
-	osDelay(2000);
+	uint8_t transition = 0; //zbocze do hamowania
 	while(1)
 	{
-		if (syncByte)
+		if(a_channels[5] == 144) //górna pozycja prze³acznika, sterowanie z aparatury
 		{
-			if (jetsonData[0] == 0)
-			{
-				duty_servo = 1400 + jetsonData[1] * 3;
-			}
-			else if (jetsonData[0] == 1)
-			{
-				duty_servo = 1400 - jetsonData[1] * 3;
-			}
-			duty_engine = (uint16_t) (1610 +(jetsonData[1]>>5));
-
-
-
-//			if(jetsonData[3] > 50 && jetsonFlags[0]){
-//				duty_engine = (uint16_t) (1630 - jetsonData[3]/4);
-//			}
-//			else if(jetsonData[3] > 1 && jetsonData[3] <= 50 && new == 1)
-//				TIM2 -> CCR4 = 1200;
-//				osDelay(2000);
-//				new = 0;
-//			if(jetsonFlags[0] && jetsonData[3] == 0)
-//			{
-//				TIM2->CCR4 = 1200;
-//				osDelay(2000);
-//			}
-//			if(jetsonFlags[0] != 0  && new == 0){
-//				new = 1;
-//				TIM2->CCR4 = duty_engine;
-//				osDelay(500);
-//			}
-			TIM2->CCR4 = duty_engine;
+			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET); //jeœli sterujemy z aparatury œwieci siê niebieska
+			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET); //czerwona siê nie œwieci
+			duty_engine = (1500 + 1000 * (a_channels[1] - 1027) / (1680 - 368));
+			duty_servo = (1400 + 800 * (a_channels[3] - 1000) / (1921 - 80));
 			TIM2->CCR3 = duty_servo;
-//			if(jetsonFlags[0] == 0)
-//			{
-//				TIM2->CCR4 = duty_engine;
-//				TIM2->CCR3 = duty_servo;
-//			}
-//			else if(jetsonFlags[0] != 0)
-//			{
-//				TIM2->CCR4 = 1500;
-//				TIM2->CCR3 = duty_servo;
-//			}
 		}
-		osDelay(1);
+		else if(a_channels[5] == 1024) //œrodkowa pozycja prze³¹cznika, jazda autonomiczna
+		{
+			HAL_TIM_Base_Start_IT(&htim10); // timer od sprawdzania komunikacji
+			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET); //jeœli jeŸdzimy autonomicznie œwieci siê czerwona
+			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET); //a niebieska nie
+			//jezeli jest komunikacja na linii Jetson <-> STM
+			if(j_syncByte == 254 || j_syncByte == 253 || j_syncByte == 255)
+			{
+				//gdy brak wykrytej linii stop lub zbocze opadajace -> nadaj kierunek jazdy -> jedz
+				if (!(j_jetsonFlags[0] & 0x80) || !(transition))
+				{
+					if (j_jetsonData[0] == 0)
+					{
+						duty_servo = 1400 + j_jetsonData[1] * prescalerOdchylka + (j_jetsonData[2] - 90) * prescalerAngle;
+						if (duty_servo > 1700) duty_servo = 1700;
+					}
+					else if (j_jetsonData[0] == 1)
+					{
+						duty_servo = 1400 - j_jetsonData[1] * prescalerOdchylka - (90 - j_jetsonData[2]) * prescalerAngle;
+						if (duty_servo < 1100) duty_servo = 1100;
+					}
+					duty_engine = (uint16_t)(1610);
+					transition = 1;
+				}
+				//gdy jest wykryta linia stop, gdy odleglosc od linii jest niemala i gdy zbocze jest narastajace -> hamuj
+				else if((j_jetsonData[3] > 50) && (j_jetsonFlags[0] & 0x80) && (transition))
+				{
+					duty_engine = (1610 + (j_jetsonData[1] >> 5) + ((abs(j_jetsonData[2] - 90) * 10) >> 4)) - (480 -j_jetsonData[3])/5;
+				}
+				//gdy jest wykryta linia stop, gdy odleglosc od linii jest mala i gdy zbocze jest narastajace -> zatrzymaj sie
+				else if((j_jetsonData[3] > 0) && (j_jetsonData[3] <= 50) && (j_jetsonFlags[0] & 0x80) && (transition))
+				{
+					duty_engine = 1450;
+					osDelay(2000);
+					transition = 0;
+				}
+			}
+			else if(j_syncByte == 200) //je¿eli nie istnieje Jetson <-> STM, wylacz naped (wartosc j_syncByte = 200 jest ustawiana przez TIMER10)
+			{TIM2->CCR4 = 1460;}
+
+			TIM2->CCR3 = duty_servo;
+		}
+		else if(a_channels[5] == 1904) //dolna pozycja prze³acznika, tryb pó³autonomiczny
+		{
+			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET); //jeœli jeŸdzimy pó³autonomicznie œwieci siê czerwona
+			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET); //i niebieska te¿
+			duty_engine = (1500 + 1000 * (a_channels[1] - 1027) / (1680 - 368));
+			if (j_jetsonData[0] == 0)
+			{
+				duty_servo = 1400 + j_jetsonData[1] * prescalerOdchylka + (j_jetsonData[2] - 90) * prescalerAngle;
+				if (duty_servo > 1700) duty_servo = 1700;
+			}
+			else if (j_jetsonData[0] == 1)
+			{
+				duty_servo = 1400 - j_jetsonData[1] * prescalerOdchylka - (90 - j_jetsonData[2]) * prescalerAngle;
+				if (duty_servo < 1100) duty_servo = 1100;
+			}
+			TIM2->CCR3 = duty_servo;
+		}
 
 	}
 	osThreadTerminate(NULL);
 }
+
+void servoControl(void const *argument)
+{
+	duty_servo = 1400;
+	while(1)
+	{
+		//TIM2->CCR3 = duty_servo;
+	}
+	osThreadTerminate(NULL);
+}
+
+void engineControl(void const *argument)
+{
+	duty_engine = 1500;
+
+	//uruchomienie ESC
+	TIM2->CCR4 = 2000;
+	osDelay(1000);
+	TIM2->CCR4 = 1500;
+	osDelay(2000);
+
+	//zabezpieczenie przed jazd¹ do ty³u
+	TIM2->CCR4 = 1520;
+	osDelay(50);
+	while(1)
+	{
+		TIM2->CCR4 = duty_engine;
+	}
+	osThreadTerminate(NULL);
+}
+
+
 /* USER CODE END 4 */
 
 /* StartDefaultTask function */
@@ -517,7 +655,7 @@ void StartDefaultTask(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1000);
+    osDelay(1);
   }
   /* USER CODE END 5 */ 
 }
@@ -539,7 +677,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_IncTick();
   }
 /* USER CODE BEGIN Callback 1 */
-
+  if(htim->Instance == TIM10){ //timer 10 sprawdzajacy czy jest komunikacja Jetson<->STM. CNT zerowany w obsludze uarta
+  	j_syncByte = 200;
+  }
 /* USER CODE END Callback 1 */
 }
 
