@@ -40,17 +40,25 @@ bool Watchdog::get_access()
     return 1;
 }
 
-void Watchdog::push_flag(bool flag)
+void Watchdog::push_flag(unsigned short flag)
 {
-    std::string text;
-
-    if(flag)
+    switch(flag)
     {
-        memcpy(shared_variable, "1", 2);
-    }
-    else
-    {
+    case 0:
         memcpy(shared_variable, "0", 2);
+        break;
+
+    case 1:
+        memcpy(shared_variable, "1", 2);
+        break;
+
+    case 2:
+        memcpy(shared_variable, "2", 2);
+        break;
+
+    default:
+        std::cout << "Error wrong argument given!" << std::endl;
+        break;
     }
 
     end_of_variable = shared_variable;
@@ -58,11 +66,32 @@ void Watchdog::push_flag(bool flag)
     *end_of_variable = 0;
 }
 
-bool Watchdog::pull_flag()
+unsigned short Watchdog::pull_flag()
 {
-    if(*shared_variable == '1')
-        return 1;
-    else
+    switch(*shared_variable)
+    {
+    case '0':
         return 0;
+        break;
+
+    case '1':
+        return 1;
+        break;
+
+    case '2':
+        return 2;
+        break;
+
+    default:
+        std::cout << "Error unknown flag in shared memmory!" << std::endl;
+        break;
+    }
+
+    return 10;
+}
+
+void Watchdog::close()
+{
+    system("ipcrm -M 55555");
 }
 
