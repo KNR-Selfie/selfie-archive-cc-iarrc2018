@@ -8,14 +8,13 @@ Watchdog watchdog;
 
 void send(bool &stop_sending)
 {
-    const bool flag = 1;
-
     while(!stop_sending)
     {
-        std::cout << "Setting new flag value: " << flag << std::endl;
+        std::cout << "Setting new flag value: 1" << std::endl;
         std::cout << "Press enter to simulate error" << std::endl;
 
-        watchdog.push_flag(flag);
+        //Tell watchdog: i'm working
+        watchdog.push_flag(1);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
@@ -33,9 +32,9 @@ int main()
     GOTO:
 
     stop_sending = 0;
-    tmp = 'e';
+    tmp = 'n';
 
-    std::cout << "\033[2J\033[1;1H";
+    std::cout << "\033[2J\033[1;1H" << "TUTAJ!" << std::endl;
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -49,11 +48,18 @@ int main()
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
 
-    std::cout << "Key in 'r' to start sending, or anything else to exit: ";
+    std::cout << "Key in 'e' to exit: ";
     std::cin >> tmp;
 
-    if(tmp == 'r')
+    if(tmp == 'e')
+    {
+        //Tell watchdog to stop
+        watchdog.push_flag(2);
+    }
+    else
+    {
         goto GOTO;
+    }
 
     return 0;
 }

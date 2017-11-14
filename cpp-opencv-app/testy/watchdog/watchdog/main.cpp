@@ -8,7 +8,7 @@ Watchdog watchdog;
 
 void wait_for_connection()
 {
-    bool flag_od = 0;
+    unsigned short flag_od = 0;
 
     while(!flag_od)
     {
@@ -18,16 +18,17 @@ void wait_for_connection()
         std::cout << "Waiting..." << std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
-
-        std::cout << "Connection regained!" << std::endl;
     }
+
+    std::cout << "Connection regained!" << std::endl;
+    std::this_thread::sleep_for(std::chrono::seconds(2));
 }
 
 
 void watch(bool &end_of_app)
 {
-    const bool flag = 0;
-    bool flag_od = 0;
+    const unsigned short flag = 0;
+    unsigned short flag_od = 0;
     unsigned int counter = 0;
 
     while(!end_of_app)
@@ -49,13 +50,10 @@ void watch(bool &end_of_app)
 
         std::cout << "Flag value: " << flag_od << std::endl;
 
-        if(flag_od)
+        switch (flag_od)
         {
-            std::cout << "OK!" << std::endl;
-            counter = 0;
-        }
-        else
-        {
+        case 0:
+
             counter++;
             if(counter >= 2)
             {
@@ -63,13 +61,31 @@ void watch(bool &end_of_app)
                 std::cout << "Warning: app reset!" << std::endl;
 
                 system("pkill -9 -f app");
-                system("gnome-terminal -x sh -c \"/home/ubuntu/Desktop/SELFIE_watchdog/app/build/app; bash\"");
+                system("gnome-terminal -x sh -c \"/home/mateusz/Desktop/SELFIE_watchdog/app/build/app; bash\"");
                 wait_for_connection();
             }
             else
             {
                 std::cout << "Warning: first packet lost!" << std::endl;
             }
+            break;
+
+        case 1:
+
+            std::cout << "OK!" << std::endl;
+            counter = 0;
+            break;
+
+        case 2:
+
+            std::cout << "Main app closed without error, press enter to close this app" << std::endl;
+            end_of_app = 1;
+            break;
+
+        default:
+            std::cout << "press enter" << std::endl;
+            end_of_app = 0;
+            break;
         }
     }
 
@@ -100,7 +116,7 @@ int main()
 
     thread_ping_main_app.join();
 
-    system("ipcrm -M 55555");
+    watchdog.close();
 
     return 0;
 }

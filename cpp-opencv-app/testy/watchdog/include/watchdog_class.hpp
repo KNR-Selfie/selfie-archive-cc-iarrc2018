@@ -16,6 +16,7 @@ class Watchdog
 public:
     bool init();
     bool get_access();
-    void push_flag(bool flag);
-    bool  pull_flag();
+    void push_flag(unsigned short flag);
+    unsigned short pull_flag();
+    void close();
 };
