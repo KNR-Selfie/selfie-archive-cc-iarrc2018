@@ -16,6 +16,7 @@ build/
 *.md~
 *.cpp~
 *.h~
+*.txt~
 
 # STM32
 *.o
