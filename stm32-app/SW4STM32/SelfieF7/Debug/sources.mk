@@ -16,6 +16,7 @@ C_DEPS :=
 # Every subdirectory with source files must be described here
 SUBDIRS := \
 Application/SW4STM32 \
+Application/User/Gyro \
 Application/User/Lighting \
 Application/User \
 Drivers/CMSIS \

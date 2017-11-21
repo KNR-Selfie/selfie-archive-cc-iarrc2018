@@ -18,7 +18,8 @@ Application/User/freertos.o: \
  C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include/queue.h \
  C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h \
  C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include/timers.h \
- C:/Users/mice/workspace/SelfieF7/SW4STM32/SelfieF7/Application/User/Lighting/Lighting.h
+ C:/Users/mice/workspace/SelfieF7/SW4STM32/SelfieF7/Application/User/Lighting/Lighting.h \
+ C:/Users/mice/workspace/SelfieF7/Inc/main.h
 
 C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h:
 
@@ -57,3 +58,5 @@ C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include
 C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include/timers.h:
 
 C:/Users/mice/workspace/SelfieF7/SW4STM32/SelfieF7/Application/User/Lighting/Lighting.h:
+
+C:/Users/mice/workspace/SelfieF7/Inc/main.h:

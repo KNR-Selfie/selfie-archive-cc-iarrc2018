@@ -1,4 +1,6 @@
 "Application/SW4STM32/startup_stm32f745xx.o"
+"Application/User/Gyro/Filtering.o"
+"Application/User/Gyro/Gyro.o"
 "Application/User/Lighting/Lighting.o"
 "Application/User/adc.o"
 "Application/User/can.o"
