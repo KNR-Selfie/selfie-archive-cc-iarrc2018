@@ -4,17 +4,20 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../Application/User/Lighting/Lighting.c 
+../Application/User/Gyro/Filtering.c \
+../Application/User/Gyro/Gyro.c 
 
 OBJS += \
-./Application/User/Lighting/Lighting.o 
+./Application/User/Gyro/Filtering.o \
+./Application/User/Gyro/Gyro.o 
 
 C_DEPS += \
-./Application/User/Lighting/Lighting.d 
+./Application/User/Gyro/Filtering.d \
+./Application/User/Gyro/Gyro.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
-Application/User/Lighting/%.o: ../Application/User/Lighting/%.c
+Application/User/Gyro/%.o: ../Application/User/Gyro/%.c
 	@echo 'Building file: $<'
 	@echo 'Invoking: MCU GCC Compiler'
 	@echo $(PWD)

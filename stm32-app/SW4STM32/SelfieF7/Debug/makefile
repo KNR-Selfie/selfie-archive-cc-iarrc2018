@@ -13,6 +13,7 @@ RM := rm -rf
 -include Drivers/STM32F7xx_HAL_Driver/subdir.mk
 -include Drivers/CMSIS/subdir.mk
 -include Application/User/Lighting/subdir.mk
+-include Application/User/Gyro/subdir.mk
 -include Application/User/subdir.mk
 -include Application/SW4STM32/subdir.mk
 -include subdir.mk

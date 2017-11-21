@@ -62,6 +62,7 @@
 
 /* USER CODE BEGIN Includes */
 #include "Lighting.h"
+#include "Gyro.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -69,6 +70,7 @@
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 
+xSemaphoreHandle DriveControlSemaphore = NULL;
 //deklaracja zmiennych u¿ywanych do komunikacji z Jetsonem
 uint8_t j_syncByte;
 uint8_t j_buffer[11];
@@ -146,6 +148,8 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
   //uruchomienie DMA na uarcie oraz PWM
+
+    vSemaphoreCreateBinary( DriveControlSemaphore );
 
     ws2812_init();
     HAL_UART_Receive_DMA(&huart4, &j_syncByte, 1);
@@ -275,6 +279,7 @@ void driveControl(void const *argument)
     uint8_t transition = 0; //zbocze do hamowania
     while (1)
         {
+            osSemaphoreWait (DriveControlSemaphore, osWaitForever);
             if (a_channels[5] == 144) //górna pozycja prze³acznika, sterowanie z aparatury
                 {
                     HAL_GPIO_WritePin (GPIOB, GPIO_PIN_7, GPIO_PIN_SET); //jeœli sterujemy z aparatury œwieci siê niebieska
@@ -392,8 +397,6 @@ void driveControl(void const *argument)
             else
                 {
 
-
-
                     ws2812_set_color (1, 255, 255, 255);
                     ws2812_set_color (2, 255, 255, 255);
                     ws2812_set_color (3, 255, 255, 255);
@@ -448,11 +451,11 @@ void driveControl(void const *argument)
                             ws2812_set_color (21, 0, 0, 0);
                             ws2812_set_color (11, 0, 0, 0);
                             ws2812_set_color (10, 0, 0, 0);
-                    }
+                        }
 
                 }
         }
-    osThreadTerminate(NULL);
+    osThreadTerminate (NULL);
 }
 
 void servoControl(void const *argument)
@@ -489,6 +492,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
     if (huart->Instance == UART4) //jetson
     {
+        osSemaphoreRelease(DriveControlSemaphore);
         TIM10->CNT = 0;
         if(j_syncByte==0xFF)
         {
@@ -517,6 +521,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
     if(huart->Instance == USART1) //aparatura
         {
+
             if(a_syncbyte==0x0F)
             {
                 a_syncbyte=0x56;
@@ -543,6 +548,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
                 a_channels[15] = (int16_t) ((a_buffer[20]>>5|a_buffer[21]<<3)                         & 0x07FF);
 
                 HAL_UART_Receive_DMA(&huart1, &a_syncbyte, 1);
+                osSemaphoreRelease(DriveControlSemaphore);
             }
             else
             {

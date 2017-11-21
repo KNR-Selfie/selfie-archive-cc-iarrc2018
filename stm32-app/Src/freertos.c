@@ -53,11 +53,13 @@
 
 /* USER CODE BEGIN Includes */     
 #include "Lighting.h"
+#include "main.h"
 /* USER CODE END Includes */
 
 /* Variables -----------------------------------------------------------------*/
 osThreadId defaultTaskHandle;
 osThreadId LightingTaskHandle;
+osThreadId GyroTaskHandle;
 
 /* USER CODE BEGIN Variables */
 osThreadId blinkTID;
@@ -70,6 +72,7 @@ osThreadId SDcardTID;
 /* Function prototypes -------------------------------------------------------*/
 void StartDefaultTask(void const * argument);
 extern void StartLightingTask(void const * argument);
+extern void StartGyroTask(void const * argument);
 
 extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -110,6 +113,10 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of LightingTask */
   osThreadDef(LightingTask, StartLightingTask, osPriorityBelowNormal, 0, 128);
   LightingTaskHandle = osThreadCreate(osThread(LightingTask), NULL);
+
+  /* definition and creation of GyroTask */
+  osThreadDef(GyroTask, StartGyroTask, osPriorityNormal, 0, 128);
+  GyroTaskHandle = osThreadCreate(osThread(GyroTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
