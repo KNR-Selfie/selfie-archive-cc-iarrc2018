@@ -2,6 +2,8 @@
   ******************************************************************************
   * @file    stm32f7xx_hal_rcc.h
   * @author  MCD Application Team
+  * @version V1.2.2
+  * @date    14-April-2017
   * @brief   Header file of RCC HAL module.
   ******************************************************************************
   * @attention
@@ -696,7 +698,7 @@ typedef struct
   *         (default is RCC_HSICALIBRATION_DEFAULT).
   */
 #define __HAL_RCC_HSI_CALIBRATIONVALUE_ADJUST(__HSICALIBRATIONVALUE__) (MODIFY_REG(RCC->CR,\
-        RCC_CR_HSITRIM, (uint32_t)(__HSICALIBRATIONVALUE__) << RCC_CR_HSITRIM_Pos))
+        RCC_CR_HSITRIM, (uint32_t)(__HSICALIBRATIONVALUE__) << POSITION_VAL(RCC_CR_HSITRIM)))
 /**
   * @}
   */
@@ -949,8 +951,8 @@ typedef struct
   *              - RCC_SYSCLKSOURCE_STATUS_HSI: HSI used as system clock.
   *              - RCC_SYSCLKSOURCE_STATUS_HSE: HSE used as system clock.
   *              - RCC_SYSCLKSOURCE_STATUS_PLLCLK: PLL used as system clock.
-  */
-#define __HAL_RCC_GET_SYSCLK_SOURCE() (RCC->CFGR & RCC_CFGR_SWS)
+  */     
+#define __HAL_RCC_GET_SYSCLK_SOURCE() ((uint32_t)(RCC->CFGR & RCC_CFGR_SWS))
 
 /**
   * @brief  Macro to configures the External Low Speed oscillator (LSE) drive capability.

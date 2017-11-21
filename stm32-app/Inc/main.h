@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * File Name          : main.hpp
+  * File Name          : main.h
   * Description        : This file contains the common defines of the application
   ******************************************************************************
   * This notice applies to any and all portions of this file
@@ -50,82 +50,19 @@
 #define __MAIN_H
   /* Includes ------------------------------------------------------------------*/
 
-/* Includes ------------------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
 
 /* Private define ------------------------------------------------------------*/
 
-#define O3_Pin GPIO_PIN_6
-#define O3_GPIO_Port GPIOE
-#define VBAT_Pin GPIO_PIN_0
-#define VBAT_GPIO_Port GPIOC
-#define CURRENT_Pin GPIO_PIN_1
-#define CURRENT_GPIO_Port GPIOC
-#define RSSI_Pin GPIO_PIN_2
-#define RSSI_GPIO_Port GPIOC
-#define ENC2_A_Pin GPIO_PIN_0
-#define ENC2_A_GPIO_Port GPIOA
-#define ENC2_B_Pin GPIO_PIN_1
-#define ENC2_B_GPIO_Port GPIOA
-#define O6_Pin GPIO_PIN_2
-#define O6_GPIO_Port GPIOA
-#define O1_Pin GPIO_PIN_3
-#define O1_GPIO_Port GPIOA
-#define MPU_CS_Pin GPIO_PIN_4
-#define MPU_CS_GPIO_Port GPIOA
-#define MPU_DRDY_Pin GPIO_PIN_4
-#define MPU_DRDY_GPIO_Port GPIOC
-#define SD_CS_Pin GPIO_PIN_11
-#define SD_CS_GPIO_Port GPIOE
-#define I1_Pin GPIO_PIN_14
-#define I1_GPIO_Port GPIOB
-#define I2_Pin GPIO_PIN_15
-#define I2_GPIO_Port GPIOB
-#define I4_Pin GPIO_PIN_8
-#define I4_GPIO_Port GPIOC
-#define I3_Pin GPIO_PIN_9
-#define I3_GPIO_Port GPIOC
-#define VBUS_SENS_Pin GPIO_PIN_8
-#define VBUS_SENS_GPIO_Port GPIOA
-#define SD_DETECT_Pin GPIO_PIN_3
-#define SD_DETECT_GPIO_Port GPIOD
-#define O8_Pin GPIO_PIN_3
-#define O8_GPIO_Port GPIOB
-#define ENC1_A_Pin GPIO_PIN_4
-#define ENC1_A_GPIO_Port GPIOB
-#define ENC1_B_Pin GPIO_PIN_5
-#define ENC1_B_GPIO_Port GPIOB
-#define LED_RED_Pin GPIO_PIN_6
-#define LED_RED_GPIO_Port GPIOB
-#define LED_BLUE_Pin GPIO_PIN_7
-#define LED_BLUE_GPIO_Port GPIOB
-#define O10_Pin GPIO_PIN_8
-#define O10_GPIO_Port GPIOB
-#define O5_Pin GPIO_PIN_9
-#define O5_GPIO_Port GPIOB
-
-/* ########################## Assert Selection ############################## */
-/**
-  * @brief Uncomment the line below to expanse the "assert_param" macro in the 
-  *        HAL drivers code
-  */
-/* #define USE_FULL_ASSERT    1U */
-
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
 
-#ifdef __cplusplus
- extern "C" {
-#endif
 void _Error_Handler(char *, int);
 
 #define Error_Handler() _Error_Handler(__FILE__, __LINE__)
-#ifdef __cplusplus
-}
-#endif
 
 /**
   * @}

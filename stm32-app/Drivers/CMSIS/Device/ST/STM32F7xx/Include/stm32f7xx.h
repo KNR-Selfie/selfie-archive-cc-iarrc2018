@@ -2,17 +2,19 @@
   ******************************************************************************
   * @file    stm32f7xx.h
   * @author  MCD Application Team
-  * @brief   CMSIS STM32F7xx Device Peripheral Access Layer Header File.
-  *
+  * @version V1.2.0
+  * @date    30-December-2016
+  * @brief   CMSIS STM32F7xx Device Peripheral Access Layer Header File.           
+  *            
   *          The file is the unique include file that the application programmer
   *          is using in the C source code, usually in main.c. This file contains:
   *           - Configuration section that allows to select:
   *              - The STM32F7xx device used in the target application
-  *              - To use or not the peripheral’s drivers in application code(i.e.
+  *              - To use or not the peripheral’s drivers in application code(i.e. 
   *                code will be based on direct access to peripheral’s registers 
   *                rather than drivers API), this option is controlled by 
   *                "#define USE_HAL_DRIVER"
-  *
+  *  
   ******************************************************************************
   * @attention
   *
@@ -50,14 +52,14 @@
 /** @addtogroup stm32f7xx
   * @{
   */
-
+    
 #ifndef __STM32F7xx_H
 #define __STM32F7xx_H
 
 #ifdef __cplusplus
  extern "C" {
 #endif /* __cplusplus */
-
+  
 /** @addtogroup Library_configuration_section
   * @{
   */
@@ -70,7 +72,7 @@
 #endif /* STM32F7 */
 
 /* Uncomment the line below according to the target STM32 device used in your
-   application
+   application 
   */
 #if !defined (STM32F756xx) && !defined (STM32F746xx) && !defined (STM32F745xx) && !defined (STM32F767xx) && \
     !defined (STM32F769xx) && !defined (STM32F777xx) && !defined (STM32F779xx) && !defined (STM32F722xx) && \
@@ -102,19 +104,19 @@
 #if !defined  (USE_HAL_DRIVER)
 /**
  * @brief Comment the line below if you will not use the peripherals drivers.
-   In this case, these drivers will not be included and the application code will
-   be based on direct access to peripherals registers
+   In this case, these drivers will not be included and the application code will 
+   be based on direct access to peripherals registers 
    */
   /*#define USE_HAL_DRIVER */
 #endif /* USE_HAL_DRIVER */
 
 /**
-  * @brief CMSIS Device version number V1.2.1
+  * @brief CMSIS Device version number V1.2.0
   */
 #define __STM32F7_CMSIS_VERSION_MAIN   (0x01) /*!< [31:24] main version */
 #define __STM32F7_CMSIS_VERSION_SUB1   (0x02) /*!< [23:16] sub1 version */
-#define __STM32F7_CMSIS_VERSION_SUB2   (0x01) /*!< [15:8]  sub2 version */
-#define __STM32F7_CMSIS_VERSION_RC     (0x00) /*!< [7:0]  release candidate */
+#define __STM32F7_CMSIS_VERSION_SUB2   (0x00) /*!< [15:8]  sub2 version */
+#define __STM32F7_CMSIS_VERSION_RC     (0x00) /*!< [7:0]  release candidate */ 
 #define __STM32F7_CMSIS_VERSION        ((__STM32F7_CMSIS_VERSION_MAIN << 24)\
                                        |(__STM32F7_CMSIS_VERSION_SUB1 << 16)\
                                        |(__STM32F7_CMSIS_VERSION_SUB2 << 8 )\
@@ -133,7 +135,7 @@
 #elif defined(STM32F732xx)
   #include "stm32f732xx.h"
 #elif defined(STM32F733xx)
-  #include "stm32f733xx.h"
+  #include "stm32f733xx.h"    
 #elif defined(STM32F756xx)
   #include "stm32f756xx.h"
 #elif defined(STM32F746xx)
@@ -149,7 +151,7 @@
 #elif defined(STM32F777xx)
   #include "stm32f777xx.h"
 #elif defined(STM32F779xx)
-  #include "stm32f779xx.h"
+  #include "stm32f779xx.h"  
 #else
  #error "Please select first the target STM32F7xx device used in your application (in stm32f7xx.h file)"
 #endif
@@ -160,30 +162,30 @@
 
 /** @addtogroup Exported_types
   * @{
-  */
-typedef enum
+  */ 
+typedef enum 
 {
-  RESET = 0U,
+  RESET = 0, 
   SET = !RESET
 } FlagStatus, ITStatus;
 
-typedef enum
+typedef enum 
 {
-  DISABLE = 0U,
+  DISABLE = 0, 
   ENABLE = !DISABLE
 } FunctionalState;
 #define IS_FUNCTIONAL_STATE(STATE) (((STATE) == DISABLE) || ((STATE) == ENABLE))
 
-typedef enum
+typedef enum 
 {
-  ERROR = 0U,
+  ERROR = 0, 
   SUCCESS = !ERROR
 } ErrorStatus;
 
 /**
   * @}
   */
-
+  
 /** @addtogroup Exported_macro
   * @{
   */
@@ -201,14 +203,14 @@ typedef enum
 
 #define MODIFY_REG(REG, CLEARMASK, SETMASK)  WRITE_REG((REG), (((READ_REG(REG)) & (~(CLEARMASK))) | (SETMASK)))
 
-#define POSITION_VAL(VAL)     (__CLZ(__RBIT(VAL)))
+#define POSITION_VAL(VAL)     (__CLZ(__RBIT(VAL))) 
 
 /**
   * @}
   */
 
 #ifdef USE_HAL_DRIVER
- #include "stm32f7xx_hal.h"
+  #include "stm32f7xx_hal_conf.h"
 #endif /* USE_HAL_DRIVER */
 
 #ifdef __cplusplus
@@ -221,7 +223,7 @@ typedef enum
   * @}
   */
 
-/**
+  /**
   * @}
   */
 

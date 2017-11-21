@@ -139,9 +139,9 @@ extern "C" {
  *
  */
 #if( portUSING_MPU_WRAPPERS == 1 )
-	PRIVILEGED_FUNCTION StackType_t *pxPortInitialiseStack( StackType_t *pxTopOfStack, TaskFunction_t pxCode, void *pvParameters, BaseType_t xRunPrivileged ) ;
+	StackType_t *pxPortInitialiseStack( StackType_t *pxTopOfStack, TaskFunction_t pxCode, void *pvParameters, BaseType_t xRunPrivileged ) PRIVILEGED_FUNCTION;
 #else
-	PRIVILEGED_FUNCTION StackType_t *pxPortInitialiseStack( StackType_t *pxTopOfStack, TaskFunction_t pxCode, void *pvParameters ) ;
+	StackType_t *pxPortInitialiseStack( StackType_t *pxTopOfStack, TaskFunction_t pxCode, void *pvParameters ) PRIVILEGED_FUNCTION;
 #endif
 
 /* Used by heap_5.c. */
@@ -162,30 +162,30 @@ typedef struct HeapRegion
  * terminated by a HeapRegions_t structure that has a size of 0.  The region
  * with the lowest start address must appear first in the array.
  */
-PRIVILEGED_FUNCTION void vPortDefineHeapRegions( const HeapRegion_t * const pxHeapRegions );
+void vPortDefineHeapRegions( const HeapRegion_t * const pxHeapRegions ) PRIVILEGED_FUNCTION;
 
 
 /*
  * Map to the memory management routines required for the port.
  */
-PRIVILEGED_FUNCTION void *pvPortMalloc( size_t xSize );
-PRIVILEGED_FUNCTION void vPortFree( void *pv );
-PRIVILEGED_FUNCTION void vPortInitialiseBlocks( void );
-PRIVILEGED_FUNCTION size_t xPortGetFreeHeapSize( void );
-PRIVILEGED_FUNCTION size_t xPortGetMinimumEverFreeHeapSize( void );
+void *pvPortMalloc( size_t xSize ) PRIVILEGED_FUNCTION;
+void vPortFree( void *pv ) PRIVILEGED_FUNCTION;
+void vPortInitialiseBlocks( void ) PRIVILEGED_FUNCTION;
+size_t xPortGetFreeHeapSize( void ) PRIVILEGED_FUNCTION;
+size_t xPortGetMinimumEverFreeHeapSize( void ) PRIVILEGED_FUNCTION;
 
 /*
  * Setup the hardware ready for the scheduler to take control.  This generally
  * sets up a tick interrupt and sets timers for the correct tick frequency.
  */
-PRIVILEGED_FUNCTION BaseType_t xPortStartScheduler( void );
+BaseType_t xPortStartScheduler( void ) PRIVILEGED_FUNCTION;
 
 /*
  * Undo any hardware/ISR setup that was performed by xPortStartScheduler() so
  * the hardware is left in its original condition after the scheduler stops
  * executing.
  */
-PRIVILEGED_FUNCTION void vPortEndScheduler( void );
+void vPortEndScheduler( void ) PRIVILEGED_FUNCTION;
 
 /*
  * The structures and methods of manipulating the MPU are contained within the
@@ -196,7 +196,7 @@ PRIVILEGED_FUNCTION void vPortEndScheduler( void );
  */
 #if( portUSING_MPU_WRAPPERS == 1 )
 	struct xMEMORY_REGION;
-	PRIVILEGED_FUNCTION void vPortStoreTaskMPUSettings( xMPU_SETTINGS *xMPUSettings, const struct xMEMORY_REGION * const xRegions, StackType_t *pxBottomOfStack, uint32_t ulStackDepth );
+	void vPortStoreTaskMPUSettings( xMPU_SETTINGS *xMPUSettings, const struct xMEMORY_REGION * const xRegions, StackType_t *pxBottomOfStack, uint32_t ulStackDepth ) PRIVILEGED_FUNCTION;
 #endif
 
 #ifdef __cplusplus
