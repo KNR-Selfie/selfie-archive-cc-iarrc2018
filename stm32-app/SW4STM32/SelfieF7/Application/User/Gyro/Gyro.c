@@ -18,8 +18,8 @@
 //osThreadId GyroTaskHandle;
 xSemaphoreHandle SemaphoreDRDY = NULL;
 
-#define _SPI_CLOCK_FAST ((uint32_t)0x00000008U)
-#define _SPI_CLOCK_INITIALIZATON ((uint32_t)0x00000038U)
+#define _SPI_CLOCK_FAST 			SPI_BAUDRATEPRESCALER_4
+#define _SPI_CLOCK_INITIALIZATON 	SPI_BAUDRATEPRESCALER_256
 
 #define CAL_CYCLES 1000
 

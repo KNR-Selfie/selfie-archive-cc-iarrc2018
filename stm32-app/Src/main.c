@@ -373,7 +373,7 @@ void driveControl(void const *argument)
 
 
             /* Send Receiver data to Lighting Thread */
-            RXtoLighting(&a_channels);
+            RXtoLighting(a_channels);
 
         }
     osThreadTerminate (NULL);
@@ -418,7 +418,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
         if(j_syncByte==0xFF)
         {
             j_syncByte = 0xFE;
-            HAL_UART_Receive_DMA(&huart4, &j_buffer, 11);
+            HAL_UART_Receive_DMA(&huart4, j_buffer, 11);
         }
         else if(j_syncByte==0xFE)
         {
@@ -432,7 +432,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
             j_jetsonData[6]  = (int16_t) ((j_buffer[8]>>2 |j_buffer[9]<<6)                          & 0x07FF);
             j_jetsonData[7]  = (int16_t) ((j_buffer[9]>>5 |j_buffer[10]<<3)                         & 0x07FF);
             j_syncByte = 0xFD;
-            HAL_UART_Receive_DMA(&huart4, &j_jetsonFlags, 2);
+            HAL_UART_Receive_DMA(&huart4, j_jetsonFlags, 2);
         }
         else
         {
@@ -446,7 +446,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
             if(a_syncbyte==0x0F)
             {
                 a_syncbyte=0x56;
-                HAL_UART_Receive_DMA(&huart1,&a_buffer,24);
+                HAL_UART_Receive_DMA(&huart1,a_buffer,24);
             }
             else if(a_buffer[22]==0x0)
             {
