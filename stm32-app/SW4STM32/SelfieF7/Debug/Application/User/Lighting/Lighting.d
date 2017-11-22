@@ -1,9 +1,27 @@
 Application/User/Lighting/Lighting.o: \
  ../Application/User/Lighting/Lighting.c \
+ ../Application/User/Lighting/Lighting.h \
+ C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.h \
+ C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h \
+ C:/Users/mice/workspace/SelfieF7/Inc/FreeRTOSConfig.h \
+ C:/Users/mice/workspace/SelfieF7/Inc/main.h \
+ C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h \
+ C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include/portable.h \
+ C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h \
+ C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1/portmacro.h \
+ C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h \
+ C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include/task.h \
+ C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include/list.h \
+ C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include/timers.h \
+ C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include/task.h \
+ C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include/queue.h \
+ C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h \
+ C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include/queue.h \
+ C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h \
+ C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include/timers.h \
  C:/Users/mice/workspace/SelfieF7/Inc/tim.h \
  C:/Users/mice/workspace/SelfieF7/Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal.h \
  C:/Users/mice/workspace/SelfieF7/Inc/stm32f7xx_hal_conf.h \
- C:/Users/mice/workspace/SelfieF7/Inc/main.h \
  C:/Users/mice/workspace/SelfieF7/Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_rcc.h \
  C:/Users/mice/workspace/SelfieF7/Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_def.h \
  C:/Users/mice/workspace/SelfieF7/Drivers/CMSIS/Device/ST/STM32F7xx/Include/stm32f7xx.h \
@@ -39,13 +57,49 @@ Application/User/Lighting/Lighting.o: \
  C:/Users/mice/workspace/SelfieF7/Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_ll_usb.h \
  C:/Users/mice/workspace/SelfieF7/Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_pcd_ex.h
 
+../Application/User/Lighting/Lighting.h:
+
+C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.h:
+
+C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h:
+
+C:/Users/mice/workspace/SelfieF7/Inc/FreeRTOSConfig.h:
+
+C:/Users/mice/workspace/SelfieF7/Inc/main.h:
+
+C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h:
+
+C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include/portable.h:
+
+C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h:
+
+C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1/portmacro.h:
+
+C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h:
+
+C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include/task.h:
+
+C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include/list.h:
+
+C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include/timers.h:
+
+C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include/task.h:
+
+C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include/queue.h:
+
+C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h:
+
+C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include/queue.h:
+
+C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h:
+
+C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/include/timers.h:
+
 C:/Users/mice/workspace/SelfieF7/Inc/tim.h:
 
 C:/Users/mice/workspace/SelfieF7/Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal.h:
 
 C:/Users/mice/workspace/SelfieF7/Inc/stm32f7xx_hal_conf.h:
-
-C:/Users/mice/workspace/SelfieF7/Inc/main.h:
 
 C:/Users/mice/workspace/SelfieF7/Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_rcc.h:
 
