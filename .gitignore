@@ -27,6 +27,13 @@ build/
 *.lst
 .*.un~
 .*.swp
+/Application/
+/sources.mk
+/Drivers/
+/Middlewares/
+/makefile
+/objects.list
+/objects.mk
 
 # Files containg private data
 **/remotedebug.xml
