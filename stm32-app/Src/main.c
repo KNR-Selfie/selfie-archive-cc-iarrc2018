@@ -283,7 +283,7 @@ void driveControl(void const *argument)
             if (a_channels[5] == 144) //górna pozycja prze³acznika, sterowanie z aparatury
                 {
                     HAL_GPIO_WritePin (GPIOB, GPIO_PIN_7, GPIO_PIN_SET); //jeœli sterujemy z aparatury œwieci siê niebieska
-                    HAL_GPIO_WritePin (GPIOB, GPIO_PIN_6, GPIO_PIN_RESET); //czerwona siê nie œwieci
+//                    HAL_GPIO_WritePin (GPIOB, GPIO_PIN_6, GPIO_PIN_RESET); //czerwona siê nie œwieci
                     duty_engine = (1500
                             + 1000 * (a_channels[1] - 1027) / (1680 - 368));
                     duty_servo = (1400
@@ -293,7 +293,7 @@ void driveControl(void const *argument)
             else if (a_channels[5] == 1024) //œrodkowa pozycja prze³¹cznika, jazda autonomiczna
                 {
                     HAL_TIM_Base_Start_IT (&htim10); // timer od sprawdzania komunikacji
-                    HAL_GPIO_WritePin (GPIOB, GPIO_PIN_6, GPIO_PIN_SET); //jeœli jeŸdzimy autonomicznie œwieci siê czerwona
+//                    HAL_GPIO_WritePin (GPIOB, GPIO_PIN_6, GPIO_PIN_SET); //jeœli jeŸdzimy autonomicznie œwieci siê czerwona
                     HAL_GPIO_WritePin (GPIOB, GPIO_PIN_7, GPIO_PIN_RESET); //a niebieska nie
                     //jezeli jest komunikacja na linii Jetson <-> STM
                     if (j_syncByte == 254 || j_syncByte == 253
@@ -355,7 +355,7 @@ void driveControl(void const *argument)
                 }
             else if (a_channels[5] == 1904) //dolna pozycja prze³acznika, tryb pó³autonomiczny
                 {
-                    HAL_GPIO_WritePin (GPIOB, GPIO_PIN_6, GPIO_PIN_SET); //jeœli jeŸdzimy pó³autonomicznie œwieci siê czerwona
+//                    HAL_GPIO_WritePin (GPIOB, GPIO_PIN_6, GPIO_PIN_SET); //jeœli jeŸdzimy pó³autonomicznie œwieci siê czerwona
                     HAL_GPIO_WritePin (GPIOB, GPIO_PIN_7, GPIO_PIN_SET); //i niebieska te¿
                     duty_engine = (1500
                             + 1000 * (a_channels[1] - 1027) / (1680 - 368));

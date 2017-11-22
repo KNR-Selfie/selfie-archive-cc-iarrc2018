@@ -77,6 +77,7 @@
 #define MPU_CS_GPIO_Port GPIOA
 #define MPU_DRDY_Pin GPIO_PIN_4
 #define MPU_DRDY_GPIO_Port GPIOC
+#define MPU_DRDY_EXTI_IRQn EXTI4_IRQn
 #define SD_CS_Pin GPIO_PIN_11
 #define SD_CS_GPIO_Port GPIOE
 #define I1_Pin GPIO_PIN_14

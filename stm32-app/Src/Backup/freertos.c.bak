@@ -53,6 +53,7 @@
 
 /* USER CODE BEGIN Includes */     
 #include "Lighting.h"
+#include "main.h"
 /* USER CODE END Includes */
 
 /* Variables -----------------------------------------------------------------*/

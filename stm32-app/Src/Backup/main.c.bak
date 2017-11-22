@@ -70,6 +70,7 @@
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 
+xSemaphoreHandle DriveControlSemaphore = NULL;
 //deklaracja zmiennych u¿ywanych do komunikacji z Jetsonem
 uint8_t j_syncByte;
 uint8_t j_buffer[11];
@@ -147,6 +148,8 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
   //uruchomienie DMA na uarcie oraz PWM
+
+    vSemaphoreCreateBinary( DriveControlSemaphore );
 
     ws2812_init();
     HAL_UART_Receive_DMA(&huart4, &j_syncByte, 1);
@@ -276,10 +279,11 @@ void driveControl(void const *argument)
     uint8_t transition = 0; //zbocze do hamowania
     while (1)
         {
+            osSemaphoreWait (DriveControlSemaphore, osWaitForever);
             if (a_channels[5] == 144) //górna pozycja prze³acznika, sterowanie z aparatury
                 {
                     HAL_GPIO_WritePin (GPIOB, GPIO_PIN_7, GPIO_PIN_SET); //jeœli sterujemy z aparatury œwieci siê niebieska
-                    HAL_GPIO_WritePin (GPIOB, GPIO_PIN_6, GPIO_PIN_RESET); //czerwona siê nie œwieci
+//                    HAL_GPIO_WritePin (GPIOB, GPIO_PIN_6, GPIO_PIN_RESET); //czerwona siê nie œwieci
                     duty_engine = (1500
                             + 1000 * (a_channels[1] - 1027) / (1680 - 368));
                     duty_servo = (1400
@@ -289,7 +293,7 @@ void driveControl(void const *argument)
             else if (a_channels[5] == 1024) //œrodkowa pozycja prze³¹cznika, jazda autonomiczna
                 {
                     HAL_TIM_Base_Start_IT (&htim10); // timer od sprawdzania komunikacji
-                    HAL_GPIO_WritePin (GPIOB, GPIO_PIN_6, GPIO_PIN_SET); //jeœli jeŸdzimy autonomicznie œwieci siê czerwona
+//                    HAL_GPIO_WritePin (GPIOB, GPIO_PIN_6, GPIO_PIN_SET); //jeœli jeŸdzimy autonomicznie œwieci siê czerwona
                     HAL_GPIO_WritePin (GPIOB, GPIO_PIN_7, GPIO_PIN_RESET); //a niebieska nie
                     //jezeli jest komunikacja na linii Jetson <-> STM
                     if (j_syncByte == 254 || j_syncByte == 253
@@ -351,7 +355,7 @@ void driveControl(void const *argument)
                 }
             else if (a_channels[5] == 1904) //dolna pozycja prze³acznika, tryb pó³autonomiczny
                 {
-                    HAL_GPIO_WritePin (GPIOB, GPIO_PIN_6, GPIO_PIN_SET); //jeœli jeŸdzimy pó³autonomicznie œwieci siê czerwona
+//                    HAL_GPIO_WritePin (GPIOB, GPIO_PIN_6, GPIO_PIN_SET); //jeœli jeŸdzimy pó³autonomicznie œwieci siê czerwona
                     HAL_GPIO_WritePin (GPIOB, GPIO_PIN_7, GPIO_PIN_SET); //i niebieska te¿
                     duty_engine = (1500
                             + 1000 * (a_channels[1] - 1027) / (1680 - 368));
@@ -392,8 +396,6 @@ void driveControl(void const *argument)
                 }
             else
                 {
-
-
 
                     ws2812_set_color (1, 255, 255, 255);
                     ws2812_set_color (2, 255, 255, 255);
@@ -449,11 +451,11 @@ void driveControl(void const *argument)
                             ws2812_set_color (21, 0, 0, 0);
                             ws2812_set_color (11, 0, 0, 0);
                             ws2812_set_color (10, 0, 0, 0);
-                    }
+                        }
 
                 }
         }
-    osThreadTerminate(NULL);
+    osThreadTerminate (NULL);
 }
 
 void servoControl(void const *argument)
@@ -490,6 +492,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
     if (huart->Instance == UART4) //jetson
     {
+        osSemaphoreRelease(DriveControlSemaphore);
         TIM10->CNT = 0;
         if(j_syncByte==0xFF)
         {
@@ -518,6 +521,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
     if(huart->Instance == USART1) //aparatura
         {
+
             if(a_syncbyte==0x0F)
             {
                 a_syncbyte=0x56;
@@ -544,6 +548,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
                 a_channels[15] = (int16_t) ((a_buffer[20]>>5|a_buffer[21]<<3)                         & 0x07FF);
 
                 HAL_UART_Receive_DMA(&huart1, &a_syncbyte, 1);
+                osSemaphoreRelease(DriveControlSemaphore);
             }
             else
             {

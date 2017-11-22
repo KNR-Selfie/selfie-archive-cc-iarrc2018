@@ -57,7 +57,8 @@ Application/User/Gyro/Gyro.o: ../Application/User/Gyro/Gyro.c \
  C:/Users/mice/workspace/SelfieF7/Inc/gpio.h \
  ../Application/User/Gyro/Gyro.h ../Application/User/Gyro/mpu6000.h \
  C:/Users/mice/workspace/SelfieF7/Inc/main.h \
- ../Application/User/Gyro/Filtering.h
+ ../Application/User/Gyro/Filtering.h \
+ C:/Users/mice/workspace/SelfieF7/SW4STM32/SelfieF7/Application/User/Lighting/Lighting.h
 
 C:/Users/mice/workspace/SelfieF7/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.h:
 
@@ -178,3 +179,5 @@ C:/Users/mice/workspace/SelfieF7/Inc/gpio.h:
 C:/Users/mice/workspace/SelfieF7/Inc/main.h:
 
 ../Application/User/Gyro/Filtering.h:
+
+C:/Users/mice/workspace/SelfieF7/SW4STM32/SelfieF7/Application/User/Lighting/Lighting.h:
