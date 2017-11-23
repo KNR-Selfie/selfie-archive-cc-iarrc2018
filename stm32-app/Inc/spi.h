@@ -65,8 +65,7 @@ extern SPI_HandleTypeDef hspi1;
 extern SPI_HandleTypeDef hspi4;
 
 /* USER CODE BEGIN Private defines */
-#define _SPI_CLOCK_FAST SPI_BAUDRATEPRESCALER_4
-#define _SPI_CLOCK_INITIALIZATON SPI_BAUDRATEPRESCALER_256
+
 /* USER CODE END Private defines */
 
 extern void _Error_Handler(char *, int);
