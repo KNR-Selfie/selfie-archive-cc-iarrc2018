@@ -28,5 +28,14 @@ build/
 .*.un~
 .*.swp
 
+/stm32-app/SW4STM32/SelfieF7/Debug/Application/
+/stm32-app/SW4STM32/SelfieF7/Debug/sources.mk
+/stm32-app/SW4STM32/SelfieF7/Debug/Drivers/
+/stm32-app/SW4STM32/SelfieF7/Debug/Middlewares/
+/stm32-app/SW4STM32/SelfieF7/Debug/makefile
+/stm32-app/SW4STM32/SelfieF7/Debug/objects.list
+/stm32-app/SW4STM32/SelfieF7/Debug/objects.mk
+/stm32-app/SW4STM32/SelfieF7/Debug/.gitignore
+
 # Files containg private data
 **/remotedebug.xml

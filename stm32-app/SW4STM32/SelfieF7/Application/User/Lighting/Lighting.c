@@ -7,8 +7,11 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
-#include "math.h"
 
+#include "Lighting.h"
+
+#include "cmsis_os.h"
+#include "math.h"
 #include "tim.h"
 
 #define H_VAL 91
@@ -21,8 +24,97 @@
 
 uint16_t ws2812BitBuf[BIT_BUF_SIZE];
 
+uint16_t RX_AETR[4];
+uint16_t RX_SW;
+uint16_t RX_POT;
+
+int rgb[22][3];
+
+
 void StartLightingTask(void const * argument)
 {
+    ws2812_init();
+
+    while(1)
+        {
+            if (RX_POT > 1027)
+                {
+                    static int16_t scounter1 = 1;
+                    scounter1++;
+                    if (scounter1 > 359)
+                        scounter1 = 0;
+
+                    for (int indeks = 0; indeks < 22; indeks++)
+                        {
+                            if ((scounter1 + 5 * indeks) > 359)
+                               hsi2rgb ((scounter1 + 5*indeks - 359), 1, 1, &rgb[indeks][0]);
+                           else
+                               hsi2rgb ((scounter1 + 5*indeks), 1, 1, &rgb[indeks][0]);
+                            ws2812_set_color (indeks, rgb[indeks][0], rgb[indeks][1], rgb[indeks][2]);
+                        }
+                }
+            else
+                {
+
+                    ws2812_set_color (1, 255, 255, 255);
+                    ws2812_set_color (2, 255, 255, 255);
+                    ws2812_set_color (3, 255, 255, 255);
+                    ws2812_set_color (4, 0, 0, 0);
+                    ws2812_set_color (5, 0, 0, 0);
+                    ws2812_set_color (6, 0, 0, 0);
+                    ws2812_set_color (7, 255, 255, 255);
+                    ws2812_set_color (8, 255, 255, 255);
+                    ws2812_set_color (9, 255, 255, 255);
+
+                    if (RX_AETR[1] < 1027)
+                        {
+                            ws2812_set_color (12, 255, 0, 0);
+                            ws2812_set_color (13, 255, 0, 0);
+                            ws2812_set_color (14, 255, 0, 0);
+
+                            ws2812_set_color (20, 255, 0, 0);
+                            ws2812_set_color (19, 255, 0, 0);
+                            ws2812_set_color (18, 255, 0, 0);
+
+                        }
+                    else
+                        {
+                            ws2812_set_color (12, 50, 0, 0);
+                            ws2812_set_color (13, 50, 0, 0);
+                            ws2812_set_color (14, 50, 0, 0);
+
+                            ws2812_set_color (20, 50, 0, 0);
+                            ws2812_set_color (19, 50, 0, 0);
+                            ws2812_set_color (18, 50, 0, 0);
+                        }
+                    ws2812_set_color (15, 0, 0, 0);
+                    ws2812_set_color (16, 0, 0, 0);
+                    ws2812_set_color (17, 0, 0, 0);
+                    if (RX_AETR[3] > 1250)
+                        {
+                            ws2812_set_color (11, 255, 120, 0);
+                            ws2812_set_color (10, 255, 120, 0);
+                            ws2812_set_color (0, 0, 0, 0);
+                            ws2812_set_color (21, 0, 0, 0);
+                        }
+                    else if (RX_AETR[3] < 800)
+                        {
+                            ws2812_set_color (0, 255, 120, 0);
+                            ws2812_set_color (21, 255, 120, 0);
+                            ws2812_set_color (11, 0, 0, 0);
+                            ws2812_set_color (10, 0, 0, 0);
+                        }
+                    else
+                        {
+                            ws2812_set_color (0, 0, 0, 0);
+                            ws2812_set_color (21, 0, 0, 0);
+                            ws2812_set_color (11, 0, 0, 0);
+                            ws2812_set_color (10, 0, 0, 0);
+                        }
+
+                }
+            osDelay(5);
+        }
 
 }
 void ws2812_init(void) {
@@ -86,4 +178,12 @@ void hsi2rgb(float H, float S, float I, int* rgb)
   rgb[0]=r;
   rgb[1]=g;
   rgb[2]=b;
+}
+void RXtoLighting (const uint16_t* rx_data)
+{
+    for (int stick = 0; stick < 4; stick++)
+        RX_AETR[stick] = rx_data[stick];
+    RX_SW = rx_data[5];
+    RX_POT = rx_data[4];
+
 }

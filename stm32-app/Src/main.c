@@ -89,11 +89,6 @@ uint16_t duty_servo;
 uint8_t prescalerOdchylka = 3;
 uint8_t prescalerAngle = 7;
 
-int rgb[22][3];
-
-int is1 = 1;
-int16_t scounter1 = 1;
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -150,8 +145,6 @@ int main(void)
   //uruchomienie DMA na uarcie oraz PWM
 
     vSemaphoreCreateBinary( DriveControlSemaphore );
-
-    ws2812_init();
     HAL_UART_Receive_DMA(&huart4, &j_syncByte, 1);
     HAL_UART_Receive_DMA(&huart1, &a_syncbyte, 1);
     HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
@@ -283,7 +276,7 @@ void driveControl(void const *argument)
             if (a_channels[5] == 144) //górna pozycja prze³acznika, sterowanie z aparatury
                 {
                     HAL_GPIO_WritePin (GPIOB, GPIO_PIN_7, GPIO_PIN_SET); //jeœli sterujemy z aparatury œwieci siê niebieska
-                    HAL_GPIO_WritePin (GPIOB, GPIO_PIN_6, GPIO_PIN_RESET); //czerwona siê nie œwieci
+//                    HAL_GPIO_WritePin (GPIOB, GPIO_PIN_6, GPIO_PIN_RESET); //czerwona siê nie œwieci
                     duty_engine = (1500
                             + 1000 * (a_channels[1] - 1027) / (1680 - 368));
                     duty_servo = (1400
@@ -293,7 +286,7 @@ void driveControl(void const *argument)
             else if (a_channels[5] == 1024) //œrodkowa pozycja prze³¹cznika, jazda autonomiczna
                 {
                     HAL_TIM_Base_Start_IT (&htim10); // timer od sprawdzania komunikacji
-                    HAL_GPIO_WritePin (GPIOB, GPIO_PIN_6, GPIO_PIN_SET); //jeœli jeŸdzimy autonomicznie œwieci siê czerwona
+//                    HAL_GPIO_WritePin (GPIOB, GPIO_PIN_6, GPIO_PIN_SET); //jeœli jeŸdzimy autonomicznie œwieci siê czerwona
                     HAL_GPIO_WritePin (GPIOB, GPIO_PIN_7, GPIO_PIN_RESET); //a niebieska nie
                     //jezeli jest komunikacja na linii Jetson <-> STM
                     if (j_syncByte == 254 || j_syncByte == 253
@@ -355,7 +348,7 @@ void driveControl(void const *argument)
                 }
             else if (a_channels[5] == 1904) //dolna pozycja prze³acznika, tryb pó³autonomiczny
                 {
-                    HAL_GPIO_WritePin (GPIOB, GPIO_PIN_6, GPIO_PIN_SET); //jeœli jeŸdzimy pó³autonomicznie œwieci siê czerwona
+//                    HAL_GPIO_WritePin (GPIOB, GPIO_PIN_6, GPIO_PIN_SET); //jeœli jeŸdzimy pó³autonomicznie œwieci siê czerwona
                     HAL_GPIO_WritePin (GPIOB, GPIO_PIN_7, GPIO_PIN_SET); //i niebieska te¿
                     duty_engine = (1500
                             + 1000 * (a_channels[1] - 1027) / (1680 - 368));
@@ -377,83 +370,11 @@ void driveControl(void const *argument)
                         }
                     TIM2->CCR3 = duty_servo;
                 }
-            if (a_channels[4] > 1027)
-                {
-                    scounter1 += 1 * is1;
 
-                    if (scounter1 >= 999 || scounter1 <= 0)
-                        is1 *= -1;
 
-                    for (int indeks = 0; indeks < 22; indeks++)
-                        {
-                            hsi2rgb (
-                                    fabs (360 * scounter1 / 999
-                                            - 5 * (indeks - 2)),
-                                    1, 1, &rgb[indeks][0]);
-                            ws2812_set_color (indeks, rgb[indeks][0],
-                                              rgb[indeks][1], rgb[indeks][2]);
-                        }
-                }
-            else
-                {
+            /* Send Receiver data to Lighting Thread */
+            RXtoLighting(a_channels);
 
-                    ws2812_set_color (1, 255, 255, 255);
-                    ws2812_set_color (2, 255, 255, 255);
-                    ws2812_set_color (3, 255, 255, 255);
-                    ws2812_set_color (4, 0, 0, 0);
-                    ws2812_set_color (5, 0, 0, 0);
-                    ws2812_set_color (6, 0, 0, 0);
-                    ws2812_set_color (7, 255, 255, 255);
-                    ws2812_set_color (8, 255, 255, 255);
-                    ws2812_set_color (9, 255, 255, 255);
-
-                    if (a_channels[1] < 1027)
-                        {
-                            ws2812_set_color (12, 255, 0, 0);
-                            ws2812_set_color (13, 255, 0, 0);
-                            ws2812_set_color (14, 255, 0, 0);
-
-                            ws2812_set_color (20, 255, 0, 0);
-                            ws2812_set_color (19, 255, 0, 0);
-                            ws2812_set_color (18, 255, 0, 0);
-
-                        }
-                    else
-                        {
-                            ws2812_set_color (12, 50, 0, 0);
-                            ws2812_set_color (13, 50, 0, 0);
-                            ws2812_set_color (14, 50, 0, 0);
-
-                            ws2812_set_color (20, 50, 0, 0);
-                            ws2812_set_color (19, 50, 0, 0);
-                            ws2812_set_color (18, 50, 0, 0);
-                        }
-                    ws2812_set_color (15, 0, 0, 0);
-                    ws2812_set_color (16, 0, 0, 0);
-                    ws2812_set_color (17, 0, 0, 0);
-                    if (a_channels[3] > 1250)
-                        {
-                            ws2812_set_color (11, 255, 120, 0);
-                            ws2812_set_color (10, 255, 120, 0);
-                            ws2812_set_color (0, 0, 0, 0);
-                            ws2812_set_color (21, 0, 0, 0);
-                        }
-                    else if (a_channels[3] < 800)
-                        {
-                            ws2812_set_color (0, 255, 120, 0);
-                            ws2812_set_color (21, 255, 120, 0);
-                            ws2812_set_color (11, 0, 0, 0);
-                            ws2812_set_color (10, 0, 0, 0);
-                        }
-                    else
-                        {
-                            ws2812_set_color (0, 0, 0, 0);
-                            ws2812_set_color (21, 0, 0, 0);
-                            ws2812_set_color (11, 0, 0, 0);
-                            ws2812_set_color (10, 0, 0, 0);
-                        }
-
-                }
         }
     osThreadTerminate (NULL);
 }
@@ -497,7 +418,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
         if(j_syncByte==0xFF)
         {
             j_syncByte = 0xFE;
-            HAL_UART_Receive_DMA(&huart4, &j_buffer, 11);
+            HAL_UART_Receive_DMA(&huart4, j_buffer, 11);
         }
         else if(j_syncByte==0xFE)
         {
@@ -511,7 +432,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
             j_jetsonData[6]  = (int16_t) ((j_buffer[8]>>2 |j_buffer[9]<<6)                          & 0x07FF);
             j_jetsonData[7]  = (int16_t) ((j_buffer[9]>>5 |j_buffer[10]<<3)                         & 0x07FF);
             j_syncByte = 0xFD;
-            HAL_UART_Receive_DMA(&huart4, &j_jetsonFlags, 2);
+            HAL_UART_Receive_DMA(&huart4, j_jetsonFlags, 2);
         }
         else
         {
@@ -525,7 +446,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
             if(a_syncbyte==0x0F)
             {
                 a_syncbyte=0x56;
-                HAL_UART_Receive_DMA(&huart1,&a_buffer,24);
+                HAL_UART_Receive_DMA(&huart1,a_buffer,24);
             }
             else if(a_buffer[22]==0x0)
             {

@@ -13,9 +13,13 @@
 #include "mpu6000.h"
 #include "main.h"
 #include "Filtering.h"
+#include "Lighting.h"
 
 //osThreadId GyroTaskHandle;
 xSemaphoreHandle SemaphoreDRDY = NULL;
+
+#define _SPI_CLOCK_FAST 			SPI_BAUDRATEPRESCALER_4
+#define _SPI_CLOCK_INITIALIZATON 	SPI_BAUDRATEPRESCALER_256
 
 #define CAL_CYCLES 1000
 
@@ -46,44 +50,49 @@ void gyro_filtering(void);
 
 
 void StartGyroTask(void const * argument){
-
-//    GyroTaskHandle =  xTaskGetApplicationTaskTag(NULL);
     vSemaphoreCreateBinary( SemaphoreDRDY );
     for (int axis = 0; axis < 3; axis++)
             lpf_filter_init(&gyroLPF[axis], gyroLPF_Hz[axis], gyroLooptime);
     mpu6000AccAndGyroInit();
+
     calibration_mode=1;
-    while(1)
+    ws2812_init();
+    while (1)
         {
-            osSemaphoreWait(SemaphoreDRDY, osWaitForever);
-            gyro_data_read(MPU_RA_ACCEL_XOUT_H | 0x80, GyroRxBuffer, 14);
-            gyro_data_conv(GyroRxBuffer);
-            gyro_calfunction ();
-            gyro_zeroing ();
-            gyro_filtering();
-//            if ( xSemaphoreTake( SemaphoreDRDY) == pdTRUE)
-//                {
-//                    gyro_data_read (MPU_RA_ACCEL_XOUT_H | 0x80, GyroRxBuffer,
-//                                    14);
-//                    gyro_data_conv (GyroRxBuffer);
-//                    gyro_calfunction ();
-//                    gyro_zeroing ();
-//                    gyro_filtering ();
-//                }
+            osSemaphoreWait (SemaphoreDRDY, osWaitForever);
+            if (gyro_on)
+                {
+                    gyro_data_read (MPU_RA_ACCEL_XOUT_H | 0x80, GyroRxBuffer,
+                                    14);
+                    gyro_data_conv (GyroRxBuffer);
+                    gyro_calfunction ();
+                    gyro_zeroing ();
+                    gyro_filtering ();
+
+                    static uint16_t cnt00 = 0;
+                    if (cnt00++ > 499)
+                        {
+                            HAL_GPIO_TogglePin (LED_RED_GPIO_Port, LED_RED_Pin);
+                            cnt00 = 0;
+                        }
+                }
+
         }
 }
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
     if (GPIO_Pin == MPU_DRDY_Pin && gyro_on) // Gyro Data READY
     {
-//            xTaskResumeFromISR(GyroTaskHandle);
             osSemaphoreRelease(SemaphoreDRDY);
     }
 }
 void mpu6000AccAndGyroInit()
 {
     gyro_on = 0;
-    MX_SPI1_Init();
-    osDelay(150);
+    HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_RESET);
+
+    Selfie_SPI1_Init(_SPI_CLOCK_INITIALIZATON);
+    osDelay(1);
+
     // Device Reset
     gyro_write(MPU_RA_PWR_MGMT_1, BIT_H_RESET);
     osDelay(150);
@@ -123,15 +132,21 @@ void mpu6000AccAndGyroInit()
 
     gyro_write(MPU_RA_INT_ENABLE, 0x01);
     osDelay(1);
+
+    HAL_SPI_DeInit(&hspi1);
+    Selfie_SPI1_Init(_SPI_CLOCK_FAST);
+    osDelay(1);
+
     gyro_on = 1;
+    HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_SET);
 }
 void gyro_write(uint8_t gyro_reg, uint8_t data) {
 
     HAL_GPIO_WritePin(MPU_CS_GPIO_Port, MPU_CS_Pin, GPIO_PIN_RESET);
 
-    HAL_SPI_Transmit(&hspi4, &gyro_reg, 1, 1);
+    HAL_SPI_Transmit(&hspi1, &gyro_reg, 1, 1);
 
-    HAL_SPI_Transmit(&hspi4, &data, 1, 1);
+    HAL_SPI_Transmit(&hspi1, &data, 1, 1);
 
     HAL_GPIO_WritePin(MPU_CS_GPIO_Port, MPU_CS_Pin, GPIO_PIN_SET);
 
@@ -140,9 +155,9 @@ void gyro_data_read(uint8_t reg_addr, uint8_t *data, uint32_t size) {
 
     HAL_GPIO_WritePin(MPU_CS_GPIO_Port, MPU_CS_Pin, GPIO_PIN_RESET);
 
-    HAL_SPI_Transmit(&hspi4, &reg_addr, 1, 1);
+    HAL_SPI_Transmit(&hspi1, &reg_addr, 1, 1);
 
-    HAL_SPI_Receive(&hspi4, data, size, 1);
+    HAL_SPI_Receive(&hspi1, data, size, 1);
 
     HAL_GPIO_WritePin(MPU_CS_GPIO_Port, MPU_CS_Pin, GPIO_PIN_SET);
 }

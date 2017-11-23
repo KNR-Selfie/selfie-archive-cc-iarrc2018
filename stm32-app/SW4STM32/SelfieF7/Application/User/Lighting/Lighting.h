@@ -16,4 +16,6 @@ void ws2812_set_color(int led, uint8_t r, uint8_t g, uint8_t b);
 void ws2812_update_color(void);
 void hsi2rgb(float H, float S, float I, int* rgb);
 
+void RXtoLighting(const uint16_t* rx_data);
+
 #endif /* APPLICATION_USER_LIGHTING_LIGHTING_H_ */
