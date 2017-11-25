@@ -53,6 +53,7 @@
 
 /* USER CODE BEGIN Includes */     
 #include "Lighting.h"
+#include "Gyro.h"
 #include "main.h"
 /* USER CODE END Includes */
 
