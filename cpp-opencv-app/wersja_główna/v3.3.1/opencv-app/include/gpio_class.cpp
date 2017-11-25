@@ -7,7 +7,7 @@
 #include <poll.h>
 #include "gpio_class.hpp"
 
-int GPIO::gpioExport(int gpio)
+int GPIO::Export(jetsonGPIO gpio)
 {
     int fileDescriptor, length;
     char commandBuffer[MAX_BUF];
@@ -33,7 +33,7 @@ int GPIO::gpioExport(int gpio)
     return 0;
 }
 
-int GPIO::gpioUnexport(int gpio)
+int GPIO::Unexport(jetsonGPIO gpio)
 {
     int fileDescriptor, length;
     char commandBuffer[MAX_BUF];
@@ -60,7 +60,7 @@ int GPIO::gpioUnexport(int gpio)
     return 0;
 }
 
-int GPIO::gpioSetDirection(int gpio, unsigned int out_flag)
+int GPIO::SetDirection(jetsonGPIO gpio, unsigned int out_flag)
 {
     int fileDescriptor;
     char commandBuffer[MAX_BUF];
@@ -99,7 +99,7 @@ int GPIO::gpioSetDirection(int gpio, unsigned int out_flag)
     return 0;
 }
 
-int GPIO::gpioSetValue(int gpio, unsigned int value)
+int GPIO::SetValue(jetsonGPIO gpio, unsigned int value)
 {
     int fileDescriptor;
     char commandBuffer[MAX_BUF];
@@ -136,7 +136,7 @@ int GPIO::gpioSetValue(int gpio, unsigned int value)
     return 0;
 }
 
-int GPIO::gpioGetValue(int gpio, unsigned int *value)
+int GPIO::GetValue(jetsonGPIO gpio, unsigned int *value)
 {
     int fileDescriptor;
     char commandBuffer[MAX_BUF];
@@ -171,7 +171,7 @@ int GPIO::gpioGetValue(int gpio, unsigned int *value)
     return 0;
 }
 
-int GPIO::gpioSetEdge(int gpio, char *edge )
+int GPIO::SetEdge(jetsonGPIO gpio, char *edge )
 {
     int fileDescriptor;
     char commandBuffer[MAX_BUF];
@@ -198,7 +198,7 @@ int GPIO::gpioSetEdge(int gpio, char *edge )
     return 0;
 }
 
-int GPIO::gpioOpen(int gpio)
+int GPIO::Open(jetsonGPIO gpio)
 {
     int fileDescriptor;
     char commandBuffer[MAX_BUF];
@@ -216,7 +216,7 @@ int GPIO::gpioOpen(int gpio)
     return fileDescriptor;
 }
 
-int GPIO::gpioClose(int fileDescriptor)
+int GPIO::Close(int fileDescriptor)
 {
     return close(fileDescriptor);
 }
