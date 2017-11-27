@@ -1,8 +1,8 @@
 /**
   ******************************************************************************
-  * File Name          : SPI.h
-  * Description        : This file provides code for the configuration
-  *                      of the SPI instances.
+  * @file           : usbd_conf.h
+  * @version        : v1.0_Cube
+  * @brief          : Header for usbd_conf file.
   ******************************************************************************
   * This notice applies to any and all portions of this file
   * that are not between comment pairs USER CODE BEGIN and
@@ -45,49 +45,142 @@
   * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
   ******************************************************************************
-  */
+*/
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __spi_H
-#define __spi_H
+#ifndef __USBD_CONF__H__
+#define __USBD_CONF__H__
 #ifdef __cplusplus
  extern "C" {
 #endif
-
 /* Includes ------------------------------------------------------------------*/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "stm32f7xx.h"
 #include "stm32f7xx_hal.h"
-#include "main.h"
 
-/* USER CODE BEGIN Includes */
+/** @addtogroup USBD_OTG_DRIVER
+  * @{
+  */
+  
+/** @defgroup USBD_CONF
+  * @brief usb otg low level driver configuration file
+  * @{
+  */ 
 
-/* USER CODE END Includes */
+/** @defgroup USBD_CONF_Exported_Defines
+  * @{
+  */ 
 
-extern SPI_HandleTypeDef hspi1;
-extern SPI_HandleTypeDef hspi4;
+/*---------- -----------*/
+#define USBD_MAX_NUM_INTERFACES     1
+/*---------- -----------*/
+#define USBD_MAX_NUM_CONFIGURATION     1
+/*---------- -----------*/
+#define USBD_MAX_STR_DESC_SIZ     512
+/*---------- -----------*/
+#define USBD_SUPPORT_USER_STRING     0
+/*---------- -----------*/
+#define USBD_DEBUG_LEVEL     0
+/*---------- -----------*/
+#define USBD_LPM_ENABLED     1
+/*---------- -----------*/
+#define USBD_SELF_POWERED     1
 
-/* USER CODE BEGIN Private defines */
+/****************************************/
+/* #define for FS and HS identification */
+#define DEVICE_FS 		0
+#define DEVICE_HS 		1
 
-/* USER CODE END Private defines */
+/** @defgroup USBD_Exported_Macros
+  * @{
+  */ 
 
-extern void _Error_Handler(char *, int);
+ /* Memory management macros */   
+#define USBD_malloc               malloc
+#define USBD_free                 free
+#define USBD_memset               memset
+#define USBD_memcpy               memcpy
 
-void MX_SPI1_Init(void);
-void MX_SPI4_Init(void);
+#define USBD_Delay   HAL_Delay
+    
+ /* DEBUG macros */  
 
-/* USER CODE BEGIN Prototypes */
-void Selfie_SPI1_Init(uint32_t Mode);
-/* USER CODE END Prototypes */
+#if (USBD_DEBUG_LEVEL > 0)
+#define  USBD_UsrLog(...)   printf(__VA_ARGS__);\
+                            printf("\n");
+#else
+#define USBD_UsrLog(...)   
+#endif 
+                            
+                            
+#if (USBD_DEBUG_LEVEL > 1)
 
+#define  USBD_ErrLog(...)   printf("ERROR: ") ;\
+                            printf(__VA_ARGS__);\
+                            printf("\n");
+#else
+#define USBD_ErrLog(...)   
+#endif 
+                            
+                            
+#if (USBD_DEBUG_LEVEL > 2)                         
+#define  USBD_DbgLog(...)   printf("DEBUG : ") ;\
+                            printf(__VA_ARGS__);\
+                            printf("\n");
+#else
+#define USBD_DbgLog(...)                         
+#endif
+                            
+/**
+  * @}
+  */ 
+ 
+    
+    
+/**
+  * @}
+  */ 
+
+/** @defgroup USBD_CONF_Exported_Types
+  * @{
+  */ 
+/**
+  * @}
+  */ 
+
+/** @defgroup USBD_CONF_Exported_Macros
+  * @{
+  */ 
+/**
+  * @}
+  */ 
+
+/** @defgroup USBD_CONF_Exported_Variables
+  * @{
+  */ 
+/**
+  * @}
+  */ 
+
+/** @defgroup USBD_CONF_Exported_FunctionsPrototype
+  * @{
+  */ 
+/**
+  * @}
+  */ 
 #ifdef __cplusplus
 }
 #endif
-#endif /*__ spi_H */
+
+#endif /*__USBD_CONF__H__*/
 
 /**
   * @}
-  */
+  */ 
 
 /**
   * @}
-  */
-
+  */ 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+

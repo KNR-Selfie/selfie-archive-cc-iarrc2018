@@ -413,7 +413,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
     if (huart->Instance == UART4) //jetson
     {
-        osSemaphoreRelease(DriveControlSemaphore);
         TIM10->CNT = 0;
         if(j_syncByte==0xFF)
         {
@@ -433,6 +432,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
             j_jetsonData[7]  = (int16_t) ((j_buffer[9]>>5 |j_buffer[10]<<3)                         & 0x07FF);
             j_syncByte = 0xFD;
             HAL_UART_Receive_DMA(&huart4, j_jetsonFlags, 2);
+            osSemaphoreRelease(DriveControlSemaphore);
         }
         else
         {

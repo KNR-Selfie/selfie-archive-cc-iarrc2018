@@ -1,8 +1,8 @@
 /**
   ******************************************************************************
-  * File Name          : SPI.h
-  * Description        : This file provides code for the configuration
-  *                      of the SPI instances.
+  * File Name          : gpio.h
+  * Description        : This file contains all the functions prototypes for 
+  *                      the gpio  
   ******************************************************************************
   * This notice applies to any and all portions of this file
   * that are not between comment pairs USER CODE BEGIN and
@@ -46,9 +46,10 @@
   *
   ******************************************************************************
   */
+
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __spi_H
-#define __spi_H
+#ifndef __gpio_H
+#define __gpio_H
 #ifdef __cplusplus
  extern "C" {
 #endif
@@ -61,26 +62,20 @@
 
 /* USER CODE END Includes */
 
-extern SPI_HandleTypeDef hspi1;
-extern SPI_HandleTypeDef hspi4;
-
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
 
-extern void _Error_Handler(char *, int);
-
-void MX_SPI1_Init(void);
-void MX_SPI4_Init(void);
+void MX_GPIO_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-void Selfie_SPI1_Init(uint32_t Mode);
+
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus
 }
 #endif
-#endif /*__ spi_H */
+#endif /*__ pinoutConfig_H */
 
 /**
   * @}

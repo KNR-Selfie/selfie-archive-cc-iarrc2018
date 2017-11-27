@@ -1,8 +1,8 @@
 /**
   ******************************************************************************
-  * File Name          : SPI.h
+  * File Name          : TIM.h
   * Description        : This file provides code for the configuration
-  *                      of the SPI instances.
+  *                      of the TIM instances.
   ******************************************************************************
   * This notice applies to any and all portions of this file
   * that are not between comment pairs USER CODE BEGIN and
@@ -47,8 +47,8 @@
   ******************************************************************************
   */
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __spi_H
-#define __spi_H
+#ifndef __tim_H
+#define __tim_H
 #ifdef __cplusplus
  extern "C" {
 #endif
@@ -61,8 +61,12 @@
 
 /* USER CODE END Includes */
 
-extern SPI_HandleTypeDef hspi1;
-extern SPI_HandleTypeDef hspi4;
+extern TIM_HandleTypeDef htim2;
+extern TIM_HandleTypeDef htim3;
+extern TIM_HandleTypeDef htim4;
+extern TIM_HandleTypeDef htim5;
+extern TIM_HandleTypeDef htim7;
+extern TIM_HandleTypeDef htim10;
 
 /* USER CODE BEGIN Private defines */
 
@@ -70,17 +74,24 @@ extern SPI_HandleTypeDef hspi4;
 
 extern void _Error_Handler(char *, int);
 
-void MX_SPI1_Init(void);
-void MX_SPI4_Init(void);
+void MX_TIM2_Init(void);
+void MX_TIM3_Init(void);
+void MX_TIM4_Init(void);
+void MX_TIM5_Init(void);
+void MX_TIM7_Init(void);
+void MX_TIM10_Init(void);
+                    
+void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
+                                
 
 /* USER CODE BEGIN Prototypes */
-void Selfie_SPI1_Init(uint32_t Mode);
+
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus
 }
 #endif
-#endif /*__ spi_H */
+#endif /*__ tim_H */
 
 /**
   * @}
