@@ -5,11 +5,11 @@
 
 Watchdog watchdog;
 
-void wait_for_connection()
+void wait_for_connection(bool &end_of_app)
 {
     unsigned short flag_od = 0;
 
-    while(!flag_od)
+    while(flag_od == 0)
     {
         flag_od = watchdog.pull_flag();
 
@@ -19,8 +19,15 @@ void wait_for_connection()
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
-    std::cout << "Connection regained!" << std::endl;
-    std::this_thread::sleep_for(std::chrono::seconds(2));
+    if(flag_od == 1)
+    {
+        std::cout << "Connection regained!" << std::endl;
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+    else
+    {
+        end_of_app = true;
+    }
 }
 
 
@@ -60,8 +67,9 @@ void watch(bool &end_of_app)
                 std::cout << "Warning: app reset!" << std::endl;
 
                 system("pkill -9 -f opencv-app");
-                system("gnome-terminal --geometry 20x10+0+0 -x sh -c \"sudo /home/ubuntu/Desktop/opencv-app/opencv-app/build/opencv-app; bash\"");
-                wait_for_connection();
+
+                system("gnome-terminal --geometry 20x10+0+0 -x sh -c \"sudo /home/mateusz/Desktop/opencv-app/opencv-app/build/opencv-app; bash\"");
+                wait_for_connection(end_of_app);
             }
             else
             {
@@ -102,11 +110,11 @@ int main()
     watchdog.push_flag(0);
 
     //Start new terminal with opencv-app
-    system("gnome-terminal -x sh -c \"/home/ubuntu/Desktop/opencv-app/opencv-app/build/opencv-app; bash\"");
+    system("gnome-terminal -x sh -c \"/home/mateusz/Desktop/opencv-app/opencv-app/build/opencv-app; bash\"");
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
 
-    wait_for_connection();
+    wait_for_connection(end_of_app);
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
 
