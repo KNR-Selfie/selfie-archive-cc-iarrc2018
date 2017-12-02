@@ -8,22 +8,116 @@
 
 void LineDetector::calculateCenterPoint(cv::vector<cv::Vec4i> &lines)
 {
-    int x_pos = 0;
-    int y_pos = 0;
+    float x_pos_near = 0;
+    float y_pos_near = 0;
+
+    float x_pos_far = 0;
+    float y_pos_far = 0;
+
+    int near_count = 0;
+    int far_count = 0;
 
     for( size_t i = 0; i < lines.size(); i++ )
     {
-        //x_pos += lines[i][0];
-        //x_pos += lines[i][2];
+        if(lines[i][1] > Row4Bottom)
+        {
+            x_pos_near += lines[i][0];
+            //y_pos_near += lines[i][1];
 
-        //y_pos += lines[i][1];
-        //y_pos += lines[i][3];
+            near_count++;
+        }
+        else
+        {
+            x_pos_far += lines[i][0];
+            //y_pos_far += lines[i][1];
+
+            far_count++;
+        }
+
+        if(lines[i][3] > Row4Bottom)
+        {
+            x_pos_near += lines[i][2];
+            //y_pos_near += lines[i][3];
+
+            near_count++;
+        }
+        else
+        {
+            x_pos_far += lines[i][2];
+            //y_pos_far += lines[i][3];
+
+            far_count++;
+        }
+
+        if(lines[i][1] < Row4Top)
+        {
+            x_pos_near += lines[i][0];
+            //y_pos_near += lines[i][1];
+
+            near_count++;
+        }
+        else
+        {
+            x_pos_far += lines[i][0];
+            //y_pos_far += lines[i][1];
+
+            far_count++;
+        }
+
+        if(lines[i][3] < Row4Top)
+        {
+            x_pos_near += lines[i][2];
+            //y_pos_near += lines[i][3];
+
+            near_count++;
+        }
+        else
+        {
+            x_pos_far += lines[i][2];
+            //y_pos_far += lines[i][3];
+
+            far_count++;
+        }
     }
 
-    //x_pos = x_pos / (2*lines.size());
-    //y_pos = y_pos / (2*lines.size());
+    x_pos_near = x_pos_near / near_count;
+    //y_pos_near = y_pos_near / near_count;
 
-    CenterPoint = cv::Point(x_pos, y_pos);
+    x_pos_far = x_pos_far / far_count;
+    //y_pos_far = y_pos_far / far_count;
+
+    CenterPointNear = cv::Point(x_pos_near, 280);
+    CenterPointFar = cv::Point(x_pos_far, 140);
+}
+
+void LineDetector::calculate_bisector(int &left_lane_angle_st, int &right_lane_angle_st)
+{
+    double bisector_angle_rad;
+
+    if(CenterPointNear.x == CenterPointFar.x)
+    {
+        left_lane_angle_st = 90;
+        right_lane_angle_st = 90;
+    }
+    else
+    {
+        double a = CenterPointNear.y - CenterPointFar.y;
+        double b = abs(CenterPointFar.x - CenterPointNear.x);
+
+        if(CenterPointNear.x < CenterPointFar.x)
+        {
+            bisector_angle_rad = 3.1416 - atan(a / b);
+        }
+        else
+        {
+            bisector_angle_rad = atan(a / b);
+        }
+    }
+
+    left_lane_angle_st = bisector_angle_rad * 57.295;
+    right_lane_angle_st = left_lane_angle_st;
+
+    std::cout << "Kat: " << right_lane_angle_st << std::endl;
 }
 
 
@@ -56,7 +150,7 @@ void LineDetector::applyMask(cv::Mat &input, cv::Mat &mask, cv::Mat &output)
 
 void LineDetector::detectLines(cv::Mat &input, cv::vector<cv::Vec4i> &output_lines)
 {
-    HoughLinesP(input, output_lines, 1, CV_PI/180*10, 5, 25, 10);
+    HoughLinesP(input, output_lines, 1, CV_PI/180*10, 10, 15, 5);
 }
 
 void LineDetector::drawLines(cv::vector<cv::Vec4i> &input_lines, cv::Mat &output)
@@ -74,15 +168,33 @@ void LineDetector::drawLines(cv::vector<cv::Vec4i> &input_lines, cv::Mat &output
     }
 }
 
-void LineDetector::get4corners(cv::vector<cv::Vec4i> &lines, cv::Mat &frame_lines, cv::vector<cv::Point> &lane_corners)
+void LineDetector::get2points(cv::vector<cv::Vec4i> &lines, cv::Mat &frame_lines, cv::vector<cv::Point> &lane_corners)
 {
     calculateCenterPoint(lines);
 
-    cv::circle(frame_lines, CenterPoint, 10, cv::Scalar(255,0,0), 1, CV_FILLED, 0);
+    line(frame_lines,
+         cv::Point(0, Row4Top),
+         cv::Point(639, Row4Top),
+         cv::Scalar(255, 0, 0),
+         3,
+         8);
+
+    line(frame_lines,
+         cv::Point(0, Row4Bottom),
+         cv::Point(639, Row4Bottom),
+         cv::Scalar(255, 0, 0),
+         3,
+         8);
+
+    cv::circle(frame_lines, CenterPointNear, 5, cv::Scalar(255,0,0), 5, CV_FILLED, 0);
+    cv::circle(frame_lines, CenterPointFar, 5, cv::Scalar(255,0,0), 5, CV_FILLED, 0);
 }
 
 void LineDetector::calculateDataToSend(cv::vector<cv::Point> &lane_corners, int &detected_middle_pos_near, int &detected_middle_pos_far, int &left_lane_angle_st, int &right_lane_angle_st, int8_t &flags_to_UART)
 {
+    detected_middle_pos_far = CenterPointFar.x;
+    detected_middle_pos_near = CenterPointNear.x;
 
+    calculate_bisector(left_lane_angle_st, right_lane_angle_st);
 }
 

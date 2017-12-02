@@ -136,10 +136,10 @@ int main()
     cv::Mat mask = cv::Mat::zeros(cv::Size(640, 360), CV_8UC1);
     cv::Point points[4] =
     {
-        cv::Point(20, 320),
-        cv::Point(150, 100),
-        cv::Point(490, 100),
-        cv::Point(620, 320)
+        cv::Point(10, 320),
+        cv::Point(100, 80),
+        cv::Point(540, 80),
+        cv::Point(630, 320)
     };
     cv::fillConvexPoly(mask, points, 4, cv::Scalar(255, 0, 0));
 
@@ -212,7 +212,7 @@ int main()
         lineDetector.detectLines(frame_edges_masked, lines);
         lineDetector.drawLines(lines, frame_lines);
 
-        lineDetector.get4corners(lines, frame_lines, lane_corners);
+        lineDetector.get2points(lines, frame_lines, lane_corners);
         lineDetector.calculateDataToSend(lane_corners, detected_middle_pos_near, detected_middle_pos_far, left_lane_angle_st, right_lane_angle_st, flags_to_UART);
 
         //push_new_data_to_UART();

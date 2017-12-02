@@ -8,9 +8,14 @@
 
 class LineDetector
 {
-    cv::Point CenterPoint;
+    cv::Point CenterPointNear = cv::Point(320, 150);
+    cv::Point CenterPointFar = cv::Point(320, 230);
+
+    int Row4Top = 180;
+    int Row4Bottom = 240;
 
     void calculateCenterPoint(cv::vector<cv::Vec4i> &lines);
+    void calculate_bisector(int &left_lane_angle_st, int &right_lane_angle_st);
 
 public:
     void applyBlur(cv::Mat &input, cv::Mat &output);
@@ -19,6 +24,6 @@ public:
     void detectLines(cv::Mat &input, cv::vector<cv::Vec4i> &output_lines);
     void drawLines(cv::vector<cv::Vec4i> &input_lines, cv::Mat &output);
 
-    void get4corners(cv::vector<cv::Vec4i> &lines, cv::Mat &frame_lines, cv::vector<cv::Point> &lane_corners);
+    void get2points(cv::vector<cv::Vec4i> &lines, cv::Mat &frame_lines, cv::vector<cv::Point> &lane_corners);
     void calculateDataToSend(cv::vector<cv::Point> &lane_corners, int &detected_middle_pos_near, int &detected_middle_pos_far, int &left_lane_angle_st, int &right_lane_angle_st, int8_t &flags_to_UART);
 };
