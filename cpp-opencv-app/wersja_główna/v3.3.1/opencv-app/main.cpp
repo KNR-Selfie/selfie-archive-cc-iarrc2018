@@ -17,36 +17,45 @@
 #include "include/gpio_class.cpp"
 #include "include/uart_class.cpp"
 
+#define CAMERA_INDEX 1
+#define CAM_RES_X 640
+#define CAM_RES_Y 360
+#define COMPARED_LEVEL 100
+
 void push_new_data_to_UART();
 void U_thread(UART &uart, GPIO &gpio, unsigned int &pushButtonValue, unsigned int &redLEDValue, unsigned int &yellowLEDValue, unsigned int &greenLEDValue);
 void check_and_write_gpios(GPIO &gpio, unsigned int &pushButtonValue, unsigned int &redLEDValue, unsigned int &yellowLEDValue, unsigned int &greenLEDValue);
 
 bool close_app = false;
 
-int detected_middle_pos = 320;
+int detected_middle_pos_near = 320;
+int detected_middle_pos_far = 320;
 int left_lane_angle_st = 90;
 int left_lane_angle_rad = 3.1415/2;
 int right_lane_angle_st = 90;
 int right_lane_angle_rad = 3.1415/2;
+int8_t flags_to_UART = 0b00000000;
 
 unsigned int pushButtonValue = 0;
 unsigned int redLEDValue = 0;
 unsigned int yellowLEDValue = 0;
 unsigned int greenLEDValue = 0;
 
-//LineDetector lineDetector;
-cv::VideoCapture camera;
+LineDetector lineDetector;
 Watchdog watchdog;
 UART uart_1;
 GPIO gpio;
 
 int main()
-{
+{    
     //Get access to memmory shared with watchdog app
     watchdog.get_access();
 
-    //CAMERA
-    camera.open(-1);
+    //===========Data Acquisition Sector==========
+
+    //CAMERA RGB and YUYV
+    cv::VideoCapture camera;
+    camera.open(CAMERA_INDEX);
 
     if (!camera.isOpened())
     {
@@ -54,6 +63,7 @@ int main()
                   << "Closing app!" << std::endl;
 
         close_app = true;
+        watchdog.push_flag(2);
         camera.release();
         return 0;
     }
@@ -61,9 +71,28 @@ int main()
     {
         camera.set(CV_CAP_PROP_FRAME_WIDTH, 640);
         camera.set(CV_CAP_PROP_FRAME_HEIGHT, 360);
+        camera.set(CV_CAP_PROP_MODE, 3);
+        std::cout << camera.get(CV_CAP_PROP_MODE);
     }
+/*
+    //Read from file
+    cv::Mat frame_gray(CAM_RES_Y, CAM_RES_X, CV_8UC1);
+    frame_gray = cv::imread("../../data/SELFIE-example-img-prosto.png", CV_LOAD_IMAGE_GRAYSCALE);
+
+    if(!frame_gray.data)
+    {
+        std::cout << "No data!" << std::endl
+                  << "Closing app!" << std::endl;
+
+        close_app = true;
+        watchdog.push_flag(2);
+        return 0;
+    }
+*/
+    //===========Data Acquisition Sector==========
 
     //UART
+/*
     uart_1.set();
 
     uart_1.unia_danych.dane.sync_byte = 0xff;
@@ -92,19 +121,55 @@ int main()
     gpio.SetValue(gpio.redLED, low);
     gpio.SetValue(gpio.yellowLED, low);
     gpio.SetValue(gpio.greenLED, low);
-
-    system("pause");
-
+*/
     //GUI
     char keypressed;
 
-    cv::Mat frame;
+    //===========Data Acquisition Sector==========
+
+    cv::Mat frame(CAM_RES_Y, CAM_RES_X, CV_8UC4);
+    cv::Mat frame_gray(CAM_RES_Y, CAM_RES_X, CV_8UC1);
+    cv::Mat frame_edges_masked(CAM_RES_Y, CAM_RES_X, CV_8UC1);
+
+    //===========Data Acquisition Sector==========
+
+    cv::Mat mask = cv::Mat::zeros(cv::Size(640, 360), CV_8UC1);
+    cv::Point points[4] =
+    {
+        cv::Point(10, 320),
+        cv::Point(100, 80),
+        cv::Point(540, 80),
+        cv::Point(630, 320)
+    };
+    cv::fillConvexPoly(mask, points, 4, cv::Scalar(255, 0, 0));
+
+    cv::vector<cv::Mat> frame_split_vec(4);
+    cv::Mat frame_thresh(CAM_RES_Y, CAM_RES_X, CV_8UC1);
+    cv::Mat frame_edges(CAM_RES_Y, CAM_RES_X, CV_8UC1);
+    cv::vector<cv::Vec4i> lines;
+    cv::Mat frame_lines(CAM_RES_Y, CAM_RES_X, CV_8UC1);
+
+    cv::vector<cv::Point> lane_corners;
 
     cv::namedWindow("Vision", 1);
-    cv::moveWindow("Vision", 0, 500);
+    cv::moveWindow("Vision", 0, 0);
+    cv::namedWindow("Vision GRAY", 1);
+    cv::moveWindow("Vision GRAY", 0, 0);
+    cv::namedWindow("Thresh", 1);
+    cv::moveWindow("Thresh", 640, 0);
+    cv::namedWindow("Edges", 1);
+    cv::moveWindow("Edges", 640, 0);
+    cv::namedWindow("Masked", 1);
+    cv::moveWindow("Masked", 0, 400);
+    cv::namedWindow("Lines", 1);
+    cv::moveWindow("Lines", 640, 400);
+
+
+    int thresh_value = 210;
+    cv::createTrackbar("Thresh", "Vision GRAY", &thresh_value, 255);
 
     //Threads
-    std::thread UART_thread(U_thread, std::ref(uart_1), std::ref(gpio), std::ref(pushButtonValue), std::ref(redLEDValue), std::ref(yellowLEDValue), std::ref(greenLEDValue));
+    //std::thread UART_thread(U_thread, std::ref(uart_1), std::ref(gpio), std::ref(pushButtonValue), std::ref(redLEDValue), std::ref(yellowLEDValue), std::ref(greenLEDValue));
 
     //FPS
     struct timespec start, end;
@@ -125,13 +190,39 @@ int main()
         //Set flag for watchdog
         watchdog.push_flag(1);
 
+        //===========Data Acquisition Sector==========
+
+        //YUYV --> GRAY
+        //camera >> frame;
+        //cv::split(frame, frame_split_vec);
+        //frame_gray = frame_split_vec[0];
+
+        //RGB --> GRAY
         camera >> frame;
+        cv::cvtColor(frame, frame_split_vec[0], cv::COLOR_BGR2GRAY);
 
+        //Read from file
+        //Odkomentować na początku main()
 
+        //===========Data Acquisition Sector==========
 
-        push_new_data_to_UART();
+        lineDetector.applyBlur(frame_split_vec[0], frame_gray);
+        lineDetector.edgeDetect(frame_gray, frame_thresh, frame_edges, thresh_value);
+        lineDetector.applyMask(frame_edges, mask, frame_edges_masked);
+        lineDetector.detectLines(frame_edges_masked, lines);
+        lineDetector.drawLines(lines, frame_lines);
+
+        lineDetector.get2points(lines, frame_lines, lane_corners);
+        lineDetector.calculateDataToSend(lane_corners, detected_middle_pos_near, detected_middle_pos_far, left_lane_angle_st, right_lane_angle_st, flags_to_UART);
+
+        //push_new_data_to_UART();
 
         cv::imshow("Vision", frame);
+        cv::imshow("Vision GRAY", frame_gray);
+        cv::imshow("Thresh", frame_thresh);
+        cv::imshow("Edges", frame_edges);
+        cv::imshow("Masked", frame_edges_masked);
+        cv::imshow("Lines", frame_lines);
 
         keypressed = (char)cv::waitKey(10);
         if( keypressed == 27 )
@@ -154,15 +245,15 @@ int main()
     }
 
     close_app = true;
-
+/*
     gpio.Unexport(gpio.pushButton);
     gpio.Unexport(gpio.redLED);
     gpio.Unexport(gpio.yellowLED);
     gpio.Unexport(gpio.greenLED);
-
+*/
     camera.release();
 
-    UART_thread.join();
+    //UART_thread.join();
 
     watchdog.push_flag(2);
     return 0;
@@ -180,7 +271,7 @@ void U_thread(UART &uart, GPIO &gpio, unsigned int &pushButtonValue, unsigned in
 
 void push_new_data_to_UART()
 {
-    uart_1.unia_danych.dane.data_0 = detected_middle_pos;
+    uart_1.unia_danych.dane.data_0 = detected_middle_pos_near;
     uart_1.unia_danych.dane.data_1 = left_lane_angle_st;
     uart_1.unia_danych.dane.data_2 = right_lane_angle_st;
     //uart_1.unia_danych.dane.data_3 = 0;
@@ -188,7 +279,7 @@ void push_new_data_to_UART()
     //uart_1.unia_danych.dane.data_5 = 0;
     //uart_1.unia_danych.dane.data_6 = 0;
     //uart_1.unia_danych.dane.data_7 = 0;
-    //uart_1.unia_danych.dane.flags = 0b00000000;
+    uart_1.unia_danych.dane.flags = flags_to_UART;
 }
 
 void check_and_write_gpios(GPIO &gpio, unsigned int &pushButtonValue, unsigned int &redLEDValue, unsigned int &yellowLEDValue, unsigned int &greenLEDValue)
