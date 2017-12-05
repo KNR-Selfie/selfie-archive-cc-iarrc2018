@@ -120,14 +120,14 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
-    osThreadDef(blink, blinkThread, osPriorityLow, 0, 128);
-    blinkTID = osThreadCreate (osThread(blink), NULL);
+//    osThreadDef(blink, blinkThread, osPriorityLow, 0, 128);
+//    blinkTID = osThreadCreate (osThread(blink), NULL);
 
     osThreadDef(drive, driveControl, osPriorityNormal, 0, 128);
     driveControlTID = osThreadCreate (osThread(drive), NULL);
 
-    osThreadDef(servo, servoControl, osPriorityNormal, 0, 128);
-    servoTID = osThreadCreate (osThread(servo), NULL);
+//    osThreadDef(servo, servoControl, osPriorityNormal, 0, 128);
+//    servoTID = osThreadCreate (osThread(servo), NULL);
 
     osThreadDef(engine, engineControl, osPriorityNormal, 0, 128);
     engineTID = osThreadCreate (osThread(engine), NULL);

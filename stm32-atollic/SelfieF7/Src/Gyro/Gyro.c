@@ -51,12 +51,12 @@ void gyro_filtering(void);
 
 void StartGyroTask(void const * argument){
     vSemaphoreCreateBinary( SemaphoreDRDY );
+    //    osSemaphoreWait (SemaphoreDRDY, osWaitForever);
     for (int axis = 0; axis < 3; axis++)
             lpf_filter_init(&gyroLPF[axis], gyroLPF_Hz[axis], gyroLooptime);
     mpu6000AccAndGyroInit();
 
     calibration_mode=1;
-    ws2812_init();
     while (1)
         {
             osSemaphoreWait (SemaphoreDRDY, osWaitForever);

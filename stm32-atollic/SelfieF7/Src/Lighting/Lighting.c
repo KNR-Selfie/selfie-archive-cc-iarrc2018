@@ -31,91 +31,236 @@ uint16_t RX_POT;
 int rgb[22][3];
 
 
-void StartLightingTask(void const * argument)
-{
-    ws2812_init();
+void StartLightingTask(void const * argument) {
+	ws2812_init();
+	while (1) {
+		RXtoLighting(a_channels);
+		if (RX_POT > 1027) {
+			static int16_t scounter1 = 1;
+			scounter1++;
+			if (scounter1 > 359)
+				scounter1 = 0;
 
-    while(1)
-        {
-            if (RX_POT > 1027)
-                {
-                    static int16_t scounter1 = 1;
-                    scounter1++;
-                    if (scounter1 > 359)
-                        scounter1 = 0;
+			for (int indeks = 0; indeks < 22; indeks++) {
+				if ((scounter1 + 5 * indeks) > 359)
+					hsi2rgb((scounter1 + 5 * indeks - 359), 1, 1,
+							&rgb[indeks][0]);
+				else
+					hsi2rgb((scounter1 + 5 * indeks), 1, 1, &rgb[indeks][0]);
+				ws2812_set_color(indeks, rgb[indeks][0], rgb[indeks][1],
+						rgb[indeks][2]);
+			}
+		} else {
 
-                    for (int indeks = 0; indeks < 22; indeks++)
-                        {
-                            if ((scounter1 + 5 * indeks) > 359)
-                               hsi2rgb ((scounter1 + 5*indeks - 359), 1, 1, &rgb[indeks][0]);
-                           else
-                               hsi2rgb ((scounter1 + 5*indeks), 1, 1, &rgb[indeks][0]);
-                            ws2812_set_color (indeks, rgb[indeks][0], rgb[indeks][1], rgb[indeks][2]);
-                        }
-                }
-            else
-                {
+			ws2812_set_color(4, 0, 0, 0);
+			ws2812_set_color(5, 0, 0, 0);
+			ws2812_set_color(6, 0, 0, 0);
 
-                    ws2812_set_color (1, 255, 255, 255);
-                    ws2812_set_color (2, 255, 255, 255);
-                    ws2812_set_color (3, 255, 255, 255);
-                    ws2812_set_color (4, 0, 0, 0);
-                    ws2812_set_color (5, 0, 0, 0);
-                    ws2812_set_color (6, 0, 0, 0);
-                    ws2812_set_color (7, 255, 255, 255);
-                    ws2812_set_color (8, 255, 255, 255);
-                    ws2812_set_color (9, 255, 255, 255);
+			ws2812_set_color(15, 0, 0, 0);
+			ws2812_set_color(16, 0, 0, 0);
+			ws2812_set_color(17, 0, 0, 0);
+			if (RX_AETR[3] > 1250) {
+				static int cnt_ind1 = 0;
+				++cnt_ind1;
+				if (cnt_ind1 > 200) {
+					cnt_ind1 = 0;
+					ws2812_set_color(7, 0, 0, 0);
+					ws2812_set_color(8, 0, 0, 0);
+					ws2812_set_color(9, 0, 0, 0);
+					ws2812_set_color(10, 0, 0, 0);
 
-                    if (RX_AETR[1] < 1027)
-                        {
-                            ws2812_set_color (12, 255, 0, 0);
-                            ws2812_set_color (13, 255, 0, 0);
-                            ws2812_set_color (14, 255, 0, 0);
+					ws2812_set_color(14, 0, 0, 0);
+					ws2812_set_color(13, 0, 0, 0);
+					ws2812_set_color(12, 0, 0, 0);
+					ws2812_set_color(11, 0, 0, 0);
+				} else if (cnt_ind1 > 120) {
+					ws2812_set_color(7, 0, 0, 0);
+					ws2812_set_color(8, 0, 0, 0);
+					ws2812_set_color(9, 0, 0, 0);
+					ws2812_set_color(10, 0, 0, 0);
 
-                            ws2812_set_color (20, 255, 0, 0);
-                            ws2812_set_color (19, 255, 0, 0);
-                            ws2812_set_color (18, 255, 0, 0);
+					ws2812_set_color(14, 0, 0, 0);
+					ws2812_set_color(13, 0, 0, 0);
+					ws2812_set_color(12, 0, 0, 0);
+					ws2812_set_color(11, 0, 0, 0);
+				} else if (cnt_ind1 > 80) {
+					ws2812_set_color(7, 0, 0, 0);
+					ws2812_set_color(8, 0, 0, 0);
+					ws2812_set_color(9, 0, 0, 0);
+					ws2812_set_color(10, 255, 120, 0);
 
-                        }
-                    else
-                        {
-                            ws2812_set_color (12, 50, 0, 0);
-                            ws2812_set_color (13, 50, 0, 0);
-                            ws2812_set_color (14, 50, 0, 0);
+					ws2812_set_color(14, 0, 0, 0);
+					ws2812_set_color(13, 0, 0, 0);
+					ws2812_set_color(12, 0, 0, 0);
+					ws2812_set_color(11, 255, 120, 0);
+				} else if (cnt_ind1 > 60) {
+					ws2812_set_color(7, 0, 0, 0);
+					ws2812_set_color(8, 0, 0, 0);
+					ws2812_set_color(9, 255, 120, 0);
+					ws2812_set_color(10, 0, 0, 0);
 
-                            ws2812_set_color (20, 50, 0, 0);
-                            ws2812_set_color (19, 50, 0, 0);
-                            ws2812_set_color (18, 50, 0, 0);
-                        }
-                    ws2812_set_color (15, 0, 0, 0);
-                    ws2812_set_color (16, 0, 0, 0);
-                    ws2812_set_color (17, 0, 0, 0);
-                    if (RX_AETR[3] > 1250)
-                        {
-                            ws2812_set_color (11, 255, 120, 0);
-                            ws2812_set_color (10, 255, 120, 0);
-                            ws2812_set_color (0, 0, 0, 0);
-                            ws2812_set_color (21, 0, 0, 0);
-                        }
-                    else if (RX_AETR[3] < 800)
-                        {
-                            ws2812_set_color (0, 255, 120, 0);
-                            ws2812_set_color (21, 255, 120, 0);
-                            ws2812_set_color (11, 0, 0, 0);
-                            ws2812_set_color (10, 0, 0, 0);
-                        }
-                    else
-                        {
-                            ws2812_set_color (0, 0, 0, 0);
-                            ws2812_set_color (21, 0, 0, 0);
-                            ws2812_set_color (11, 0, 0, 0);
-                            ws2812_set_color (10, 0, 0, 0);
-                        }
+					ws2812_set_color(14, 0, 0, 0);
+					ws2812_set_color(13, 0, 0, 0);
+					ws2812_set_color(12, 255, 120, 0);
+					ws2812_set_color(11, 0, 0, 0);
+				} else if (cnt_ind1 > 40) {
+					ws2812_set_color(7, 0, 0, 0);
+					ws2812_set_color(8, 255, 120, 0);
+					ws2812_set_color(9, 0, 0, 0);
+					ws2812_set_color(10, 0, 0, 0);
 
-                }
-            osDelay(5);
-        }
+					ws2812_set_color(14, 0, 0, 0);
+					ws2812_set_color(13, 255, 120, 0);
+					ws2812_set_color(12, 0, 0, 0);
+					ws2812_set_color(11, 0, 0, 0);
+				} else if (cnt_ind1 > 20) {
+					ws2812_set_color(7, 255, 120, 0);
+					ws2812_set_color(8, 0, 0, 0);
+					ws2812_set_color(9, 0, 0, 0);
+					ws2812_set_color(10, 0, 0, 0);
 
+					ws2812_set_color(14, 255, 120, 0);
+					ws2812_set_color(13, 0, 0, 0);
+					ws2812_set_color(12, 0, 0, 0);
+					ws2812_set_color(11, 0, 0, 0);
+				}
+
+				ws2812_set_color(0, 0, 0, 0);
+				ws2812_set_color(21, 0, 0, 0);
+
+				ws2812_set_color(1, 255, 255, 255);
+				ws2812_set_color(2, 255, 255, 255);
+				ws2812_set_color(3, 255, 255, 255);
+				if (RX_AETR[1] < 1027) {
+					ws2812_set_color(20, 255, 0, 0);
+					ws2812_set_color(19, 255, 0, 0);
+					ws2812_set_color(18, 255, 0, 0);
+
+				} else {
+					ws2812_set_color(20, 50, 0, 0);
+					ws2812_set_color(19, 50, 0, 0);
+					ws2812_set_color(18, 50, 0, 0);
+				}
+			} else if (RX_AETR[3] < 800) {
+				static int cnt_ind2 = 0;
+				++cnt_ind2;
+				if (cnt_ind2 > 200) {
+					cnt_ind2 = 0;
+					ws2812_set_color(3, 0, 0, 0);
+					ws2812_set_color(2, 0, 0, 0);
+					ws2812_set_color(1, 0, 0, 0);
+					ws2812_set_color(0, 0, 0, 0);
+
+					ws2812_set_color(18, 0, 0, 0);
+					ws2812_set_color(19, 0, 0, 0);
+					ws2812_set_color(20, 0, 0, 0);
+					ws2812_set_color(21, 0, 0, 0);
+				} else if (cnt_ind2 > 120) {
+					ws2812_set_color(3, 0, 0, 0);
+					ws2812_set_color(2, 0, 0, 0);
+					ws2812_set_color(1, 0, 0, 0);
+					ws2812_set_color(0, 0, 0, 0);
+
+					ws2812_set_color(18, 0, 0, 0);
+					ws2812_set_color(19, 0, 0, 0);
+					ws2812_set_color(20, 0, 0, 0);
+					ws2812_set_color(21, 0, 0, 0);
+				} else if (cnt_ind2 > 80) {
+					ws2812_set_color(3, 0, 0, 0);
+					ws2812_set_color(2, 0, 0, 0);
+					ws2812_set_color(1, 0, 0, 0);
+					ws2812_set_color(0, 255, 120, 0);
+
+					ws2812_set_color(18, 0, 0, 0);
+					ws2812_set_color(19, 0, 0, 0);
+					ws2812_set_color(20, 0, 0, 0);
+					ws2812_set_color(21, 255, 120, 0);
+				} else if (cnt_ind2 > 60) {
+					ws2812_set_color(3, 0, 0, 0);
+					ws2812_set_color(2, 0, 0, 0);
+					ws2812_set_color(1, 255, 120, 0);
+					ws2812_set_color(0, 0, 0, 0);
+
+					ws2812_set_color(18, 0, 0, 0);
+					ws2812_set_color(19, 0, 0, 0);
+					ws2812_set_color(20, 255, 120, 0);
+					ws2812_set_color(21, 0, 0, 0);
+				} else if (cnt_ind2 > 40) {
+					ws2812_set_color(3, 0, 0, 0);
+					ws2812_set_color(2, 255, 120, 0);
+					ws2812_set_color(1, 0, 0, 0);
+					ws2812_set_color(0, 0, 0, 0);
+
+					ws2812_set_color(18, 0, 0, 0);
+					ws2812_set_color(19, 255, 120, 0);
+					ws2812_set_color(20, 0, 0, 0);
+					ws2812_set_color(21, 0, 0, 0);
+				} else if (cnt_ind2 > 20) {
+					ws2812_set_color(3, 255, 120, 0);
+					ws2812_set_color(2, 0, 0, 0);
+					ws2812_set_color(1, 0, 0, 0);
+					ws2812_set_color(0, 0, 0, 0);
+
+					ws2812_set_color(18, 255, 120, 0);
+					ws2812_set_color(19, 0, 0, 0);
+					ws2812_set_color(20, 0, 0, 0);
+					ws2812_set_color(21, 0, 0, 0);
+				}
+
+				ws2812_set_color(11, 0, 0, 0);
+				ws2812_set_color(10, 0, 0, 0);
+
+				ws2812_set_color(7, 255, 255, 255);
+				ws2812_set_color(8, 255, 255, 255);
+				ws2812_set_color(9, 255, 255, 255);
+				if (RX_AETR[1] < 1027) {
+					ws2812_set_color(12, 255, 0, 0);
+					ws2812_set_color(13, 255, 0, 0);
+					ws2812_set_color(14, 255, 0, 0);
+
+				} else {
+					ws2812_set_color(12, 50, 0, 0);
+					ws2812_set_color(13, 50, 0, 0);
+					ws2812_set_color(14, 50, 0, 0);
+				}
+
+			} else {
+
+				ws2812_set_color(1, 255, 255, 255);
+				ws2812_set_color(2, 255, 255, 255);
+				ws2812_set_color(3, 255, 255, 255);
+
+				ws2812_set_color(7, 255, 255, 255);
+				ws2812_set_color(8, 255, 255, 255);
+				ws2812_set_color(9, 255, 255, 255);
+
+				ws2812_set_color(0, 0, 0, 0);
+				ws2812_set_color(21, 0, 0, 0);
+				ws2812_set_color(11, 0, 0, 0);
+				ws2812_set_color(10, 0, 0, 0);
+				if (RX_AETR[1] < 1027) {
+					ws2812_set_color(12, 255, 0, 0);
+					ws2812_set_color(13, 255, 0, 0);
+					ws2812_set_color(14, 255, 0, 0);
+
+					ws2812_set_color(20, 255, 0, 0);
+					ws2812_set_color(19, 255, 0, 0);
+					ws2812_set_color(18, 255, 0, 0);
+
+				} else {
+					ws2812_set_color(12, 50, 0, 0);
+					ws2812_set_color(13, 50, 0, 0);
+					ws2812_set_color(14, 50, 0, 0);
+
+					ws2812_set_color(20, 50, 0, 0);
+					ws2812_set_color(19, 50, 0, 0);
+					ws2812_set_color(18, 50, 0, 0);
+				}
+			}
+
+		}
+		osDelay(5);
+	}
 }
 void ws2812_init(void) {
     MX_TIM4_Init();
