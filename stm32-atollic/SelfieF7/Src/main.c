@@ -71,6 +71,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 xSemaphoreHandle DriveControlSemaphore = NULL;
+xSemaphoreHandle EngineSemaphore = NULL;
 //deklaracja zmiennych u¿ywanych do komunikacji z Jetsonem
 uint8_t j_syncByte;
 uint8_t j_buffer[11];
@@ -136,7 +137,6 @@ int main(void)
   MX_UART4_Init();
   MX_TIM2_Init();
   MX_USART1_UART_Init();
-  MX_TIM4_Init();
   MX_TIM10_Init();
   MX_TIM5_Init();
   MX_TIM3_Init();
@@ -145,6 +145,8 @@ int main(void)
   //uruchomienie DMA na uarcie oraz PWM
 
     vSemaphoreCreateBinary( DriveControlSemaphore );
+    osSemaphoreWait (DriveControlSemaphore, osWaitForever);
+
     HAL_UART_Receive_DMA(&huart4, &j_syncByte, 1);
     HAL_UART_Receive_DMA(&huart1, &a_syncbyte, 1);
     HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
@@ -370,11 +372,7 @@ void driveControl(void const *argument)
                         }
                     TIM2->CCR3 = duty_servo;
                 }
-
-
-            /* Send Receiver data to Lighting Thread */
-            RXtoLighting(a_channels);
-
+            osSemaphoreRelease(EngineSemaphore);
         }
     osThreadTerminate (NULL);
 }
@@ -391,6 +389,8 @@ void servoControl(void const *argument)
 
 void engineControl(void const *argument)
 {
+	vSemaphoreCreateBinary( EngineSemaphore );
+	osSemaphoreWait (EngineSemaphore, osWaitForever);
     duty_engine = 1500;
 
     //uruchomienie ESC
@@ -404,6 +404,7 @@ void engineControl(void const *argument)
     osDelay(50);
     while(1)
     {
+    	osSemaphoreWait (EngineSemaphore, osWaitForever);
         TIM2->CCR4 = duty_engine;
     }
     osThreadTerminate(NULL);
@@ -413,7 +414,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
     if (huart->Instance == UART4) //jetson
     {
-        osSemaphoreRelease(DriveControlSemaphore);
         TIM10->CNT = 0;
         if(j_syncByte==0xFF)
         {
@@ -432,6 +432,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
             j_jetsonData[6]  = (int16_t) ((j_buffer[8]>>2 |j_buffer[9]<<6)                          & 0x07FF);
             j_jetsonData[7]  = (int16_t) ((j_buffer[9]>>5 |j_buffer[10]<<3)                         & 0x07FF);
             j_syncByte = 0xFD;
+            osSemaphoreRelease(DriveControlSemaphore);
             HAL_UART_Receive_DMA(&huart4, j_jetsonFlags, 2);
         }
         else
@@ -468,8 +469,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
                 a_channels[14] = (int16_t) ((a_buffer[19]>>2|a_buffer[20]<<6)                         & 0x07FF);
                 a_channels[15] = (int16_t) ((a_buffer[20]>>5|a_buffer[21]<<3)                         & 0x07FF);
 
-                HAL_UART_Receive_DMA(&huart1, &a_syncbyte, 1);
                 osSemaphoreRelease(DriveControlSemaphore);
+                HAL_UART_Receive_DMA(&huart1, &a_syncbyte, 1);
             }
             else
             {
