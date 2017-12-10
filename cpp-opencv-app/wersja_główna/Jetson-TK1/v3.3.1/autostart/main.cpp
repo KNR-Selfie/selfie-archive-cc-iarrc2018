@@ -8,7 +8,7 @@
 int main(int argc, char** argv)
 {
     //Start new terminal with watchdog
-    system("gnome-terminal --geometry 26x7-0+0 -x sh -c \"/home/mateusz/Desktop/opencv-app/watchdog/build/watchdog; bash\"");
+    system("gnome-terminal --geometry 26x7-0+0 -x sh -c \"/home/ubuntu/Desktop/opencv-app/watchdog/build/watchdog; bash\"");
 
     return 0;
 }
