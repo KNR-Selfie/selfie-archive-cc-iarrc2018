@@ -1,12 +1,12 @@
 #include <string>
-#include <vector>
+//#include <vector>
 #include "opencv2/opencv.hpp"
 
 #include "line_class.hpp"
 
 //private:
 /*
-void LineDetector::calculateCenterPoint(cv::vector<cv::Vec4i> &lines)
+void LineDetector::calculateCenterPoint(std::vector<cv::Vec4i> &lines)
 {
     float x_pos_near = 0;
     float y_pos_near = 0;
@@ -121,7 +121,7 @@ void LineDetector::calculate_bisector(int &left_lane_angle_st, int &right_lane_a
 }
 */
 
-void LineDetector::calculate_slopes(cv::vector<cv::Vec4i> &lines)
+void LineDetector::calculate_slopes(std::vector<cv::Vec4i> &lines)
 {
     LineDetector::Punkt tmp;
 
@@ -146,7 +146,7 @@ void LineDetector::calculate_slopes(cv::vector<cv::Vec4i> &lines)
     }
 }
 
-void LineDetector::average_slope(cv::vector<Punkt> punkty)
+void LineDetector::average_slope(std::vector<Punkt> punkty)
 {
     if(punkty.size() > 2)
     {
@@ -228,7 +228,7 @@ void LineDetector::applyMask(cv::Mat &input, cv::Mat &mask, cv::Mat &output)
     cv::bitwise_and(input, mask, output);
 }
 
-void LineDetector::detectLines(cv::Mat &input, cv::vector<cv::Vec4i> &output_lines)
+void LineDetector::detectLines(cv::Mat &input, std::vector<cv::Vec4i> &output_lines)
 {
     HoughLinesP(input, output_lines, 1, CV_PI/180*10, 8, 10, 5);
 
@@ -237,7 +237,7 @@ void LineDetector::detectLines(cv::Mat &input, cv::vector<cv::Vec4i> &output_lin
 
 }
 
-void LineDetector::drawLines(cv::vector<cv::Vec4i> &input_lines, cv::Mat &output)
+void LineDetector::drawLines(std::vector<cv::Vec4i> &input_lines, cv::Mat &output)
 {
     output = cv::Mat::zeros(380, 640, CV_8UC1);
 
@@ -261,7 +261,7 @@ void LineDetector::writePoints()
 }
 
 /*
-void LineDetector::get2points(cv::vector<cv::Vec4i> &lines, cv::Mat &frame_lines, cv::vector<cv::Point> &lane_corners)
+void LineDetector::get2points(std::vector<cv::Vec4i> &lines, cv::Mat &frame_lines, std::vector<cv::Point> &lane_corners)
 {
     calculateCenterPoint(lines);
 
@@ -283,7 +283,7 @@ void LineDetector::get2points(cv::vector<cv::Vec4i> &lines, cv::Mat &frame_lines
     cv::circle(frame_lines, CenterPointFar, 5, cv::Scalar(255,0,0), 5, CV_FILLED, 0);
 }
 
-void LineDetector::calculateDataToSend(cv::vector<cv::Point> &lane_corners, int &detected_middle_pos_near, int &detected_middle_pos_far, int &left_lane_angle_st, int &right_lane_angle_st, int8_t &flags_to_UART)
+void LineDetector::calculateDataToSend(std::vector<cv::Point> &lane_corners, int &detected_middle_pos_near, int &detected_middle_pos_far, int &left_lane_angle_st, int &right_lane_angle_st, int8_t &flags_to_UART)
 {
     detected_middle_pos_far = CenterPointFar.x;
     detected_middle_pos_near = CenterPointNear.x;

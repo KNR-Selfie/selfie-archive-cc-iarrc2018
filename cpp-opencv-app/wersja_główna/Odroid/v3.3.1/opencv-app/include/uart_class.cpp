@@ -2,7 +2,7 @@
 
 bool UART::set()
 {
-    fd = open("/dev/ttyTHS1", O_RDWR | O_NOCTTY | O_NDELAY);
+    fd = open("/dev/ttySAC0", O_RDWR | O_NOCTTY | O_NDELAY);
     if (fd == -1)
     {
         std::cout << "\033[1;31m Opening Serial port failed\033[0m\n" << std::endl;

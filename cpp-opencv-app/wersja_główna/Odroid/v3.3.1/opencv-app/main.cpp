@@ -17,7 +17,7 @@
 #include "include/gpio_class.cpp"
 #include "include/uart_class.cpp"
 
-#define CAMERA_INDEX 1
+#define CAMERA_INDEX 0
 #define CAM_RES_X 640
 #define CAM_RES_Y 360
 #define COMPARED_LEVEL 100
@@ -93,7 +93,7 @@ int main()
     //===========Data Acquisition Sector==========
 
     //UART
-/*
+
     uart_1.set();
 
     uart_1.unia_danych.dane.sync_byte = 0xff;
@@ -107,7 +107,7 @@ int main()
     uart_1.unia_danych.dane.data_7 = 0;
     uart_1.unia_danych.dane.flags = 0b00000000;
     uart_1.unia_danych.dane.end_byte = 0xfe;
-
+/*
     //GPIO
     gpio.Export(gpio.pushButton);
     gpio.Export(gpio.redLED);
@@ -144,13 +144,13 @@ int main()
     };
     cv::fillConvexPoly(mask, points, 4, cv::Scalar(255, 0, 0));
 
-    cv::vector<cv::Mat> frame_split_vec(4);
+    std::vector<cv::Mat> frame_split_vec(4);
     cv::Mat frame_thresh(CAM_RES_Y, CAM_RES_X, CV_8UC1);
     cv::Mat frame_edges(CAM_RES_Y, CAM_RES_X, CV_8UC1);
-    cv::vector<cv::Vec4i> lines;
+    std::vector<cv::Vec4i> lines;
     cv::Mat frame_lines(CAM_RES_Y, CAM_RES_X, CV_8UC1);
 
-    cv::vector<cv::Point> lane_corners;
+    std::vector<cv::Point> lane_corners;
 
     cv::namedWindow("Vision", 1);
     cv::moveWindow("Vision", 0, 0);
@@ -245,13 +245,15 @@ int main()
             seconds = (end.tv_sec - start.tv_sec);
             fps  =  1 / (seconds / 1000);
 
-            std::cout << "        Time in seconds [1000 frames]: " << seconds << std::endl;
-            std::cout << "        Estimated frames per second : " << fps << std::endl;
+            
         }
         else
         {
                 licznik_czas++;
         }
+
+		std::cout << "        Time in seconds [1000 frames]: " << seconds << std::endl;
+            std::cout << "        Estimated frames per second : " << fps << std::endl;
     }
 
     close_app = true;

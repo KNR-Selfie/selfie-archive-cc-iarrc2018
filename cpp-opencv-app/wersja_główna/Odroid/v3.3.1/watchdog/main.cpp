@@ -68,7 +68,7 @@ void watch(bool &end_of_app)
 
                 system("pkill -9 -f opencv-app");
 
-                system("gnome-terminal --geometry 20x10+0+0 -x sh -c \"sudo /home/mateusz/Desktop/opencv-app/opencv-app/build/opencv-app; bash\"");
+                system("gnome-terminal --geometry 20x10+0+0 -x sh -c \"sudo /home/odroid/Desktop/opencv-app/opencv-app/build/opencv-app; bash\"");
                 wait_for_connection(end_of_app);
             }
             else
@@ -110,7 +110,7 @@ int main()
     watchdog.push_flag(0);
 
     //Start new terminal with opencv-app
-    system("gnome-terminal -x sh -c \"/home/mateusz/Desktop/opencv-app/opencv-app/build/opencv-app; bash\"");
+    system("gnome-terminal -x sh -c \"/home/odroid/Desktop/opencv-app/opencv-app/build/opencv-app; bash\"");
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
 
