@@ -21,6 +21,7 @@
 #define CAM_RES_X 640
 #define CAM_RES_Y 360
 #define COMPARED_LEVEL 100
+#define FRAME_TIME 50
 
 void push_new_data_to_UART();
 void U_thread(UART &uart, GPIO &gpio, unsigned int &pushButtonValue, unsigned int &redLEDValue, unsigned int &yellowLEDValue, unsigned int &greenLEDValue);
@@ -178,8 +179,13 @@ int main()
     double fps = 0;
     //FPS
 
+    float av_slope_left_near;
+    float av_slope_right_near;
+
     while(true)
     {
+        std::cout << "\033[2J\033[1;1H";
+
         //FPS
         if(licznik_czas == 0)
         {
@@ -212,8 +218,12 @@ int main()
         lineDetector.detectLines(frame_edges_masked, lines);
         lineDetector.drawLines(lines, frame_lines);
 
-        lineDetector.get2points(lines, frame_lines, lane_corners);
-        lineDetector.calculateDataToSend(lane_corners, detected_middle_pos_near, detected_middle_pos_far, left_lane_angle_st, right_lane_angle_st, flags_to_UART);
+        lineDetector.writePoints();
+
+        //lineDetector.get2points(lines, frame_lines, lane_corners);
+        //lineDetector.calculateDataToSend(lane_corners, detected_middle_pos_near, detected_middle_pos_far, left_lane_angle_st, right_lane_angle_st, flags_to_UART);
+
+        std::cout << "Linie: " << lines.size() << std::endl;
 
         //push_new_data_to_UART();
 
@@ -224,7 +234,7 @@ int main()
         cv::imshow("Masked", frame_edges_masked);
         cv::imshow("Lines", frame_lines);
 
-        keypressed = (char)cv::waitKey(10);
+        keypressed = (char)cv::waitKey(FRAME_TIME);
         if( keypressed == 27 )
             break;
 
