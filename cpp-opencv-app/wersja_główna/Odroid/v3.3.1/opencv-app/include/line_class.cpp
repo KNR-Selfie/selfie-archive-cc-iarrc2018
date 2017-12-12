@@ -1,190 +1,4 @@
-#include <string>
-//#include <vector>
-#include "opencv2/opencv.hpp"
-
 #include "line_class.hpp"
-
-//private:
-/*
-void LineDetector::calculateCenterPoint(std::vector<cv::Vec4i> &lines)
-{
-    float x_pos_near = 0;
-    float y_pos_near = 0;
-
-    float x_pos_far = 0;
-    float y_pos_far = 0;
-
-    int near_count = 0;
-    int far_count = 0;
-
-    for( size_t i = 0; i < lines.size(); i++ )
-    {
-        if(lines[i][1] > Row4Bottom)
-        {
-            x_pos_near += lines[i][0];
-            //y_pos_near += lines[i][1];
-
-            near_count++;
-        }
-        else
-        {
-            x_pos_far += lines[i][0];
-            //y_pos_far += lines[i][1];
-
-            far_count++;
-        }
-
-        if(lines[i][3] > Row4Bottom)
-        {
-            x_pos_near += lines[i][2];
-            //y_pos_near += lines[i][3];
-
-            near_count++;
-        }
-        else
-        {
-            x_pos_far += lines[i][2];
-            //y_pos_far += lines[i][3];
-
-            far_count++;
-        }
-
-        if(lines[i][1] < Row4Top)
-        {
-            x_pos_near += lines[i][0];
-            //y_pos_near += lines[i][1];
-
-            near_count++;
-        }
-        else
-        {
-            x_pos_far += lines[i][0];
-            //y_pos_far += lines[i][1];
-
-            far_count++;
-        }
-
-        if(lines[i][3] < Row4Top)
-        {
-            x_pos_near += lines[i][2];
-            //y_pos_near += lines[i][3];
-
-            near_count++;
-        }
-        else
-        {
-            x_pos_far += lines[i][2];
-            //y_pos_far += lines[i][3];
-
-            far_count++;
-        }
-    }
-
-    x_pos_near = x_pos_near / near_count;
-    //y_pos_near = y_pos_near / near_count;
-
-    x_pos_far = x_pos_far / far_count;
-    //y_pos_far = y_pos_far / far_count;
-
-    CenterPointNear = cv::Point(x_pos_near, 280);
-    CenterPointFar = cv::Point(x_pos_far, 140);
-}
-
-void LineDetector::calculate_bisector(int &left_lane_angle_st, int &right_lane_angle_st)
-{
-    double bisector_angle_rad;
-
-    if(CenterPointNear.x == CenterPointFar.x)
-    {
-        left_lane_angle_st = 90;
-        right_lane_angle_st = 90;
-    }
-    else
-    {
-        double a = CenterPointNear.y - CenterPointFar.y;
-        double b = abs(CenterPointFar.x - CenterPointNear.x);
-
-        if(CenterPointNear.x < CenterPointFar.x)
-        {
-            bisector_angle_rad = 3.1416 - atan(a / b);
-        }
-        else
-        {
-            bisector_angle_rad = atan(a / b);
-        }
-    }
-
-    left_lane_angle_st = bisector_angle_rad * 57.295;
-    right_lane_angle_st = left_lane_angle_st;
-
-    std::cout << "Kat: " << right_lane_angle_st << std::endl;
-}
-*/
-
-void LineDetector::calculate_slopes(std::vector<cv::Vec4i> &lines)
-{
-    LineDetector::Punkt tmp;
-
-    all_points.clear();
-
-    for(size_t i = 0; i < lines.size(); i++)
-    {
-        tmp.slope = float((lines[i][3] - lines[i][1]))/float((lines[i][2] - lines[i][0]));
-
-        if(tmp.slope > 500)
-            tmp.slope = 500;
-
-        if(tmp.slope < -500)
-            tmp.slope = -500;
-
-        tmp.coordinates = cv::Point(lines[i][0], lines[i][1]);
-        all_points.push_back(tmp);
-
-        tmp.coordinates = cv::Point(lines[i][2], lines[i][3]);
-        all_points.push_back(tmp);
-
-    }
-}
-
-void LineDetector::average_slope(std::vector<Punkt> punkty)
-{
-    if(punkty.size() > 2)
-    {
-        int count_ujemne = 0;
-        int count_dodatnie = 0;
-
-        float average_slope_near;
-        float average_slope_ujemny;
-        float average_slope_dodatni;
-
-        for(size_t i = 0; i < punkty.size(); i++)
-        {
-            if(punkty[i].slope < 0)
-            {
-                count_ujemne++;
-                average_slope_ujemny += punkty[i].slope;
-            }
-            else
-            {
-                count_dodatnie++;
-                average_slope_dodatni += punkty[i].slope;
-            }
-        }
-
-        if(count_dodatnie > count_ujemne)
-            average_slope_near = average_slope_dodatni/count_dodatnie;
-        else
-            average_slope_near = average_slope_ujemny/count_ujemne;
-
-        std::cout << "Slope: " << average_slope_near << std::endl;
-        std::cout << "Dodatnich: " << count_dodatnie << std::endl;
-        std::cout << "Ujemnych: " << count_ujemne << std::endl;
-    }
-    else
-    {
-        std::cout << "No points!" << std::endl;
-    }
-}
 
 //public:
 
@@ -214,7 +28,7 @@ void LineDetector::edgeDetect(cv::Mat &input, cv::Mat &output_thresh, cv::Mat &o
   kernel_h.at<float>(1, 0) = 0;
   kernel_h.at<float>(2, 0) = -1;
 
-  cv::threshold(input, output_thresh, threshold_value, 255, cv::THRESH_BINARY_INV);
+  cv::threshold(input, output_thresh, threshold_value, 255, cv::THRESH_BINARY);
 
   cv::filter2D(output_thresh, out_v, -1, kernel_v, anchor, 0, cv::BORDER_DEFAULT);
   cv::filter2D(output_thresh, out_h, -1, kernel_h, anchor, 0, cv::BORDER_DEFAULT);
@@ -228,66 +42,133 @@ void LineDetector::applyMask(cv::Mat &input, cv::Mat &mask, cv::Mat &output)
     cv::bitwise_and(input, mask, output);
 }
 
-void LineDetector::detectLines(cv::Mat &input, std::vector<cv::Vec4i> &output_lines)
+void LineDetector::detectLines(cv::Mat &input)
 {
-    HoughLinesP(input, output_lines, 1, CV_PI/180*10, 8, 10, 5);
+    HoughLinesP(input, lines, 1, CV_PI/180, 8, 10, 5);  //Bylo: CV_PI/180*10
 
-    calculate_slopes(output_lines);
-    average_slope(all_points);
+    //calculate_all_slopes();
+    //average_slope(all_points);
 
 }
 
-void LineDetector::drawLines(std::vector<cv::Vec4i> &input_lines, cv::Mat &output)
+void LineDetector::drawLines(cv::Mat &output)
 {
     output = cv::Mat::zeros(380, 640, CV_8UC1);
 
-    for( size_t i = 0; i < input_lines.size(); i++ )
+    for( size_t i = 0; i < lines.size(); i++ )
     {
         line(output,
-             cv::Point(input_lines[i][0], input_lines[i][1]),
-             cv::Point(input_lines[i][2], input_lines[i][3]),
+             cv::Point(lines[i][0], lines[i][1]),
+             cv::Point(lines[i][2], lines[i][3]),
              cv::Scalar(255, 0, 0),
              3,
              8);
     }
 }
 
-void LineDetector::writePoints()
+void LineDetector::calculate_all_slopes()
 {
-    //for( size_t i = 0; i < all_points.size(); i++ )
-    //{
-        //std::cout << "X: " << all_points[i].coordinates.x << ", Y: " << all_points[i].coordinates.y << ", Slope: " <<  all_points[i].slope << std::endl;
-    //}
+    Punkt tmp;
+
+    all_points.clear();
+
+    for(size_t i = 0; i < lines.size(); i++)
+    {
+        tmp.slope = float((lines[i][3] - lines[i][1]))/float((lines[i][2] - lines[i][0]));
+
+        if(tmp.slope > 500)
+            tmp.slope = 500;
+
+        if(tmp.slope < -500)
+            tmp.slope = -500;
+
+        tmp.coordinates = cv::Point(lines[i][0], lines[i][1]);
+        all_points.push_back(tmp);
+
+        tmp.coordinates = cv::Point(lines[i][2], lines[i][3]);
+        all_points.push_back(tmp);
+
+    }
 }
 
-/*
-void LineDetector::get2points(std::vector<cv::Vec4i> &lines, cv::Mat &frame_lines, std::vector<cv::Point> &lane_corners)
+void LineDetector::sort_lines()
 {
-    calculateCenterPoint(lines);
-
-    line(frame_lines,
-         cv::Point(0, Row4Top),
-         cv::Point(639, Row4Top),
-         cv::Scalar(255, 0, 0),
-         3,
-         8);
-
-    line(frame_lines,
-         cv::Point(0, Row4Bottom),
-         cv::Point(639, Row4Bottom),
-         cv::Scalar(255, 0, 0),
-         3,
-         8);
-
-    cv::circle(frame_lines, CenterPointNear, 5, cv::Scalar(255,0,0), 5, CV_FILLED, 0);
-    cv::circle(frame_lines, CenterPointFar, 5, cv::Scalar(255,0,0), 5, CV_FILLED, 0);
+	//Funkcja do podzialu std::vector<Punkt> all_points na 5 x std::vector<Punkt>
 }
 
-void LineDetector::calculateDataToSend(std::vector<cv::Point> &lane_corners, int &detected_middle_pos_near, int &detected_middle_pos_far, int &left_lane_angle_st, int &right_lane_angle_st, int8_t &flags_to_UART)
+float LineDetector::average_slope(std::vector<Punkt> &punkty)
 {
-    detected_middle_pos_far = CenterPointFar.x;
-    detected_middle_pos_near = CenterPointNear.x;
+    if(punkty.size() > 2)
+    {
+        int count_ujemne = 0;
+        int count_dodatnie = 0;
 
-    calculate_bisector(left_lane_angle_st, right_lane_angle_st);
+        float average_slope_near;
+        float average_slope_ujemny;
+        float average_slope_dodatni;
+
+        for(size_t i = 0; i < punkty.size(); i++)
+        {
+            if(punkty[i].slope < 0)
+            {
+                count_ujemne++;
+                average_slope_ujemny += punkty[i].slope;
+            }
+            else
+            {
+                count_dodatnie++;
+                average_slope_dodatni += punkty[i].slope;
+            }
+        }
+
+        if(count_dodatnie > count_ujemne)
+            average_slope_near = average_slope_dodatni/count_dodatnie;
+        else
+            average_slope_near = average_slope_ujemny/count_ujemne;
+
+        //std::cout << "Slope: " << average_slope_near << std::endl;
+        //std::cout << "Dodatnich: " << count_dodatnie << std::endl;
+        //std::cout << "Ujemnych: " << count_ujemne << std::endl;
+    }
+    else
+    {
+        std::cout << "No points!" << std::endl;
+    }
 }
-*/
+
+int LineDetector::average_pos(std::vector<Punkt> &punkty)
+{
+	int average_pos = 0;
+
+	for(size_t i = 0; i < punkty.size(); i++)
+    {
+		average_pos += punkty[i].coordinates.x;
+	}
+
+	average_pos = average_pos / punkty.size();
+
+	return average_pos;
+}
+
+void LineDetector::save_for_next_step(float &new_left_slope, float &new_right_slope, int &new_center_pos)
+{
+	//calculate left line angle in degrees
+	float left_angle;
+
+
+	//calculate right line angle in degrees
+	float right_angle;
+
+
+	//calculate average slope
+	float average_slope; 
+	
+	//save all data
+	last_bottom_middle_point.coordinates = cv::Point(new_center_pos,250);
+	last_bottom_middle_point.slope = average_slope;
+
+	srodek = new_center_pos;
+	lewy_kat = left_angle;
+	prawy_kat = right_angle;
+}
+

@@ -66,7 +66,7 @@ void watch(bool &end_of_app)
                 std::cout << "Warning: second packet lost!" << std::endl;
                 std::cout << "Warning: app reset!" << std::endl;
 
-                system("pkill -9 -f opencv-app");
+                system("pkill -9 -f app");
 
                 system("gnome-terminal --geometry 20x10+0+0 -x sh -c \"sudo /home/odroid/Desktop/opencv-app/opencv-app/build/opencv-app; bash\"");
                 wait_for_connection(end_of_app);
