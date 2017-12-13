@@ -63,6 +63,9 @@
 /* USER CODE BEGIN Includes */
 #include "Lighting.h"
 #include "Gyro.h"
+
+#include "usbd_cdc_if.h"
+#include "usbd_cdc.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -90,6 +93,8 @@ uint16_t duty_servo;
 uint8_t prescalerOdchylka = 3;
 uint8_t prescalerAngle = 7;
 
+uint8_t sem_init = 0;
+xSemaphoreHandle Tim7Semaphore = NULL;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -102,6 +107,13 @@ void blinkThread(void const * argument);
 void driveControl(void const * argument);
 void servoControl(void const * argument);
 void engineControl(void const * argument);
+
+USBD_CDC_HandleTypeDef *hcdc;
+uint8_t usbTxBuffer[256];
+uint32_t len;
+
+#define BOOTLOADER_STACK_POINTER       0x00100000
+static void machine_bootloader(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -151,6 +163,13 @@ int main(void)
     HAL_UART_Receive_DMA(&huart1, &a_syncbyte, 1);
     HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
     HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
+
+//    vSemaphoreCreateBinary( Tim7Semaphore );
+//    if(osSemaphoreWait (Tim7Semaphore, osWaitForever) == osOK)
+//    	sem_init=1;
+//    HAL_TIM_Base_Start_IT(&htim7);
+
+    MX_USB_DEVICE_Init();
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */
@@ -264,7 +283,9 @@ void blinkThread(void const *argument)
 {
     while(1)
     {
-        osDelay(1);
+        osDelay(500);
+        len = sprintf((char*)usbTxBuffer, "usb\r\n");
+        	CDC_Transmit_FS(usbTxBuffer, len);
     }
     osThreadTerminate(NULL);
 }
@@ -480,6 +501,18 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
         }
 
 }
+
+static void machine_bootloader(void) {
+
+	HAL_RCC_DeInit();
+	HAL_DeInit();
+
+	__set_MSP(*((uint32_t*) BOOTLOADER_STACK_POINTER));
+
+	((void (*)(void)) *((uint32_t*) (BOOTLOADER_STACK_POINTER + 4ul)))();
+
+	while (1);
+}
 /* USER CODE END 4 */
 
 /**
@@ -502,6 +535,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   if(htim->Instance == TIM10){ //timer 10 sprawdzajacy czy jest komunikacja Jetson<->STM. CNT zerowany w obsludze uarta
         j_syncByte = 200;
     }
+  if (htim->Instance == TIM7) {
+      static int licznik = 0;
+      if(++licznik>50 && sem_init)
+      {
+    	  licznik=0;
+//    	  osSemaphoreRelease(Tim7Semaphore);
+      }
+    }
 /* USER CODE END Callback 1 */
 }
 
@@ -513,8 +554,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 void _Error_Handler(char * file, int line)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
-  while(1) 
+	  /* User can add his own implementation to report the HAL error return state */
+	  while(1)
   {
   }
   /* USER CODE END Error_Handler_Debug */ 
