@@ -168,8 +168,6 @@ int main(void)
 //    if(osSemaphoreWait (Tim7Semaphore, osWaitForever) == osOK)
 //    	sem_init=1;
 //    HAL_TIM_Base_Start_IT(&htim7);
-
-    MX_USB_DEVICE_Init();
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */
@@ -281,11 +279,17 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 void blinkThread(void const *argument)
 {
+
+	HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
+	HAL_TIM_Encoder_Start(&htim5, TIM_CHANNEL_ALL);
     while(1)
     {
-        osDelay(500);
-        len = sprintf((char*)usbTxBuffer, "usb\r\n");
-        	CDC_Transmit_FS(usbTxBuffer, len);
+
+        len = sprintf((char*)usbTxBuffer, "TIM3->CNT = %lu\r\n\r\n", TIM3->CNT);
+        if(CDC_Transmit_FS(usbTxBuffer, len)==USBD_OK)
+        	osDelay(500);
+        else
+        	osDelay(5000);
     }
     osThreadTerminate(NULL);
 }
@@ -501,10 +505,22 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
         }
 
 }
-
+int8_t MAIN_USB_Receive(uint8_t* Buf, uint32_t *Len) {
+	if (Buf[0] == 'B')
+		machine_bootloader();
+	else if (Buf[0] == 'R')
+		NVIC_SystemReset();
+	return 0;
+}
 static void machine_bootloader(void) {
-
+	HAL_NVIC_DisableIRQ(TIM1_CC_IRQn);
+	vTaskSuspendAll();
+	vTaskEndScheduler();
+	__disable_irq();
 	HAL_RCC_DeInit();
+
+	HAL_DeInit();
+
 	HAL_DeInit();
 
 	__set_MSP(*((uint32_t*) BOOTLOADER_STACK_POINTER));

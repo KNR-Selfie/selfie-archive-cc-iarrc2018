@@ -26,7 +26,7 @@ build/
 *.lst
 .*.un~
 .*.swp
-
+*.bak
 /stm32-app/SW4STM32/SelfieF7/Debug/Application/
 /stm32-app/SW4STM32/SelfieF7/Debug/sources.mk
 /stm32-app/SW4STM32/SelfieF7/Debug/Drivers/
