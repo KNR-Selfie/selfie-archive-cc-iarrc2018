@@ -15,6 +15,7 @@
 #include "include/watchdog_class.cpp"
 #include "include/line_class.cpp"
 #include "include/uart_class.cpp"
+#include <wiringPi.h>
 //#include "include/streaming.cpp"
 
 #define CAMERA_INDEX 0
@@ -33,7 +34,7 @@ int left_lane_angle_st = 90;
 int left_lane_angle_rad = 3.1415/2;
 int right_lane_angle_st = 90;
 int right_lane_angle_rad = 3.1415/2;
-int8_t flags_to_UART = 0b00000000;
+char flags_to_UART = 0b00000000;
 
 LineDetector lineDetector;
 Watchdog watchdog;
@@ -102,6 +103,15 @@ int main()
     uart_1.unia_danych.dane.flags = 0b00000000;
     uart_1.unia_danych.dane.end_byte = 0xfe;
 
+
+	//GPIO
+	wiringPiSetup();
+	pinMode(23, OUTPUT);
+	pinMode(4, INPUT);
+	digitalWrite(23, LOW);
+
+	//getchar();
+
     //GUI
     char keypressed;
 	bool show_mask = false;
@@ -119,8 +129,8 @@ int main()
     {
         cv::Point(0, 320),
 		cv::Point(0, 240),
-        cv::Point(160, 170),
-        cv::Point(480, 170),
+        cv::Point(60, 140),
+        cv::Point(530, 170),
 		cv::Point(639, 240),
         cv::Point(639, 320)
     };
@@ -131,23 +141,33 @@ int main()
     cv::Mat frame_thresh(CAM_RES_Y, CAM_RES_X, CV_8UC1);
     cv::Mat frame_edges(CAM_RES_Y, CAM_RES_X, CV_8UC1);
     cv::Mat frame_lines(CAM_RES_Y, CAM_RES_X, CV_8UC1);
+	cv::Mat frame_data(CAM_RES_Y, CAM_RES_X, CV_8UC3);
 
     //cv::namedWindow("Vision", 1);
     //cv::moveWindow("Vision", 0, 0);
     cv::namedWindow("Vision GRAY", 1);
-    cv::moveWindow("Vision GRAY", 0, 0);
-    cv::namedWindow("Thresh", 1);
-    cv::moveWindow("Thresh", 1280, 0);
-    cv::namedWindow("Edges", 1);
-    cv::moveWindow("Edges", 640, 0);
+    cv::moveWindow("Vision GRAY", 400, 0);
+    //cv::namedWindow("Thresh", 1);
+    //cv::moveWindow("Thresh", 1280, 0);
+    //cv::namedWindow("Edges", 1);
+    //cv::moveWindow("Edges", 640, 0);
     cv::namedWindow("Masked", 1);
-    cv::moveWindow("Masked", 0, 470);
-    cv::namedWindow("Lines", 1);
-    cv::moveWindow("Lines", 640, 400);
-
+    cv::moveWindow("Masked", 640, 460);
+    //cv::namedWindow("Lines", 1);
+    //cv::moveWindow("Lines", 640, 400);
+	cv::namedWindow("Data", 1);
+    cv::moveWindow("Data", 0, 510);
+ 
 
     int thresh_value = 210;
-    cv::createTrackbar("Thresh", "Vision GRAY", &thresh_value, 255);
+	int P_min_votes = 10;
+	int P_max_gap = 2;
+	int P_min_len = 15;
+    
+	cv::createTrackbar("Thresh", "Vision GRAY", &thresh_value, 255);
+	cv::createTrackbar("P_min_votes", "Masked", &P_min_votes, 60);
+	cv::createTrackbar("P_max_gap", "Masked", &P_max_gap, 60);
+	cv::createTrackbar("P_min_len", "Masked", &P_min_len, 60);
 
     //Threads
     //std::thread UART_thread(U_thread, std::ref(uart_1), std::ref(gpio), std::ref(pushButtonValue), std::ref(redLEDValue), std::ref(yellowLEDValue), std::ref(greenLEDValue));
@@ -192,19 +212,30 @@ int main()
         lineDetector.applyBlur(frame_gray, frame_gray);
         lineDetector.edgeDetect(frame_gray, frame_thresh, frame_edges, thresh_value);
         lineDetector.applyMask(frame_edges, mask, frame_edges_masked);
-        lineDetector.detectLines(frame_edges_masked);
-        lineDetector.drawLines(frame_lines);
-
+        lineDetector.detectLines(frame_edges_masked, P_min_votes, P_max_gap, P_min_len);
+        
 		lineDetector.calculate_all_slopes();
 		lineDetector.sort_lines();
+		lineDetector.save_for_next_step();	
 
-		float new_slope_left; //= 
-		float new_slope_right; //= 
-		int new_middle; //= 
+		lineDetector.draw_data(frame_data);
 
-		lineDetector.save_for_next_step(new_slope_left, new_slope_right, new_middle);	
+		lineDetector.send_data_to_main(detected_middle_pos_near, left_lane_angle_st, right_lane_angle_st, flags_to_UART);
 
         push_new_data_to_UART();
+
+		uart_1.send_data();
+
+		std::cout << "PIN 23: " << digitalRead(4) << std::endl;
+
+		if(digitalRead(4) == HIGH)
+		{
+			digitalWrite(23, HIGH);
+		}
+		else
+		{	
+			digitalWrite(23, LOW);
+		}		
 
 		if(show_mask)
 		{
@@ -213,10 +244,11 @@ int main()
 
         //cv::imshow("Vision", frame);
         cv::imshow("Vision GRAY", frame_gray);
-        cv::imshow("Thresh", frame_thresh);
-        cv::imshow("Edges", frame_edges);
+        //cv::imshow("Thresh", frame_thresh);
+        //cv::imshow("Edges", frame_edges);
         cv::imshow("Masked", frame_edges_masked);
-        cv::imshow("Lines", frame_lines);
+        //cv::imshow("Lines", frame_lines);
+		cv::imshow("Data", frame_data);
 
 		std::cout << "        Time in seconds [1000 frames]: " << seconds << std::endl;
         std::cout << "        Estimated frames per second : " << fps << std::endl;
@@ -239,7 +271,7 @@ int main()
             		break;
 			}		
 		}
-          
+         
         if(licznik_czas > 1000)
         {
             licznik_czas = 0;
@@ -285,4 +317,5 @@ void push_new_data_to_UART()
     //uart_1.unia_danych.dane.data_7 = 0;
     uart_1.unia_danych.dane.flags = flags_to_UART;
 }
+
 
