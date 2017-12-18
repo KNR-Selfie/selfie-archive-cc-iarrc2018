@@ -75,7 +75,8 @@ public:
 	float prawy_kat = 90;
 
 	//
-    void applyBlur(cv::Mat &input, cv::Mat &output);  
+    void applyBlur(cv::Mat &input, cv::Mat &output); 
+	void applyBirdEye(cv::Mat &input, cv::Mat &output); 
 	void edgeDetect(cv::Mat &input, cv::Mat &output_thresh, cv::Mat &output_edges, int &threshold_value);
 	void applyMask(cv::Mat &input, cv::Mat &mask, cv::Mat &output);
     void detectLines(cv::Mat &input, int &P_min_votes, int &P_max_gap, int &P_min_len);

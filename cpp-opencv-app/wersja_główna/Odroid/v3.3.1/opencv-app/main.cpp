@@ -120,6 +120,7 @@ int main()
 
     cv::Mat frame(CAM_RES_Y, CAM_RES_X, CV_8UC4);
     cv::Mat frame_gray(CAM_RES_Y, CAM_RES_X, CV_8UC1);
+	//cv::Mat frame_gray_bird(CAM_RES_Y, CAM_RES_X, CV_8UC1);
     cv::Mat frame_edges_masked(CAM_RES_Y, CAM_RES_X, CV_8UC1);
 
     //===========Data Acquisition Sector==========
@@ -210,6 +211,8 @@ int main()
         //===========Data Acquisition Sector==========
 
         lineDetector.applyBlur(frame_gray, frame_gray);
+		//lineDetector.applyBirdEye(frame_gray, frame_gray_bird);
+		//frame_gray = frame_gray_bird;
         lineDetector.edgeDetect(frame_gray, frame_thresh, frame_edges, thresh_value);
         lineDetector.applyMask(frame_edges, mask, frame_edges_masked);
         lineDetector.detectLines(frame_edges_masked, P_min_votes, P_max_gap, P_min_len);

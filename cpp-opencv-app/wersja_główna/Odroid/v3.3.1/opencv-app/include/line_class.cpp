@@ -21,11 +21,77 @@ void dec_to_bin(char liczba)
 	std::cout << std::endl;
 }
 
-//public:
-
 void LineDetector::applyBlur(cv::Mat &input, cv::Mat &output)
 {
     cv::GaussianBlur(input, output, cv::Size(3,3), 0, 0);
+}
+
+void LineDetector::applyBirdEye(cv::Mat &input, cv::Mat &output)
+{
+	std::cout << "1" << std::endl;
+
+	resize(input, input, cv::Size(640, 380));
+
+	double focalLength, dist, alpha; 
+	int alpha_ = 20, f_ = 700, dist_ = 700;
+
+	alpha =((double)alpha_ -90) * CV_PI/180;
+	focalLength = (double)f_;
+	dist = (double)dist_;
+
+	cv::Size image_size = input.size();
+	double w = (double)image_size.width, h = (double)image_size.height;
+
+	std::cout << "1" << std::endl;
+
+	// Projecion matrix 2D -> 3D
+	cv::Mat A1 = (cv::Mat_<float>(4, 3)<< 
+		1, 0, -w/2,
+		0, 1, -h/2,
+		0, 0, 0,
+		0, 0, 1 );
+	
+	// Rotation matrices Rx, Ry, Rz
+
+	cv::Mat RX = (cv::Mat_<float>(4, 4) << 
+		1, 0, 0, 0,
+		0, cos(alpha), -sin(alpha), 0,
+		0, sin(alpha), cos(alpha), 0,
+		0, 0, 0, 1 );
+/*
+		Mat RY = (Mat_<float>(4, 4) << 
+			cos(beta), 0, -sin(beta), 0,
+			0, 1, 0, 0,
+			sin(beta), 0, cos(beta), 0,
+			0, 0, 0, 1	);
+
+		Mat RZ = (Mat_<float>(4, 4) << 
+			cos(gamma), -sin(gamma), 0, 0,
+			sin(gamma), cos(gamma), 0, 0,
+			0, 0, 1, 0,
+			0, 0, 0, 1	);
+*/
+
+		// R - rotation matrix
+		cv::Mat R = RX; //* RY * RZ;
+
+		// T - translation matrix
+		cv::Mat T = (cv::Mat_<float>(4, 4) << 
+			1, 0, 0, 0,  
+			0, 1, 0, 0,  
+			0, 0, 1, dist,  
+			0, 0, 0, 1); 
+		
+		// K - intrinsic matrix 
+		cv::Mat K = (cv::Mat_<float>(3, 4) << 
+			focalLength, 0, w/2, 0,
+			0, focalLength, h/2, 0,
+			0, 0, 1, 0
+			); 
+
+		cv::Mat transformationMat = K * (T * (R * A1));
+
+		cv::warpPerspective(input, output, transformationMat, image_size, cv::INTER_CUBIC | cv::WARP_INVERSE_MAP);
 }
 
 void LineDetector::edgeDetect(cv::Mat &input, cv::Mat &output_thresh, cv::Mat &output_edges, int &threshold_value)
@@ -386,6 +452,21 @@ void LineDetector::save_for_next_step()
 		if(right_ang_st < 0)
 			right_ang_st += 180;
 	}
+
+	//Uciekla z lewej
+	if(!BL_sector && BR_sector)
+	{
+		new_pos_left = new_pos_right - width;
+	}
+	else
+	{
+		//Uciekla z prawej
+		if(BL_sector && !BR_sector)
+		{
+			new_pos_right = new_pos_left + width;
+		}
+	}
+
 	new_middle = ((new_pos_right - new_pos_left) / 2) + new_pos_left;
 
 	average_middle_angle = (left_ang_st+right_ang_st) / 2;
@@ -406,7 +487,11 @@ void LineDetector::save_for_next_step()
 	std::cout << "M angle: " << average_middle_angle << std::endl;
 	std::cout << "M slope: " << average_middle_slope << std::endl;
 
-	width = new_pos_right - new_pos_left;
+	if(BL_sector && BR_sector)
+	{
+		width = new_pos_right - new_pos_left;
+	}
+	
 	std::cout << "Width:" << width << std::endl;
 
 
