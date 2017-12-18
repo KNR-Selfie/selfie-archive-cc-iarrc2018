@@ -63,15 +63,24 @@
 /* USER CODE BEGIN Includes */
 #include "Lighting.h"
 #include "Gyro.h"
+#include "Enc.h"
+
+
+#include "usbd_cdc_if.h"
+#include "usbd_cdc.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
+extern float actualSpeed;
+uint8_t synchro = 0;
+
 
 xSemaphoreHandle DriveControlSemaphore = NULL;
-//deklaracja zmiennych u¿ywanych do komunikacji z Jetsonem
+xSemaphoreHandle EngineSemaphore = NULL;
+//deklaracja zmiennych uÂżywanych do komunikacji z Jetsonem
 uint8_t j_syncByte;
 uint8_t j_buffer[11];
 uint16_t j_jetsonData[8];
@@ -83,17 +92,15 @@ uint8_t a_buffer[24];
 uint16_t a_channels[16];
 
 //inicjalizacja zmiennych globalnych - wypelnien
-uint16_t duty_engine;
+float duty_engine = 0;
 uint16_t duty_servo;
+float set_spd = 0;
 
-uint8_t prescalerOdchylka = 3;
-uint8_t prescalerAngle = 7;
+float prescalerOdchylka = 0.1;
+float prescalerAngle = 7;
 
-int rgb[22][3];
-
-int is1 = 1;
-int16_t scounter1 = 1;
-
+uint8_t sem_init = 0;
+xSemaphoreHandle Tim7Semaphore = NULL;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -102,10 +109,20 @@ void MX_FREERTOS_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
+extern float pid_calculateEngine(float set_val, float read_val);
+extern float pid_calculateServo(float set_val, float read_val);
+
 void blinkThread(void const * argument);
 void driveControl(void const * argument);
 void servoControl(void const * argument);
 void engineControl(void const * argument);
+
+USBD_CDC_HandleTypeDef *hcdc;
+uint8_t usbTxBuffer[256];
+uint32_t len;
+
+#define BOOTLOADER_STACK_POINTER       0x00100000
+static void machine_bootloader(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -141,7 +158,6 @@ int main(void)
   MX_UART4_Init();
   MX_TIM2_Init();
   MX_USART1_UART_Init();
-  MX_TIM4_Init();
   MX_TIM10_Init();
   MX_TIM5_Init();
   MX_TIM3_Init();
@@ -150,12 +166,18 @@ int main(void)
   //uruchomienie DMA na uarcie oraz PWM
 
     vSemaphoreCreateBinary( DriveControlSemaphore );
+    osSemaphoreWait (DriveControlSemaphore, osWaitForever);
 
-    ws2812_init();
     HAL_UART_Receive_DMA(&huart4, &j_syncByte, 1);
     HAL_UART_Receive_DMA(&huart1, &a_syncbyte, 1);
     HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
     HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
+    HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
+
+//    vSemaphoreCreateBinary( Tim7Semaphore );
+//    if(osSemaphoreWait (Tim7Semaphore, osWaitForever) == osOK)
+//    	sem_init=1;
+//    HAL_TIM_Base_Start_IT(&htim7);
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */
@@ -267,9 +289,17 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 void blinkThread(void const *argument)
 {
+
+	HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
+	HAL_TIM_Encoder_Start(&htim5, TIM_CHANNEL_ALL);
     while(1)
     {
-        osDelay(1);
+
+        len = sprintf((char*)usbTxBuffer, "TIM3->CNT = %lu\r\n\r\n", TIM3->CNT);
+        if(CDC_Transmit_FS(usbTxBuffer, len)==USBD_OK)
+        	osDelay(500);
+        else
+        	osDelay(5000);
     }
     osThreadTerminate(NULL);
 }
@@ -280,85 +310,78 @@ void driveControl(void const *argument)
     while (1)
         {
             osSemaphoreWait (DriveControlSemaphore, osWaitForever);
-            if (a_channels[5] == 144) //górna pozycja prze³acznika, sterowanie z aparatury
+            if (a_channels[5] == 144) //gĂłrna pozycja przeÂłacznika, sterowanie z aparatury
                 {
-                    HAL_GPIO_WritePin (GPIOB, GPIO_PIN_7, GPIO_PIN_SET); //jeœli sterujemy z aparatury œwieci siê niebieska
-                    HAL_GPIO_WritePin (GPIOB, GPIO_PIN_6, GPIO_PIN_RESET); //czerwona siê nie œwieci
-                    duty_engine = (1500
-                            + 1000 * (a_channels[1] - 1027) / (1680 - 368));
+                    HAL_GPIO_WritePin (GPIOB, GPIO_PIN_7, GPIO_PIN_SET); //jeĹ“li sterujemy z aparatury Ĺ“wieci siĂŞ niebieska
+//                    HAL_GPIO_WritePin (GPIOB, GPIO_PIN_6, GPIO_PIN_RESET); //czerwona siĂŞ nie Ĺ“wieci
+                    duty_engine = (300000 * (a_channels[1] - 1027) / (1680 - 368));
                     duty_servo = (1400
                             + 800 * (a_channels[3] - 1000) / (1921 - 80));
                     TIM2->CCR3 = duty_servo;
                 }
-            else if (a_channels[5] == 1024) //œrodkowa pozycja prze³¹cznika, jazda autonomiczna
+            else if (a_channels[5] == 1024) //orodkowa pozycja prze31cznika, jazda autonomiczna
                 {
                     HAL_TIM_Base_Start_IT (&htim10); // timer od sprawdzania komunikacji
-                    HAL_GPIO_WritePin (GPIOB, GPIO_PIN_6, GPIO_PIN_SET); //jeœli jeŸdzimy autonomicznie œwieci siê czerwona
                     HAL_GPIO_WritePin (GPIOB, GPIO_PIN_7, GPIO_PIN_RESET); //a niebieska nie
                     //jezeli jest komunikacja na linii Jetson <-> STM
-                    if (j_syncByte == 254 || j_syncByte == 253
-                            || j_syncByte == 255)
+                    if (j_syncByte == 254 || j_syncByte == 253 || j_syncByte == 255)
                         {
                             //gdy brak wykrytej linii stop lub zbocze opadajace -> nadaj kierunek jazdy -> jedz
                             if (!(j_jetsonFlags[0] & 0x80) || !(transition))
                                 {
-                                    if (j_jetsonData[0] == 0)
-                                        {
-                                            duty_servo = 1400
-                                                    + j_jetsonData[1]
-                                                            * prescalerOdchylka
-                                                    + (j_jetsonData[2] - 90)
-                                                            * prescalerAngle;
-                                            if (duty_servo > 1700)
-                                                duty_servo = 1700;
-                                        }
-                                    else if (j_jetsonData[0] == 1)
-                                        {
-                                            duty_servo = 1400
-                                                    - j_jetsonData[1]
-                                                            * prescalerOdchylka
-                                                    - (90 - j_jetsonData[2])
-                                                            * prescalerAngle;
-                                            if (duty_servo < 1100)
-                                                duty_servo = 1100;
-                                        }
-                                    duty_engine = (uint16_t) (1610);
-                                    transition = 1;
+//                                    if (j_jetsonData[0] < 1000)
+//                                        {
+//                                            duty_servo = 1400
+//                                                    + j_jetsonData[0]
+//                                                            * prescalerOdchylka
+//                                                    + ((j_jetsonData[1]+j_jetsonData[2])/2 - 90)
+//                                                            * prescalerAngle;
+//                                            if (duty_servo > 1700)
+//                                                duty_servo = 1700;
+//                                        }
+//                                    else if (j_jetsonData[0] > 1000)
+//                                        {
+//                                            duty_servo = 1400
+//                                                    - j_jetsonData[0]
+//                                                            * prescalerOdchylka
+//                                                    - ((j_jetsonData[1]+j_jetsonData[2]) - 90)
+//                                                            * prescalerAngle;
+//                                            if (duty_servo < 1100)
+//                                                duty_servo = 1100;
+//                                        }
+//                                    duty_engine = (uint16_t) 30000;
+//                                    transition = 1;
+                            	      duty_engine = (uint16_t) 30000;
                                 }
-                            //gdy jest wykryta linia stop, gdy odleglosc od linii jest niemala i gdy zbocze jest narastajace -> hamuj
-                            else if ((j_jetsonData[3] > 50)
-                                    && (j_jetsonFlags[0] & 0x80)
-                                    && (transition))
-                                {
-                                    duty_engine = (1610 + (j_jetsonData[1] >> 5)
-                                            + ((abs (j_jetsonData[2] - 90) * 10)
-                                                    >> 4))
-                                            - (480 - j_jetsonData[3]) / 5;
-                                }
-                            //gdy jest wykryta linia stop, gdy odleglosc od linii jest mala i gdy zbocze jest narastajace -> zatrzymaj sie
-                            else if ((j_jetsonData[3] > 0)
-                                    && (j_jetsonData[3] <= 50)
-                                    && (j_jetsonFlags[0] & 0x80)
-                                    && (transition))
-                                {
-                                    duty_engine = 1450;
-                                    osDelay (2000);
-                                    transition = 0;
-                                }
+//                            //gdy jest wykryta linia stop, gdy odleglosc od linii jest niemala i gdy zbocze jest narastajace -> hamuj
+//                            else if ((j_jetsonData[3] > 50)
+//                                    && (j_jetsonFlags[0] & 0x80)
+//                                    && (transition))
+//                                {
+//                                    duty_engine = 0;
+//                                }
+//                            //gdy jest wykryta linia stop, gdy odleglosc od linii jest mala i gdy zbocze jest narastajace -> zatrzymaj sie
+//                            else if ((j_jetsonData[3] > 0)
+//                                    && (j_jetsonData[3] <= 50)
+//                                    && (j_jetsonFlags[0] & 0x80)
+//                                    && (transition))
+//                                {
+//                                    duty_engine = 0;
+//                                    osDelay (2000);
+//                                    transition = 0;
+//                                }
                         }
-                    else if (j_syncByte == 200) //je¿eli nie istnieje Jetson <-> STM, wylacz naped (wartosc j_syncByte = 200 jest ustawiana przez TIMER10)
+                    else if (j_syncByte == 200) //je?eli nie istnieje Jetson <-> STM, wylacz naped (wartosc j_syncByte = 200 jest ustawiana przez TIMER10)
                         {
                             TIM2->CCR4 = 1460;
                         }
 
                     TIM2->CCR3 = duty_servo;
                 }
-            else if (a_channels[5] == 1904) //dolna pozycja prze³acznika, tryb pó³autonomiczny
+            else if (a_channels[5] == 1904) //dolna pozycja przeÂłacznika, tryb pĂłÂłautonomiczny
                 {
-                    HAL_GPIO_WritePin (GPIOB, GPIO_PIN_6, GPIO_PIN_SET); //jeœli jeŸdzimy pó³autonomicznie œwieci siê czerwona
-                    HAL_GPIO_WritePin (GPIOB, GPIO_PIN_7, GPIO_PIN_SET); //i niebieska te¿
-                    duty_engine = (1500
-                            + 1000 * (a_channels[1] - 1027) / (1680 - 368));
+                    HAL_GPIO_WritePin (GPIOB, GPIO_PIN_7, GPIO_PIN_SET); //i niebieska teÂż
+                    duty_engine = (300000 * (a_channels[1] - 1027) / (1680 - 368));
                     if (j_jetsonData[0] == 0)
                         {
                             duty_servo = 1400
@@ -377,83 +400,8 @@ void driveControl(void const *argument)
                         }
                     TIM2->CCR3 = duty_servo;
                 }
-            if (a_channels[4] > 1027)
-                {
-                    scounter1 += 1 * is1;
-
-                    if (scounter1 >= 999 || scounter1 <= 0)
-                        is1 *= -1;
-
-                    for (int indeks = 0; indeks < 22; indeks++)
-                        {
-                            hsi2rgb (
-                                    fabs (360 * scounter1 / 999
-                                            - 5 * (indeks - 2)),
-                                    1, 1, &rgb[indeks][0]);
-                            ws2812_set_color (indeks, rgb[indeks][0],
-                                              rgb[indeks][1], rgb[indeks][2]);
-                        }
-                }
-            else
-                {
-
-                    ws2812_set_color (1, 255, 255, 255);
-                    ws2812_set_color (2, 255, 255, 255);
-                    ws2812_set_color (3, 255, 255, 255);
-                    ws2812_set_color (4, 0, 0, 0);
-                    ws2812_set_color (5, 0, 0, 0);
-                    ws2812_set_color (6, 0, 0, 0);
-                    ws2812_set_color (7, 255, 255, 255);
-                    ws2812_set_color (8, 255, 255, 255);
-                    ws2812_set_color (9, 255, 255, 255);
-
-                    if (a_channels[1] < 1027)
-                        {
-                            ws2812_set_color (12, 255, 0, 0);
-                            ws2812_set_color (13, 255, 0, 0);
-                            ws2812_set_color (14, 255, 0, 0);
-
-                            ws2812_set_color (20, 255, 0, 0);
-                            ws2812_set_color (19, 255, 0, 0);
-                            ws2812_set_color (18, 255, 0, 0);
-
-                        }
-                    else
-                        {
-                            ws2812_set_color (12, 50, 0, 0);
-                            ws2812_set_color (13, 50, 0, 0);
-                            ws2812_set_color (14, 50, 0, 0);
-
-                            ws2812_set_color (20, 50, 0, 0);
-                            ws2812_set_color (19, 50, 0, 0);
-                            ws2812_set_color (18, 50, 0, 0);
-                        }
-                    ws2812_set_color (15, 0, 0, 0);
-                    ws2812_set_color (16, 0, 0, 0);
-                    ws2812_set_color (17, 0, 0, 0);
-                    if (a_channels[3] > 1250)
-                        {
-                            ws2812_set_color (11, 255, 120, 0);
-                            ws2812_set_color (10, 255, 120, 0);
-                            ws2812_set_color (0, 0, 0, 0);
-                            ws2812_set_color (21, 0, 0, 0);
-                        }
-                    else if (a_channels[3] < 800)
-                        {
-                            ws2812_set_color (0, 255, 120, 0);
-                            ws2812_set_color (21, 255, 120, 0);
-                            ws2812_set_color (11, 0, 0, 0);
-                            ws2812_set_color (10, 0, 0, 0);
-                        }
-                    else
-                        {
-                            ws2812_set_color (0, 0, 0, 0);
-                            ws2812_set_color (21, 0, 0, 0);
-                            ws2812_set_color (11, 0, 0, 0);
-                            ws2812_set_color (10, 0, 0, 0);
-                        }
-
-                }
+            set_spd = duty_engine;
+            osSemaphoreRelease(EngineSemaphore);
         }
     osThreadTerminate (NULL);
 }
@@ -463,14 +411,19 @@ void servoControl(void const *argument)
     duty_servo = 1400;
     while(1)
     {
-        //TIM2->CCR3 = duty_servo;
+osDelay(5);
+
+duty_servo = pid_calculateServo(1000, j_jetsonData[0]);
     }
     osThreadTerminate(NULL);
 }
 
+
+
 void engineControl(void const *argument)
 {
-    duty_engine = 1500;
+	vSemaphoreCreateBinary(EngineSemaphore);
+	osSemaphoreWait (EngineSemaphore, osWaitForever);
 
     //uruchomienie ESC
     TIM2->CCR4 = 2000;
@@ -478,43 +431,54 @@ void engineControl(void const *argument)
     TIM2->CCR4 = 1500;
     osDelay(2000);
 
-    //zabezpieczenie przed jazd¹ do ty³u
+    //zabezpieczenie przed jazdÂą do tyÂłu
     TIM2->CCR4 = 1520;
     osDelay(50);
     while(1)
     {
-        TIM2->CCR4 = duty_engine;
+
+    TIM2->CCR4 = pid_calculateEngine(set_spd, actualSpeed);
+
+  	  osDelay(5);
     }
     osThreadTerminate(NULL);
 }
+
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 
     if (huart->Instance == UART4) //jetson
     {
-        osSemaphoreRelease(DriveControlSemaphore);
         TIM10->CNT = 0;
-        if(j_syncByte==0xFF)
+        if(j_syncByte==0xFF && synchro == 0)
         {
-            j_syncByte = 0xFE;
-            HAL_UART_Receive_DMA(&huart4, &j_buffer, 11);
+            synchro = 1;
+            HAL_UART_Receive_DMA(&huart4, j_buffer, 11);
         }
-        else if(j_syncByte==0xFE)
+        else if(j_syncByte != 0xFF && synchro == 0)
+            HAL_UART_Receive_DMA(&huart4, &j_syncByte, 1);
+
+        else if(synchro == 1)
         {
-            //przet³umaczenie 11x8 na u¿yteczne 8x11
-            j_jetsonData[0]  = (int16_t) ((j_buffer[0] |j_buffer[1]<<8)                               & 0x07FF);
-            j_jetsonData[1]  = (int16_t) ((j_buffer[1]>>3 |j_buffer[2]<<5)                          & 0x07FF);
-            j_jetsonData[2]  = (int16_t) ((j_buffer[2]>>6 |j_buffer[3]<<2 |j_buffer[4]<<10)           & 0x07FF);
-            j_jetsonData[3]  = (int16_t) ((j_buffer[4]>>1 |j_buffer[5]<<7)                          & 0x07FF);
-            j_jetsonData[4]  = (int16_t) ((j_buffer[5]>>4 |j_buffer[6]<<4)                          & 0x07FF);
-            j_jetsonData[5]  = (int16_t) ((j_buffer[6]>>7 |j_buffer[7]<<1 |j_buffer[8]<<9)            & 0x07FF);
-            j_jetsonData[6]  = (int16_t) ((j_buffer[8]>>2 |j_buffer[9]<<6)                          & 0x07FF);
-            j_jetsonData[7]  = (int16_t) ((j_buffer[9]>>5 |j_buffer[10]<<3)                         & 0x07FF);
-            j_syncByte = 0xFD;
-            HAL_UART_Receive_DMA(&huart4, &j_jetsonFlags, 2);
+
+            synchro =2;
+            osSemaphoreRelease(DriveControlSemaphore);
+            HAL_UART_Receive_DMA(&huart4, j_jetsonFlags, 2);
         }
-        else
+        else if(synchro == 2)
         {
+        	if(j_jetsonFlags[1] == 0xFE && ((j_jetsonFlags[0] & 0x0003) == 0)){
+                //przet³umaczenie 11x8 na u¿yteczne 8x11
+                j_jetsonData[0]  = (int16_t) ((j_buffer[0] |j_buffer[1]<<8)                               & 0x07FF);
+                j_jetsonData[1]  = (int16_t) ((j_buffer[1]>>3 |j_buffer[2]<<5)                          & 0x07FF);
+                j_jetsonData[2]  = (int16_t) ((j_buffer[2]>>6 |j_buffer[3]<<2 |j_buffer[4]<<10)           & 0x07FF);
+                j_jetsonData[3]  = (int16_t) ((j_buffer[4]>>1 |j_buffer[5]<<7)                          & 0x07FF);
+                j_jetsonData[4]  = (int16_t) ((j_buffer[5]>>4 |j_buffer[6]<<4)                          & 0x07FF);
+                j_jetsonData[5]  = (int16_t) ((j_buffer[6]>>7 |j_buffer[7]<<1 |j_buffer[8]<<9)            & 0x07FF);
+                j_jetsonData[6]  = (int16_t) ((j_buffer[8]>>2 |j_buffer[9]<<6)                          & 0x07FF);
+                j_jetsonData[7]  = (int16_t) ((j_buffer[9]>>5 |j_buffer[10]<<3)                         & 0x07FF);
+        	}
+        	synchro = 0;
             HAL_UART_Receive_DMA(&huart4, &j_syncByte, 1);
         }
     }
@@ -525,7 +489,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
             if(a_syncbyte==0x0F)
             {
                 a_syncbyte=0x56;
-                HAL_UART_Receive_DMA(&huart1,&a_buffer,24);
+                HAL_UART_Receive_DMA(&huart1,a_buffer,24);
             }
             else if(a_buffer[22]==0x0)
             {
@@ -547,8 +511,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
                 a_channels[14] = (int16_t) ((a_buffer[19]>>2|a_buffer[20]<<6)                         & 0x07FF);
                 a_channels[15] = (int16_t) ((a_buffer[20]>>5|a_buffer[21]<<3)                         & 0x07FF);
 
-                HAL_UART_Receive_DMA(&huart1, &a_syncbyte, 1);
                 osSemaphoreRelease(DriveControlSemaphore);
+                HAL_UART_Receive_DMA(&huart1, &a_syncbyte, 1);
             }
             else
             {
@@ -557,6 +521,30 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
         }
 
+}
+int8_t MAIN_USB_Receive(uint8_t* Buf, uint32_t *Len) {
+	if (Buf[0] == 'B')
+		machine_bootloader();
+	else if (Buf[0] == 'R')
+		NVIC_SystemReset();
+	return 0;
+}
+static void machine_bootloader(void) {
+	HAL_NVIC_DisableIRQ(TIM1_CC_IRQn);
+	vTaskSuspendAll();
+	vTaskEndScheduler();
+	__disable_irq();
+	HAL_RCC_DeInit();
+
+	HAL_DeInit();
+
+	HAL_DeInit();
+
+	__set_MSP(*((uint32_t*) BOOTLOADER_STACK_POINTER));
+
+	((void (*)(void)) *((uint32_t*) (BOOTLOADER_STACK_POINTER + 4ul)))();
+
+	while (1);
 }
 /* USER CODE END 4 */
 
@@ -580,6 +568,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   if(htim->Instance == TIM10){ //timer 10 sprawdzajacy czy jest komunikacja Jetson<->STM. CNT zerowany w obsludze uarta
         j_syncByte = 200;
     }
+  if (htim->Instance == TIM7) {
+      static int licznik = 0;
+      if(++licznik>50 && sem_init)
+      {
+    	  licznik=0;
+//    	  osSemaphoreRelease(Tim7Semaphore);
+      }
+    }
 /* USER CODE END Callback 1 */
 }
 
@@ -591,8 +587,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 void _Error_Handler(char * file, int line)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
-  while(1) 
+	  /* User can add his own implementation to report the HAL error return state */
+	  while(1)
   {
   }
   /* USER CODE END Error_Handler_Debug */ 

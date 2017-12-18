@@ -60,6 +60,8 @@
 osThreadId defaultTaskHandle;
 osThreadId LightingTaskHandle;
 osThreadId GyroTaskHandle;
+osThreadId EncTaskHandle;
+osThreadId CzujnikiTaskHandle;
 
 /* USER CODE BEGIN Variables */
 osThreadId blinkTID;
@@ -67,12 +69,15 @@ osThreadId driveControlTID;
 osThreadId engineTID;
 osThreadId servoTID;
 osThreadId SDcardTID;
+
 /* USER CODE END Variables */
 
 /* Function prototypes -------------------------------------------------------*/
 void StartDefaultTask(void const * argument);
 extern void StartLightingTask(void const * argument);
 extern void StartGyroTask(void const * argument);
+extern void StartEncTask(void const * argument);
+extern void StartCzujnikiTask(void const * argument);
 
 extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -82,9 +87,26 @@ extern void blinkThread(void const * argument);
 extern void driveControl(void const * argument);
 extern void servoControl(void const * argument);
 extern void engineControl(void const * argument);
+
+
 /* USER CODE END FunctionPrototypes */
 
 /* Hook prototypes */
+void configureTimerForRunTimeStats(void);
+unsigned long getRunTimeCounterValue(void);
+
+/* USER CODE BEGIN 1 */
+/* Functions needed when configGENERATE_RUN_TIME_STATS is on */
+__weak void configureTimerForRunTimeStats(void)
+{
+
+}
+
+__weak unsigned long getRunTimeCounterValue(void)
+{
+return 0;
+}
+/* USER CODE END 1 */
 
 /* Init FreeRTOS */
 
@@ -118,6 +140,14 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(GyroTask, StartGyroTask, osPriorityNormal, 0, 128);
   GyroTaskHandle = osThreadCreate(osThread(GyroTask), NULL);
 
+  /* definition and creation of EncTask */
+  osThreadDef(EncTask, StartEncTask, osPriorityAboveNormal, 0, 128);
+  EncTaskHandle = osThreadCreate(osThread(EncTask), NULL);
+
+  /* definition and creation of CzujnikiTask */
+  osThreadDef(CzujnikiTask, StartCzujnikiTask, osPriorityNormal, 0, 128);
+  CzujnikiTaskHandle = osThreadCreate(osThread(CzujnikiTask), NULL);
+
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
     osThreadDef(blink, blinkThread, osPriorityLow, 0, 128);
@@ -148,7 +178,7 @@ void StartDefaultTask(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    osDelay(5);
   }
   /* USER CODE END StartDefaultTask */
 }
