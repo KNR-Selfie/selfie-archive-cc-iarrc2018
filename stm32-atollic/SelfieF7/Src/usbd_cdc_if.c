@@ -104,6 +104,7 @@ uint8_t UserRxBufferFS[APP_RX_DATA_SIZE];
 uint8_t UserTxBufferFS[APP_TX_DATA_SIZE];
 
 /* USER CODE BEGIN PRIVATE_VARIABLES */
+uint8_t tempbuf[7];
 /* USER CODE END PRIVATE_VARIABLES */
 
 /**
@@ -224,15 +225,29 @@ static int8_t CDC_Control_FS  (uint8_t cmd, uint8_t* pbuf, uint16_t length)
   /*                                        4 - Space                            */
   /* 6      | bDataBits  |   1   | Number Data bits (5, 6, 7, 8 or 16).          */
   /*******************************************************************************/
-  case CDC_SET_LINE_CODING:   
-	
-    break;
+  case CDC_SET_LINE_CODING:
 
-  case CDC_GET_LINE_CODING:     
+    	  tempbuf[0]=pbuf[0];
+    	  tempbuf[1]=pbuf[1];
+    	  tempbuf[2]=pbuf[2];
+    	  tempbuf[3]=pbuf[3];
+    	  tempbuf[4]=pbuf[4];
+    	  tempbuf[5]=pbuf[5];
+    	  tempbuf[6]=pbuf[6];
+        break;
 
-    break;
+      case CDC_GET_LINE_CODING:
 
-  case CDC_SET_CONTROL_LINE_STATE:
+    	  pbuf[0]=tempbuf[0];
+    	  pbuf[1]=tempbuf[1];
+    	  pbuf[2]=tempbuf[2];
+    	  pbuf[3]=tempbuf[3];
+    	  pbuf[4]=tempbuf[4];
+    	  pbuf[5]=tempbuf[5];
+    	  pbuf[6]=tempbuf[6];
+        break;
+
+    case CDC_SET_CONTROL_LINE_STATE:
 
     break;
 
@@ -266,7 +281,7 @@ static int8_t CDC_Control_FS  (uint8_t cmd, uint8_t* pbuf, uint16_t length)
 static int8_t CDC_Receive_FS (uint8_t* Buf, uint32_t *Len)
 {
   /* USER CODE BEGIN 6 */
-	MAIN_USB_Receive(&Buf[0], Len);
+  MAIN_USB_Receive(&Buf[0], Len);
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
   USBD_CDC_ReceivePacket(&hUsbDeviceFS);
   return (USBD_OK);

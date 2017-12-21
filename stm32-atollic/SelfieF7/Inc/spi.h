@@ -74,7 +74,7 @@ void MX_SPI1_Init(void);
 void MX_SPI4_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-void Selfie_SPI1_Init(uint32_t Mode);
+HAL_StatusTypeDef Selfie_SPI1_Init(uint32_t Mode);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

@@ -63,9 +63,6 @@
 /* USER CODE BEGIN Includes */
 #include "Lighting.h"
 #include "Gyro.h"
-
-#include "usbd_cdc_if.h"
-#include "usbd_cdc.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -107,13 +104,6 @@ void blinkThread(void const * argument);
 void driveControl(void const * argument);
 void servoControl(void const * argument);
 void engineControl(void const * argument);
-
-USBD_CDC_HandleTypeDef *hcdc;
-uint8_t usbTxBuffer[256];
-uint32_t len;
-
-#define BOOTLOADER_STACK_POINTER       0x00100000
-static void machine_bootloader(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -154,6 +144,7 @@ int main(void)
   MX_TIM3_Init();
 
   /* USER CODE BEGIN 2 */
+
   //uruchomienie DMA na uarcie oraz PWM
 
     vSemaphoreCreateBinary( DriveControlSemaphore );
@@ -279,19 +270,10 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 void blinkThread(void const *argument)
 {
-
-	HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
-	HAL_TIM_Encoder_Start(&htim5, TIM_CHANNEL_ALL);
-    while(1)
-    {
-
-        len = sprintf((char*)usbTxBuffer, "TIM3->CNT = %lu\r\n\r\n", TIM3->CNT);
-        if(CDC_Transmit_FS(usbTxBuffer, len)==USBD_OK)
-        	osDelay(500);
-        else
-        	osDelay(5000);
-    }
-    osThreadTerminate(NULL);
+	while (1) {
+		osDelay(1000);
+	}
+	osThreadTerminate(NULL);
 }
 
 void driveControl(void const *argument)
@@ -505,14 +487,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
         }
 
 }
-int8_t MAIN_USB_Receive(uint8_t* Buf, uint32_t *Len) {
-	if (Buf[0] == 'B')
-		machine_bootloader();
-	else if (Buf[0] == 'R')
-		NVIC_SystemReset();
-	return 0;
-}
-static void machine_bootloader(void) {
+void machine_bootloader(void) {
 	HAL_NVIC_DisableIRQ(TIM1_CC_IRQn);
 	vTaskSuspendAll();
 	vTaskEndScheduler();

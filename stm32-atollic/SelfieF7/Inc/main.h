@@ -52,7 +52,8 @@
 
 /* Includes ------------------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#define BOOTLOADER_STACK_POINTER       0x00100000
+void machine_bootloader(void);
 /* USER CODE END Includes */
 
 /* Private define ------------------------------------------------------------*/

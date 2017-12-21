@@ -9,7 +9,9 @@
 #define APPLICATION_USER_GYRO_GYRO_H_
 
 
-void StartGyroTask(void const * argument);
-void mpu6000AccAndGyroInit();
+extern void StartGyroTask(void const * argument);
+extern void mpuInit2(void);
 
+extern float CumulativeYaw;
+extern float YawRate;
 #endif /* APPLICATION_USER_GYRO_GYRO_H_ */

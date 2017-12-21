@@ -25,7 +25,7 @@
     <name>SelfieF7</name>				
     <device>STM32F745VGTx</device>		 
     <heapSize>0x800</heapSize>
-    <stackSize>0x400</stackSize>
+    <stackSize>0x800</stackSize>
     
     	<board>custom</board>
 			
