@@ -534,6 +534,25 @@ void LineDetector::send_data_to_main(int &detected_middle_pos_near, int &left_la
 	std::cout << "==========UART==========" << std::endl;
 }
 
+void LineDetector::restart_lane_detection()
+{
+	last_top_middle_point.coordinates.x = 320;
+	last_bottom_middle_point.coordinates.x = 320;
+	
+	last_top_middle_point.slope = 999;
+	last_bottom_middle_point.slope = 999;
+	
+	new_slope_left = 999; 
+	new_slope_right = 999; 
+	new_pos_left = 70; 
+	new_pos_right = 570; 
+	new_middle = 320;
+	width = 500;
+
+	left_ang_st = 90;
+	right_ang_st = 90;
+}
+
 /*void LineDetector::quick_sort(vector<Punkt> points)
 {
 

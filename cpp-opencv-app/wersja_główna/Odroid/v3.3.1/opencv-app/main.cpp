@@ -106,10 +106,11 @@ int main()
 
 	//GPIO
 	wiringPiSetup();
-	pinMode(23, OUTPUT);
+	pinMode(23, INPUT);
 	pinMode(4, INPUT);
-	digitalWrite(23, LOW);
 
+	bool GPIO_input[2];
+	
 	//getchar();
 
     //GUI
@@ -231,14 +232,18 @@ int main()
 
 		std::cout << "PIN 23: " << digitalRead(4) << std::endl;
 
-		if(digitalRead(4) == HIGH)
+		GPIO_input[0] = digitalRead(4);
+		GPIO_input[1] = digitalRead(23);
+		
+		if(GPIO_input[0])
 		{
-			digitalWrite(23, HIGH);
+			lineDetector.restart_lane_detection();
 		}
-		else
-		{	
-			digitalWrite(23, LOW);
-		}		
+		
+		if(GPIO_input[1])
+		{
+			lineDetector.change_lane();
+		}	
 
 		if(show_mask)
 		{
