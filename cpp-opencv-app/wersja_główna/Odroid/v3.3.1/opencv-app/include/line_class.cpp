@@ -553,6 +553,21 @@ void LineDetector::restart_lane_detection()
 	right_ang_st = 90;
 }
 
+//
+void LineDetector::change_lane()
+{
+	if(actual_lane)
+	{
+		last_top_middle_point.coordinates.x -= width;
+		last_bottom_middle_point.coordinates.x -= width;
+	}
+	else
+	{
+		last_top_middle_point.coordinates.x += width;
+		last_bottom_middle_point.coordinates.x += width;
+	}
+}
+
 /*void LineDetector::quick_sort(vector<Punkt> points)
 {
 

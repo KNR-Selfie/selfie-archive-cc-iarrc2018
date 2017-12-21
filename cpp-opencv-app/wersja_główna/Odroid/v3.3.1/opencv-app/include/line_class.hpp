@@ -51,6 +51,9 @@ class LineDetector
 
 	int left_ang_st;
 	int right_ang_st;
+	
+	// 0 - left lane, 1 - right lane
+	bool actual_lane = 1;
 
 public:
 	LineDetector()
@@ -98,6 +101,10 @@ public:
 	//
 	void send_data_to_main(int &detected_middle_pos_near, int &left_lane_angle_st, int &right_lane_angle_st, char &flags_to_UART);
 	void restart_lane_detection();
+	
+	//
+	void change_lane();
+	
 	//Sortowanie wektorow:
 	//void quick_sort (vector<Punkt> points);
 };

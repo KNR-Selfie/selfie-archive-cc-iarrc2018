@@ -109,7 +109,8 @@ int main()
 	pinMode(23, INPUT);
 	pinMode(4, INPUT);
 
-	bool GPIO_input[2];
+	bool GPIO_input[2] = {0,0};
+	bool GPIO_handled[2] = {0,0};
 	
 	//getchar();
 
@@ -230,20 +231,38 @@ int main()
 
 		uart_1.send_data();
 
-		std::cout << "PIN 23: " << digitalRead(4) << std::endl;
-
-		GPIO_input[0] = digitalRead(4);
-		GPIO_input[1] = digitalRead(23);
+		//GPIO
+		GPIO_input[0] = digitalRead(4);	
+		GPIO_input[1] = digitalRead(6);
+		
+		std::cout << "PIN 18: " << GPIO_input[0] << std::endl;
+		std::cout << "PIN 26: " << GPIO_input[1] << std::endl;
 		
 		if(GPIO_input[0])
 		{
-			lineDetector.restart_lane_detection();
+			if(!GPIO_handled[0])
+			{
+				lineDetector.restart_lane_detection();
+				GPIO_handled[0] = true;
+			}
+		}
+		else
+		{
+			GPIO_handled[0] = false;
 		}
 		
-		if(GPIO_input[1])
+		if(GPIO_input[1] & !GPIO_handled[1])
 		{
-			lineDetector.change_lane();
+			if(!GPIO_handled[1])
+			{
+				lineDetector.change_lane();
+				GPIO_handled[1] = true;
+			}
 		}	
+		else
+		{
+			GPIO_handled[1] = false;
+		}
 
 		if(show_mask)
 		{
