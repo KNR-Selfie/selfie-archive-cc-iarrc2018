@@ -28,13 +28,16 @@ extern osThreadId GyroTaskHandle;
 
 #define CAL_CYCLES 16000
 
+#define GYRO_SCALING 65.5f
+#define ACC_SCALING 4096
+
 uint8_t GyroTxBuffer[32];
 uint8_t GyroRxBuffer[32];
 
 uint8_t gyro_on=0;
 uint8_t calibration_mode=0;
-int cal_data[3] = { 0, 0, 0 };
-int16_t GYRO_ZRO[3]={0, 0, 0};
+int32_t cal_data[3] = { 0, 0, 0 };
+float GYRO_ZRO[3]={0, 0, 0};
 
 int16_t gyro_raw[3];
 int16_t acc_raw[3];
@@ -42,9 +45,10 @@ int16_t temp_raw;
 float g_rates[3];
 float temperature;
 float rates[3];
+float rates_raw[3];
 
-float CumulativeYaw;
-float YawRate;
+float CumulativeYaw = 0.f;
+float YawRate = 0.f;
 
 uint32_t gyroLooptime = 8000; // Gyro Loop Rate in Hz.
 
@@ -78,8 +82,9 @@ void StartGyroTask(void const * argument){
                     gyro_calfunction ();
                     gyro_zeroing ();
                     gyro_filtering ();
-                    CumulativeYaw+=rates[2]*125e-6;
+
                     YawRate = rates[2];
+                    CumulativeYaw+=YawRate/(float)gyroLooptime;
 			static uint16_t cnt00 = 0;
 			if (cnt00++ > 3999) {
 				HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
@@ -235,15 +240,17 @@ void gyro_data_conv(uint8_t * data)  {
 	acc_raw[0] = data[0] << 8 | data[1];
 	acc_raw[1] = data[2] << 8 | data[3];
 	acc_raw[2] = data[4] << 8 | data[5];
-	temp_raw = data[6] << 8 | data[7];
-    gyro_raw[0] = data[10] << 8 | data[11];
-    gyro_raw[1] = -(data[8] << 8 | data[9]);
+
+    gyro_raw[0] = data[8] << 8 | data[9];
+    gyro_raw[1] = data[10] << 8 | data[11];
     gyro_raw[2] = data[12] << 8 | data[13];
-}
-void gyro_filtering(void) {
+
+	temp_raw = data[6] << 8 | data[7];
+
+	temperature = (float)temp_raw/340.f + 36.53f;
     for (int axis = 0; axis < 3; axis++) {
-        rates[axis] = filter_apply(&gyroLPF[axis], (float) gyro_raw[axis])
-                / 65.5f;
+        rates_raw[axis] = gyro_raw[axis] / GYRO_SCALING;
+        g_rates[axis] = acc_raw[axis] / ACC_SCALING;
     }
 }
 void gyro_calfunction(void) {
@@ -254,7 +261,7 @@ void gyro_calfunction(void) {
         if (cal_inc++ >= CAL_CYCLES) {
             cal_inc = 0;
             for (int axis = 0; axis < 3; axis++) {
-                GYRO_ZRO[axis] = cal_data[axis] / CAL_CYCLES;
+                GYRO_ZRO[axis] = (float)(cal_data[axis] / CAL_CYCLES)/GYRO_SCALING;
                 cal_data[axis] = 0;
             }
             calibration_mode = 0;
@@ -263,5 +270,10 @@ void gyro_calfunction(void) {
 }
 void gyro_zeroing(void) {
     for (int axis = 0; axis < 3; axis++)
-        gyro_raw[axis] -= GYRO_ZRO[axis];
+        rates_raw[axis] -= GYRO_ZRO[axis];
+}
+void gyro_filtering(void) {
+    for (int axis = 0; axis < 3; axis++) {
+        rates[axis] = filter_apply(&gyroLPF[axis], rates_raw[axis]);
+    }
 }

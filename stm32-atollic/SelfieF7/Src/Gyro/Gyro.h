@@ -14,4 +14,6 @@ extern void mpuInit2(void);
 
 extern float CumulativeYaw;
 extern float YawRate;
+
+extern float temperature;
 #endif /* APPLICATION_USER_GYRO_GYRO_H_ */

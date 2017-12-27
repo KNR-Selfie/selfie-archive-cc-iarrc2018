@@ -190,8 +190,13 @@ int8_t MAIN_USB_Receive(uint8_t* Buf, uint32_t *Len) {
 		machine_bootloader();
 	else if (Buf[0] == 'a') {
 		len = sprintf((char*) usbTxBuffer,
-				"YawRate\t\t= %fdeg/s\r\nCumulativeYaw\t= %fdeg\r\n\r\n", YawRate,
-				CumulativeYaw);
+				"YawRate\t\t= %.5f deg/s\r\nCumulativeYaw\t= %.5f deg\r\n\r\n",
+				YawRate, CumulativeYaw);
+		CDC_Transmit_FS(usbTxBuffer, len);
+	} else if (Buf[0] == 'b') {
+		len = sprintf((char*) usbTxBuffer,
+				"GyroTemp\t= %.2f degC\r\n\r\n",
+				temperature);
 		CDC_Transmit_FS(usbTxBuffer, len);
 	} else if (Buf[0] == 'R')
 		NVIC_SystemReset();
