@@ -12,31 +12,34 @@
 #include "tim.h"
 #include "gpio.h"
 
-#define ERR_SUM_MAX		1000000
-#define ERR_SUM_MAX_SERVO 1500
+#define ERR_SUM_MAX_ENGINE 1000000
+#define ERR_SUM_MAX_SERVOPOS 1500
+#define ERR_SUM_MAX_SERVOANG 1500
 
-#define r_kp 6.32379796804752
-#define r_ki 42.982508097399*0.005
-#define r_kd 0//-0.0329815060725376
-
-#define r_kpServo 2.5
-float KPG = 2;
-#define r_kiServo 0
-#define r_kdServo 0//-0.0329815060725376
-
-//zmienne do podgladania
-volatile uint16_t pulse_count; // Licznik impulsow
-volatile uint16_t pulse_count2; // Licznik impulsow
+#define kpEng 6.32379796804752
+#define kiEng 42.982508097399*0.005
+#define kdEng 0
+#define kpServoPos 2.5
+#define kiServoPos 0
+#define kdServoPos 0
+#define kpServoAng 10
+#define kiServoAng 0
+#define kdServoAng 0
 
 
-float error = 0;
-float wyjscieRegulatora = 0;
+///////////////////////////////
+//podgladanie bledu regulatorow
+float errorE = 0;
+float wyjscieRegulatoraE = 0;
 float actualSpeed = 0;
-float poczatek = 0;
-float koniec = 0;
 
 float errorS = 0;
+float errorSP = 0;
+float errorSA = 0;
 float wyjscieRegulatoraS = 0;
+float wyjscieRegulatoraSP = 0;
+float wyjscieRegulatoraSA = 0;
+//////////////////////////////
 
 struct pid_params
 {
@@ -49,64 +52,53 @@ struct pid_params
 };
 
 static struct pid_params pid_paramsEngine;
-static struct pid_params pid_paramsServo;
+static struct pid_params pid_paramsServoPos;
+static struct pid_params pid_paramsServoAng;
 
 
-void pid_initEngine(float kp, float ki, float kd);
-void pid_initServo(float kp, float ki, float kd);
+void pid_paramsinit(struct pid_params, float kp, float ki, float kd);
 float pid_calculateEngine(float set_val, float read_val);
-float pid_calculateServo(float set_val, float read_val);
+float pid_calculateServo(float set_pos, float set_angle, float read_pos, float read_angle);
 
 
-//volatile float wyjscie[500];
-//int i;
 void StartEncTask(void const * argument) {
-	//osDelay(5000);
-	pid_initEngine(r_kp, r_ki, r_kd);
-	pid_initServo(r_kpServo, r_kiServo, r_kdServo);
+	pid_paramsinit(pid_paramsEngine, kpEng, kiEng, kdEng);
+	pid_paramsinit(pid_paramsServoPos, kpServoPos, kiServoPos, kdServoPos);
+	pid_paramsinit(pid_paramsServoAng, kpServoAng, kiServoAng, kdServoAng);
 
-//	for(i = 0; i<500; i++) wyjscie[i] = 0;
-//	i = 0;
+	float poczatek_kolo1 = 0;
+	float poczatek_kolo2 = 0;
+	float koniec_kolo1 = 0;
+	float koniec_kolo2 = 0;
+
 	while (1) {
-		//TIM2->CCR4 = 1700;
 		TIM3->CNT = 0;
-	  	poczatek = TIM3->CNT;
+	  	poczatek_kolo1 = TIM3->CNT;
+	  	poczatek_kolo2 = TIM3->CNT;
 	  	osDelay(5);
-	  	  koniec = TIM3->CNT;
-		if(koniec > 60000) {
-				koniec -= 65535;
-
-			}
-		actualSpeed = (koniec - poczatek)/0.005;
-//		if(i<500)
-//		wyjscie[i++] = actualSpeed;
-
-		pulse_count = TIM3->CNT;
-		pulse_count2 = TIM5->CNT;
+	  	  koniec_kolo1 = TIM3->CNT;
+	  	  koniec_kolo2 = TIM3->CNT;
+			if(koniec_kolo1 > 60000)
+					koniec_kolo1 -= 65535;
+			if(koniec_kolo2 > 60000)
+					koniec_kolo2 -= 65535;
+		actualSpeed = ((koniec_kolo1 - poczatek_kolo1)/0.005 + (koniec_kolo2 - poczatek_kolo2)/0.005) * 0.5;
 	}
 }
 
 
-void pid_initEngine(float kp, float ki, float kd)
+void pid_paramsinit(struct pid_params params, float kp, float ki, float kd)
 {
-	pid_paramsEngine.kp = kp;
-	pid_paramsEngine.ki = ki;
-	pid_paramsEngine.kd = kd;
-	pid_paramsEngine.err = 0;
-	pid_paramsEngine.err_sum = 0;
-	pid_paramsEngine.err_last = 0;
+	params.kp = kp;
+	params.ki = ki;
+	params.kd = kd;
+	params.err = 0;
+	params.err_sum = 0;
+	params.err_last = 0;
 }
 
-void pid_initServo(float kp, float ki, float kd)
-{
-	pid_paramsServo.kp = kp;
-	pid_paramsServo.ki = ki;
-	pid_paramsServo.kd = kd;
-	pid_paramsServo.err = 0;
-	pid_paramsServo.err_sum = 0;
-	pid_paramsServo.err_last = 0;
-}
 
+//zamiana na static wewnatrz pid_calculateengine
 uint8_t kierunek = 0; //0 stoi, 1 przod, 2 tyl
 float pid_calculateEngine(float set_val, float read_val)
 {
@@ -115,10 +107,10 @@ float pid_calculateEngine(float set_val, float read_val)
 	pid_paramsEngine.err = set_val - read_val;
 	pid_paramsEngine.err_sum += pid_paramsEngine.err;
 
-	if (pid_paramsEngine.err_sum > ERR_SUM_MAX) {
-		pid_paramsEngine.err_sum = ERR_SUM_MAX;
-	} else if (pid_paramsEngine.err_sum < -ERR_SUM_MAX) {
-		pid_paramsEngine.err_sum = -ERR_SUM_MAX;
+	if (pid_paramsEngine.err_sum > ERR_SUM_MAX_ENGINE) {
+		pid_paramsEngine.err_sum = ERR_SUM_MAX_ENGINE;
+	} else if (pid_paramsEngine.err_sum < -ERR_SUM_MAX_ENGINE) {
+		pid_paramsEngine.err_sum = -ERR_SUM_MAX_ENGINE;
 	}
 
 	err_d = pid_paramsEngine.err_last - pid_paramsEngine.err;
@@ -143,35 +135,63 @@ float pid_calculateEngine(float set_val, float read_val)
 	else kierunek =0;
 
 
-	error = pid_paramsEngine.err;
-	wyjscieRegulatora = u;
+	errorE = pid_paramsEngine.err;
+	wyjscieRegulatoraE = u;
 	return u;
 }
 
 
-float pid_calculateServo(float set_val, float read_val)
+
+float pid_calculateServo(float set_pos, float set_angle, float read_pos, float read_angle)
 {
-	float err_d, u;
+	float err_d, u, uPos, uAng;
 
-	pid_paramsServo.err = set_val - read_val;
-	pid_paramsServo.err_sum += pid_paramsServo.err;
+	//////////////regulator od pozycji
+	pid_paramsServoPos.err = set_pos - read_pos;
+	pid_paramsServoPos.err_sum += pid_paramsServoPos.err;
 
-	if (pid_paramsServo.err_sum > ERR_SUM_MAX) {
-		pid_paramsServo.err_sum = ERR_SUM_MAX;
-	} else if (pid_paramsServo.err_sum < -ERR_SUM_MAX) {
-		pid_paramsServo.err_sum = -ERR_SUM_MAX;
+	if (pid_paramsServoPos.err_sum > ERR_SUM_MAX_SERVOPOS) {
+		pid_paramsServoPos.err_sum = ERR_SUM_MAX_SERVOPOS;
+	} else if (pid_paramsServoPos.err_sum < -ERR_SUM_MAX_SERVOPOS) {
+		pid_paramsServoPos.err_sum = -ERR_SUM_MAX_SERVOPOS;
 	}
 
-	err_d = pid_paramsServo.err_last - pid_paramsServo.err;
-	u = (pid_paramsServo.kp * pid_paramsServo.err + pid_paramsServo.ki * pid_paramsServo.err_sum
-			+ pid_paramsServo.kd * err_d);
+	err_d = pid_paramsServoPos.err_last - pid_paramsServoPos.err;
+	uPos = (pid_paramsServoPos.kp * pid_paramsServoPos.err + pid_paramsServoPos.ki * pid_paramsServoPos.err_sum
+			+ pid_paramsServoPos.kd * err_d);
 
-	u = 1400 + u;
-	if(u > 1700) u = 1700;
-	if(u< 1100) u = 1100;
+	uPos = 1400 + uPos;
+	if(uPos > 1700) uPos = 1700;
+	if(uPos < 1100) uPos = 1100;
+
+	///////////////regulator od kata
+	pid_paramsServoAng.err = set_angle - read_angle;
+	pid_paramsServoAng.err_sum += pid_paramsServoAng.err;
+
+	if (pid_paramsServoAng.err_sum > ERR_SUM_MAX_SERVOANG) {
+		pid_paramsServoAng.err_sum = ERR_SUM_MAX_SERVOANG;
+	} else if (pid_paramsServoAng.err_sum < -ERR_SUM_MAX_SERVOANG) {
+		pid_paramsServoAng.err_sum = -ERR_SUM_MAX_SERVOANG;
+	}
+
+	err_d = pid_paramsServoAng.err_last - pid_paramsServoAng.err;
+	uAng = (pid_paramsServoAng.kp * pid_paramsServoAng.err + pid_paramsServoAng.ki * pid_paramsServoAng.err_sum
+			+ pid_paramsServoAng.kd * err_d);
+
+	uAng = 1400 - uAng;
+	if(uAng > 1700) uPos = 1700;
+	if(uAng < 1100) uPos = 1100;
 
 
-	errorS = pid_paramsServo.err;
+	/////////////waga dwoch wartosci z pida
+	u = (uPos+uAng)*0.5;
+
+	////////dane do debuggowania
+	errorS = pid_paramsServoPos.err + pid_paramsServoAng.err;
+	errorSP = pid_paramsServoPos.err;
+	errorSA = pid_paramsServoAng.err;
+	wyjscieRegulatoraSP = uPos;
+	wyjscieRegulatoraSA = uAng;
 	wyjscieRegulatoraS = u;
 	return u;
 }

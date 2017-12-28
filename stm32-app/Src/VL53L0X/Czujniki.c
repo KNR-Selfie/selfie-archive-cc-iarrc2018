@@ -12,7 +12,8 @@
 #include "gpio.h"
 #include "VL53L0X.h"
 
-extern uint8_t address;
+
+
 uint16_t range[4];
 uint8_t adresy[4] = {102, 104, 106, 108};
 

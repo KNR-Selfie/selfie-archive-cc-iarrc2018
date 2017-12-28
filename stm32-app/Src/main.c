@@ -64,7 +64,9 @@
 #include "Lighting.h"
 #include "Gyro.h"
 #include "Enc.h"
-
+#include "BT.h"
+#include "Czujniki.h"
+#include "MotorControl.h"
 
 #include "usbd_cdc_if.h"
 #include "usbd_cdc.h"
@@ -74,31 +76,47 @@
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-extern float actualSpeed;
-uint8_t synchro = 0;
+////////testy BT
+uint8_t choice = 0;
+int tmp = 0;
+
+uint16_t dane[4];
+uint16_t data[20]; // Tablica przechowujaca wysylana wiadomosc.
+int size;
+uint8_t tekst[20];
+
+int nr = 0;
+uint8_t value[6];
+int speed = 0;
+float angle;
+int flag = 0;
+int flag2 = 0;
+int sendflag = 0;
+
+float r_kpPredkosc = 16.91;
+float pom = 0;
+uint8_t table[4];
+char tab[6];
+///////////KONIEC TESTY BT
+
+///////////semaphore potrzebny aby go zwolnic w UARCie
+extern osSemaphoreId DriveControlSemaphoreHandle;
 
 
-xSemaphoreHandle DriveControlSemaphore = NULL;
-xSemaphoreHandle EngineSemaphore = NULL;
-//deklaracja zmiennych uÂżywanych do komunikacji z Jetsonem
+//deklaracja zmiennych uÂżywanych do komunikacji z Odroidem
 uint8_t j_syncByte;
 uint8_t j_buffer[11];
 uint16_t j_jetsonData[8];
 uint8_t j_jetsonFlags[2];
+uint8_t synchroniseUARTOdroid = 0;
 
 //deklaracja zmiennych uzywanych do komunikacji z Aparaturka
 uint8_t a_syncbyte;
 uint8_t a_buffer[24];
 uint16_t a_channels[16];
+uint8_t synchroniseUARTAparatura = 0;
 
-//inicjalizacja zmiennych globalnych - wypelnien
-float duty_engine = 0;
-uint16_t duty_servo;
-float set_spd = 0;
-
-float prescalerOdchylka = 0.1;
-float prescalerAngle = 7;
-
+////usb/gyro?
 uint8_t sem_init = 0;
 xSemaphoreHandle Tim7Semaphore = NULL;
 /* USER CODE END PV */
@@ -109,14 +127,7 @@ void MX_FREERTOS_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-extern float pid_calculateEngine(float set_val, float read_val);
-extern float pid_calculateServo(float set_val, float read_val);
-
 void blinkThread(void const * argument);
-void driveControl(void const * argument);
-void servoControl(void const * argument);
-void engineControl(void const * argument);
-
 USBD_CDC_HandleTypeDef *hcdc;
 uint8_t usbTxBuffer[256];
 uint32_t len;
@@ -163,17 +174,16 @@ int main(void)
   MX_TIM3_Init();
 
   /* USER CODE BEGIN 2 */
-  //uruchomienie DMA na uarcie oraz PWM
-
-    vSemaphoreCreateBinary( DriveControlSemaphore );
-    osSemaphoreWait (DriveControlSemaphore, osWaitForever);
-
     HAL_UART_Receive_DMA(&huart4, &j_syncByte, 1);
     HAL_UART_Receive_DMA(&huart1, &a_syncbyte, 1);
+    HAL_UART_Receive_DMA(&huart6, &choice, 1);
     HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
     HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
-    HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
+	HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
+	HAL_TIM_Encoder_Start(&htim5, TIM_CHANNEL_ALL);
 
+
+	//gyro albo usb?
 //    vSemaphoreCreateBinary( Tim7Semaphore );
 //    if(osSemaphoreWait (Tim7Semaphore, osWaitForever) == osOK)
 //    	sem_init=1;
@@ -290,11 +300,9 @@ void SystemClock_Config(void)
 void blinkThread(void const *argument)
 {
 
-	HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
-	HAL_TIM_Encoder_Start(&htim5, TIM_CHANNEL_ALL);
     while(1)
     {
-
+///testy usb
         len = sprintf((char*)usbTxBuffer, "TIM3->CNT = %lu\r\n\r\n", TIM3->CNT);
         if(CDC_Transmit_FS(usbTxBuffer, len)==USBD_OK)
         	osDelay(500);
@@ -304,168 +312,28 @@ void blinkThread(void const *argument)
     osThreadTerminate(NULL);
 }
 
-void driveControl(void const *argument)
-{
-    uint8_t transition = 0; //zbocze do hamowania
-    while (1)
-        {
-            osSemaphoreWait (DriveControlSemaphore, osWaitForever);
-            if (a_channels[5] == 144) //gĂłrna pozycja przeÂłacznika, sterowanie z aparatury
-                {
-                    HAL_GPIO_WritePin (GPIOB, GPIO_PIN_7, GPIO_PIN_SET); //jeĹ“li sterujemy z aparatury Ĺ“wieci siĂŞ niebieska
-//                    HAL_GPIO_WritePin (GPIOB, GPIO_PIN_6, GPIO_PIN_RESET); //czerwona siĂŞ nie Ĺ“wieci
-                    duty_engine = (300000 * (a_channels[1] - 1027) / (1680 - 368));
-                    duty_servo = (1400
-                            + 800 * (a_channels[3] - 1000) / (1921 - 80));
-                    TIM2->CCR3 = duty_servo;
-                }
-            else if (a_channels[5] == 1024) //orodkowa pozycja prze31cznika, jazda autonomiczna
-                {
-                    HAL_TIM_Base_Start_IT (&htim10); // timer od sprawdzania komunikacji
-                    HAL_GPIO_WritePin (GPIOB, GPIO_PIN_7, GPIO_PIN_RESET); //a niebieska nie
-                    //jezeli jest komunikacja na linii Jetson <-> STM
-                    if (j_syncByte == 254 || j_syncByte == 253 || j_syncByte == 255)
-                        {
-                            //gdy brak wykrytej linii stop lub zbocze opadajace -> nadaj kierunek jazdy -> jedz
-                            if (!(j_jetsonFlags[0] & 0x80) || !(transition))
-                                {
-//                                    if (j_jetsonData[0] < 1000)
-//                                        {
-//                                            duty_servo = 1400
-//                                                    + j_jetsonData[0]
-//                                                            * prescalerOdchylka
-//                                                    + ((j_jetsonData[1]+j_jetsonData[2])/2 - 90)
-//                                                            * prescalerAngle;
-//                                            if (duty_servo > 1700)
-//                                                duty_servo = 1700;
-//                                        }
-//                                    else if (j_jetsonData[0] > 1000)
-//                                        {
-//                                            duty_servo = 1400
-//                                                    - j_jetsonData[0]
-//                                                            * prescalerOdchylka
-//                                                    - ((j_jetsonData[1]+j_jetsonData[2]) - 90)
-//                                                            * prescalerAngle;
-//                                            if (duty_servo < 1100)
-//                                                duty_servo = 1100;
-//                                        }
-//                                    duty_engine = (uint16_t) 30000;
-//                                    transition = 1;
-                            	      duty_engine = (uint16_t) 30000;
-                                }
-//                            //gdy jest wykryta linia stop, gdy odleglosc od linii jest niemala i gdy zbocze jest narastajace -> hamuj
-//                            else if ((j_jetsonData[3] > 50)
-//                                    && (j_jetsonFlags[0] & 0x80)
-//                                    && (transition))
-//                                {
-//                                    duty_engine = 0;
-//                                }
-//                            //gdy jest wykryta linia stop, gdy odleglosc od linii jest mala i gdy zbocze jest narastajace -> zatrzymaj sie
-//                            else if ((j_jetsonData[3] > 0)
-//                                    && (j_jetsonData[3] <= 50)
-//                                    && (j_jetsonFlags[0] & 0x80)
-//                                    && (transition))
-//                                {
-//                                    duty_engine = 0;
-//                                    osDelay (2000);
-//                                    transition = 0;
-//                                }
-                        }
-                    else if (j_syncByte == 200) //je?eli nie istnieje Jetson <-> STM, wylacz naped (wartosc j_syncByte = 200 jest ustawiana przez TIMER10)
-                        {
-                            TIM2->CCR4 = 1460;
-                        }
-
-                    TIM2->CCR3 = duty_servo;
-                }
-            else if (a_channels[5] == 1904) //dolna pozycja przeÂłacznika, tryb pĂłÂłautonomiczny
-                {
-                    HAL_GPIO_WritePin (GPIOB, GPIO_PIN_7, GPIO_PIN_SET); //i niebieska teÂż
-                    duty_engine = (300000 * (a_channels[1] - 1027) / (1680 - 368));
-                    if (j_jetsonData[0] == 0)
-                        {
-                            duty_servo = 1400
-                                    + j_jetsonData[1] * prescalerOdchylka
-                                    + (j_jetsonData[2] - 90) * prescalerAngle;
-                            if (duty_servo > 1700)
-                                duty_servo = 1700;
-                        }
-                    else if (j_jetsonData[0] == 1)
-                        {
-                            duty_servo = 1400
-                                    - j_jetsonData[1] * prescalerOdchylka
-                                    - (90 - j_jetsonData[2]) * prescalerAngle;
-                            if (duty_servo < 1100)
-                                duty_servo = 1100;
-                        }
-                    TIM2->CCR3 = duty_servo;
-                }
-            set_spd = duty_engine;
-            osSemaphoreRelease(EngineSemaphore);
-        }
-    osThreadTerminate (NULL);
-}
-
-void servoControl(void const *argument)
-{
-    duty_servo = 1400;
-    while(1)
-    {
-osDelay(5);
-
-duty_servo = pid_calculateServo(1000, j_jetsonData[0]);
-    }
-    osThreadTerminate(NULL);
-}
-
-
-
-void engineControl(void const *argument)
-{
-	vSemaphoreCreateBinary(EngineSemaphore);
-	osSemaphoreWait (EngineSemaphore, osWaitForever);
-
-    //uruchomienie ESC
-    TIM2->CCR4 = 2000;
-    osDelay(1000);
-    TIM2->CCR4 = 1500;
-    osDelay(2000);
-
-    //zabezpieczenie przed jazdÂą do tyÂłu
-    TIM2->CCR4 = 1520;
-    osDelay(50);
-    while(1)
-    {
-
-    TIM2->CCR4 = pid_calculateEngine(set_spd, actualSpeed);
-
-  	  osDelay(5);
-    }
-    osThreadTerminate(NULL);
-}
-
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 
-    if (huart->Instance == UART4) //jetson
+    if (huart->Instance == UART4) //odroid
     {
+
         TIM10->CNT = 0;
-        if(j_syncByte==0xFF && synchro == 0)
+        if(j_syncByte==0xFF && synchroniseUARTOdroid == 0)
         {
-            synchro = 1;
+            synchroniseUARTOdroid = 1;
             HAL_UART_Receive_DMA(&huart4, j_buffer, 11);
         }
-        else if(j_syncByte != 0xFF && synchro == 0)
+        else if(j_syncByte != 0xFF && synchroniseUARTOdroid == 0)
             HAL_UART_Receive_DMA(&huart4, &j_syncByte, 1);
 
-        else if(synchro == 1)
+        else if(synchroniseUARTOdroid == 1)
         {
 
-            synchro =2;
-            osSemaphoreRelease(DriveControlSemaphore);
+            synchroniseUARTOdroid =2;
             HAL_UART_Receive_DMA(&huart4, j_jetsonFlags, 2);
         }
-        else if(synchro == 2)
+        else if(synchroniseUARTOdroid == 2)
         {
         	if(j_jetsonFlags[1] == 0xFE && ((j_jetsonFlags[0] & 0x0003) == 0)){
                 //przet³umaczenie 11x8 na u¿yteczne 8x11
@@ -478,20 +346,23 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
                 j_jetsonData[6]  = (int16_t) ((j_buffer[8]>>2 |j_buffer[9]<<6)                          & 0x07FF);
                 j_jetsonData[7]  = (int16_t) ((j_buffer[9]>>5 |j_buffer[10]<<3)                         & 0x07FF);
         	}
-        	synchro = 0;
+        	synchroniseUARTOdroid = 0;
             HAL_UART_Receive_DMA(&huart4, &j_syncByte, 1);
+            osSemaphoreRelease(DriveControlSemaphoreHandle);
         }
     }
 
     if(huart->Instance == USART1) //aparatura
         {
 
-            if(a_syncbyte==0x0F)
+            if(a_syncbyte==0x0F && synchroniseUARTAparatura == 0)
             {
-                a_syncbyte=0x56;
+                synchroniseUARTAparatura = 1;
                 HAL_UART_Receive_DMA(&huart1,a_buffer,24);
             }
-            else if(a_buffer[22]==0x0)
+            else if(a_syncbyte != 0x0F && synchroniseUARTAparatura == 0)
+                HAL_UART_Receive_DMA(&huart4, &j_syncByte, 1);
+            else if(a_buffer[22]==0x00 && synchroniseUARTAparatura == 1)
             {
                 //przet³umaczenie na u¿ytecze wartoœci 11
                 a_channels[0]  = (int16_t) ((a_buffer[0]    |a_buffer[1]<<8)                          & 0x07FF);
@@ -511,15 +382,107 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
                 a_channels[14] = (int16_t) ((a_buffer[19]>>2|a_buffer[20]<<6)                         & 0x07FF);
                 a_channels[15] = (int16_t) ((a_buffer[20]>>5|a_buffer[21]<<3)                         & 0x07FF);
 
-                osSemaphoreRelease(DriveControlSemaphore);
+                synchroniseUARTAparatura = 0;
                 HAL_UART_Receive_DMA(&huart1, &a_syncbyte, 1);
+                osSemaphoreRelease(DriveControlSemaphoreHandle);
             }
             else
             {
+                synchroniseUARTAparatura = 0;
                 HAL_UART_Receive_DMA(&huart1, &a_syncbyte, 1);
             }
 
         }
+
+    if(huart->Instance == USART6){ ////////////////Bluetooth HC-05
+        size = sprintf(tekst, "Wybierz co chcesz zrobic: a - nast b - dane \n\r");
+        HAL_UART_Transmit_DMA(&huart6, tekst, size);
+
+
+//    	if (choice == 122) {
+//    	        size = sprintf(tekst,
+//    	                "Wybierz co chcesz zrobic: a - nast b - dane \n\r");
+//    	        HAL_UART_Transmit_IT(&huart6, tekst, size);
+//    	        choice = 0;
+//    	        sendflag = 0;
+//    	        HAL_UART_Receive_IT(&huart6, &tmp, 1);
+//
+//    	    } else if (tmp == 97) {
+//    	        tmp = 0;
+//    	        size = sprintf(tekst,
+//    	                "Ustaw  a-r_kpPredkosc, b-ki , c-r_kpPredkosc2, d-ki2, e - speed\n\r");
+//    	        flag = 1;
+//    	        HAL_UART_Transmit_IT(&huart6, tekst, size);
+//    	        HAL_UART_Receive_IT(&huart6, &nr, 1);
+//    	    } else if (tmp == 98) { //podmenu wysylania
+//    	        sendflag = 1; // flaga pomocnicza - uruchamia wysyłanie danych z STM
+//    	        flag = 0;
+//    	        tmp = 0;
+//    	        HAL_UART_Receive_IT(&huart6, &choice, 1);
+//    	    }
+//
+//    	    else if (nr > 10 && flag == 1) {
+//    	        flag = 0;
+//    	        size = sprintf(tekst, "wartosc:\n\r ");
+//    	        HAL_UART_Transmit_IT(&huart6, tekst, size);
+//    	        HAL_UART_Receive_IT(&huart6, &value, 6);
+//    	    }
+//
+//    	    else if (value[0] != 0) {
+//    	        switch (nr) {
+//    	        case 97:
+//    	            for (int i = 0; i < 6; i++) {
+//    	                tab[i] = (char) value[i];
+//    	            }
+//    	            r_kpPredkosc = atof(tab);
+//    	            value[0] = 0;
+//    	            break;
+//
+//    	        case 98:
+//    	            for (int i = 0; i < 6; i++) {
+//    	                tab[i] = (char) value[i];
+//    	            }
+//    	            angle = atof(tab);
+//    	            value[0] = 0;
+//    	            //przypisz wartosc nastawy
+//    	            break;
+//    	        case 99:
+//    	            for (int i = 0; i < 6; i++) {
+//    	                tab[i] = (char) value[i];
+//    	            }
+//    	            angle = atof(tab);
+//    	            value[0] = 0;
+//    	            //przypisz wartosc nastawy
+//    	            break;
+//    	        case 100:
+//    	            for (int i = 0; i < 6; i++) {
+//    	                tab[i] = (char) value[i];
+//    	            }
+//    	            angle = atof(tab);
+//    	            value[0] = 0;
+//    	            //przypisz wartosc nastawy
+//    	            break;
+//    	        case 101:
+//    	            for (int i = 0; i < 6; i++) {
+//    	                tab[i] = (char) value[i];
+//    	            }
+//
+//    	            angle = atof(tab);
+//    	            speed = (int) angle;
+//    	            value[0] = 0;
+//    	            //przypisz wartosc nastawy
+//    	            break;
+//
+//    	        default:
+//    	            break;
+//
+//    	        }
+//    	        HAL_UART_Receive_IT(&huart6, &choice, 1);
+//    	    }
+
+    	    HAL_UART_Receive_DMA(&huart6, &choice, 1);
+    }
+
 
 }
 int8_t MAIN_USB_Receive(uint8_t* Buf, uint32_t *Len) {
