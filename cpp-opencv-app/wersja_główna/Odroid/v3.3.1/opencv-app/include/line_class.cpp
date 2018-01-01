@@ -28,8 +28,6 @@ void LineDetector::applyBlur(cv::Mat &input, cv::Mat &output)
 
 void LineDetector::applyBirdEye(cv::Mat &input, cv::Mat &output)
 {
-	std::cout << "1" << std::endl;
-
 	resize(input, input, cv::Size(640, 380));
 
 	double focalLength, dist, alpha; 
@@ -41,8 +39,6 @@ void LineDetector::applyBirdEye(cv::Mat &input, cv::Mat &output)
 
 	cv::Size image_size = input.size();
 	double w = (double)image_size.width, h = (double)image_size.height;
-
-	std::cout << "1" << std::endl;
 
 	// Projecion matrix 2D -> 3D
 	cv::Mat A1 = (cv::Mat_<float>(4, 3)<< 
@@ -239,7 +235,7 @@ void LineDetector::sort_lines()
 	TR_points.clear();
 	BL_points.clear();
 	BR_points.clear();
-		
+
 	int Ax = last_bottom_middle_point.coordinates.x;
 	int Ay = last_bottom_middle_point.coordinates.y; 
 
@@ -289,10 +285,10 @@ void LineDetector::sort_lines()
 
         else if(alfa < 0 && C.y > BORDER)
 		{
-			float angle_1 = (atan(all_points[i].slope)/CV_PI) * 180;
-			float angle_2 = (atan(new_slope_right)/CV_PI) * 180;
+			//float angle_1 = (atan(all_points[i].slope)/CV_PI) * 180;
+			//float angle_2 = (atan(new_slope_right)/CV_PI) * 180;
 
-			if(abs(angle_1 - angle_2) < 50)
+			//if(abs(angle_1 - angle_2) < 50)
            		BR_points.push_back(SPoint);
         }
 
@@ -338,9 +334,9 @@ void LineDetector::sort_lines()
 
 	Horizontal_lines = false;
 
-	std::cout << "TL: " << TL_sector << std::endl;
-	std::cout << "TR: " << TR_sector << std::endl;
-	std::cout << "BL: " << BL_sector << std::endl;
+	std::cout << "TL: " << TL_sector << "  ";
+	std::cout << "TR: " << TR_sector << "  ";
+	std::cout << "BL: " << BL_sector << "  ";
 	std::cout << "BR: " << BR_sector << std::endl;
 	std::cout << "HR: " << Horizontal_lines << std::endl;
 
@@ -358,8 +354,8 @@ void LineDetector::sort_lines()
 	//std::cout << "2 slope:" << last_bottom_middle_point.slope  << std::endl;
 	//std::cout << "2 coords:" << last_bottom_middle_point.coordinates << std::endl;
 
-	std::cout << "Bottom left:" << BL_points.size() << std::endl;
-	std::cout << "Bottom right:" << BR_points.size() << std::endl;	
+	//std::cout << "Bottom left:" << BL_points.size() << std::endl;
+	//std::cout << "Bottom right:" << BR_points.size() << std::endl;	
 }
 
 float LineDetector::average_slope(std::vector<Punkt> &punkty)
@@ -398,7 +394,7 @@ float LineDetector::average_slope(std::vector<Punkt> &punkty)
     }
     else
     {
-        std::cout << "No points!" << std::endl;
+        //std::cout << "No points!" << std::endl;
     }
 }
 
@@ -480,19 +476,19 @@ void LineDetector::save_for_next_step()
 	std::cout << "Left st:  " << left_ang_st << std::endl;
 	std::cout << "Right st: " << right_ang_st << std::endl;
 
-	std::cout << "Left Slope:  " << new_slope_left << std::endl;
-	std::cout << "Right Slope: " << new_slope_right << std::endl;
+	//std::cout << "Left Slope:  " << new_slope_left << std::endl;
+	//std::cout << "Right Slope: " << new_slope_right << std::endl;
 
-	std::cout << "Middle:  " << new_middle << std::endl;
-	std::cout << "M angle: " << average_middle_angle << std::endl;
-	std::cout << "M slope: " << average_middle_slope << std::endl;
+	std::cout << "Middle pos:   " << new_middle << std::endl;
+	std::cout << "Middle angle: " << average_middle_angle << std::endl;
+	//std::cout << "M slope: " << average_middle_slope << std::endl;
 
 	if(BL_sector && BR_sector)
 	{
 		width = new_pos_right - new_pos_left;
 	}
 	
-	std::cout << "Width:" << width << std::endl;
+	std::cout << "Width: " << width << std::endl;
 
 
 	/*if(BL_sector = false || BR_sector = false)
@@ -558,14 +554,25 @@ void LineDetector::change_lane()
 {
 	if(actual_lane)
 	{
+		actual_lane = 0;
 		last_top_middle_point.coordinates.x -= width;
 		last_bottom_middle_point.coordinates.x -= width;
+		new_middle -= width;
+		width *= 1.5;
 	}
 	else
 	{
+		actual_lane = 1;
 		last_top_middle_point.coordinates.x += width;
 		last_bottom_middle_point.coordinates.x += width;
+		new_middle += width;
+		width *= 1.5;
 	}
+}
+
+void LineDetector::display_last_middle()
+{
+	std::cout << "LAST MIDDLE: " << last_bottom_middle_point.coordinates.x << std::endl;
 }
 
 /*void LineDetector::quick_sort(vector<Punkt> points)

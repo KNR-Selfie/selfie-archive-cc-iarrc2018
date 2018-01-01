@@ -104,7 +104,7 @@ public:
 	
 	//
 	void change_lane();
-	
+	void display_last_middle();
 	//Sortowanie wektorow:
 	//void quick_sort (vector<Punkt> points);
 };

@@ -277,28 +277,47 @@ int main()
         //cv::imshow("Lines", frame_lines);
 		cv::imshow("Data", frame_data);
 
-		std::cout << "        Time in seconds [1000 frames]: " << seconds << std::endl;
-        std::cout << "        Estimated frames per second : " << fps << std::endl;
+		lineDetector.display_last_middle();
+
+		std::cout << "Time in seconds [1000 frames]: " << seconds << std::endl;
+        std::cout << "Estimated frames per second : " << fps << std::endl;
+
+		if(keypressed == -1)
+			std::cout << "Keypressed: NONE "<< std::endl;
+		else
+			std::cout << "Keypressed: " << keypressed << std::endl;
 
         keypressed = (char)cv::waitKey(FRAME_TIME);
 
-		if( keypressed == 'm' && show_mask )
-		{
-			show_mask = false;
-		}
-		else
-		{
-			if( keypressed == 'm' && !show_mask )
-			{
-				show_mask = true;
-			}
-			else
-			{
-				if( keypressed == 27 )
-            		break;
-			}		
-		}
-         
+        if( keypressed == 27 )
+            break;
+
+        switch(keypressed)
+        {
+        //Switch on/off mask displaing
+        case 'q':
+            if( show_mask )
+                show_mask = false;
+            else
+                show_mask = true;
+            break;
+
+        //Send fixed data, do not proceed incoming frames
+        case 'z':
+            //
+            break;
+
+        //Force lane change
+        case 'c':
+            lineDetector.change_lane();
+            break;
+
+        //Manual restart of vision variables
+        case 'r':
+            lineDetector.restart_lane_detection();
+            break;
+        }
+
         if(licznik_czas > 1000)
         {
             licznik_czas = 0;
