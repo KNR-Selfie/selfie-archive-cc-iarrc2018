@@ -106,10 +106,12 @@ int main()
 
 	//GPIO
 	wiringPiSetup();
-	pinMode(23, OUTPUT);
+	pinMode(23, INPUT);
 	pinMode(4, INPUT);
-	digitalWrite(23, LOW);
 
+	bool GPIO_input[2] = {0,0};
+	bool GPIO_handled[2] = {0,0};
+	
 	//getchar();
 
     //GUI
@@ -229,16 +231,38 @@ int main()
 
 		uart_1.send_data();
 
-		std::cout << "PIN 23: " << digitalRead(4) << std::endl;
-
-		if(digitalRead(4) == HIGH)
+		//GPIO
+		GPIO_input[0] = digitalRead(4);	
+		GPIO_input[1] = digitalRead(6);
+		
+		std::cout << "PIN 18: " << GPIO_input[0] << std::endl;
+		std::cout << "PIN 26: " << GPIO_input[1] << std::endl;
+		
+		if(GPIO_input[0])
 		{
-			digitalWrite(23, HIGH);
+			if(!GPIO_handled[0])
+			{
+				lineDetector.restart_lane_detection();
+				GPIO_handled[0] = true;
+			}
 		}
 		else
-		{	
-			digitalWrite(23, LOW);
-		}		
+		{
+			GPIO_handled[0] = false;
+		}
+		
+		if(GPIO_input[1] & !GPIO_handled[1])
+		{
+			if(!GPIO_handled[1])
+			{
+				lineDetector.change_lane();
+				GPIO_handled[1] = true;
+			}
+		}	
+		else
+		{
+			GPIO_handled[1] = false;
+		}
 
 		if(show_mask)
 		{
@@ -253,28 +277,47 @@ int main()
         //cv::imshow("Lines", frame_lines);
 		cv::imshow("Data", frame_data);
 
-		std::cout << "        Time in seconds [1000 frames]: " << seconds << std::endl;
-        std::cout << "        Estimated frames per second : " << fps << std::endl;
+		lineDetector.display_last_middle();
+
+		std::cout << "Time in seconds [1000 frames]: " << seconds << std::endl;
+        std::cout << "Estimated frames per second : " << fps << std::endl;
+
+		if(keypressed == -1)
+			std::cout << "Keypressed: NONE "<< std::endl;
+		else
+			std::cout << "Keypressed: " << keypressed << std::endl;
 
         keypressed = (char)cv::waitKey(FRAME_TIME);
 
-		if( keypressed == 'm' && show_mask )
-		{
-			show_mask = false;
-		}
-		else
-		{
-			if( keypressed == 'm' && !show_mask )
-			{
-				show_mask = true;
-			}
-			else
-			{
-				if( keypressed == 27 )
-            		break;
-			}		
-		}
-         
+        if( keypressed == 27 )
+            break;
+
+        switch(keypressed)
+        {
+        //Switch on/off mask displaing
+        case 'q':
+            if( show_mask )
+                show_mask = false;
+            else
+                show_mask = true;
+            break;
+
+        //Send fixed data, do not proceed incoming frames
+        case 'z':
+            //
+            break;
+
+        //Force lane change
+        case 'c':
+            lineDetector.change_lane();
+            break;
+
+        //Manual restart of vision variables
+        case 'r':
+            lineDetector.restart_lane_detection();
+            break;
+        }
+
         if(licznik_czas > 1000)
         {
             licznik_czas = 0;
