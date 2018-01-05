@@ -56,15 +56,17 @@ static struct pid_params pid_paramsServoPos;
 static struct pid_params pid_paramsServoAng;
 
 
-void pid_paramsinit(struct pid_params, float kp, float ki, float kd);
+void pid_paramsinitEng(float kp, float ki, float kd);
+void pid_paramsinitServoPos(float kp, float ki, float kd);
+void pid_paramsinitServoAng(float kp, float ki, float kd);
 float pid_calculateEngine(float set_val, float read_val);
 float pid_calculateServo(float set_pos, float set_angle, float read_pos, float read_angle);
 
 
 void StartEncTask(void const * argument) {
-	pid_paramsinit(pid_paramsEngine, kpEng, kiEng, kdEng);
-	pid_paramsinit(pid_paramsServoPos, kpServoPos, kiServoPos, kdServoPos);
-	pid_paramsinit(pid_paramsServoAng, kpServoAng, kiServoAng, kdServoAng);
+	pid_paramsinitEng(kpEng, kiEng, kdEng);
+	pid_paramsinitServoPos(kpServoPos, kiServoPos, kdServoPos);
+	pid_paramsinitServoAng(kpServoAng, kiServoAng, kdServoAng);
 
 	float poczatek_kolo1 = 0;
 	float poczatek_kolo2 = 0;
@@ -87,14 +89,34 @@ void StartEncTask(void const * argument) {
 }
 
 
-void pid_paramsinit(struct pid_params params, float kp, float ki, float kd)
+void pid_paramsinitEng(float kp, float ki, float kd)
 {
-	params.kp = kp;
-	params.ki = ki;
-	params.kd = kd;
-	params.err = 0;
-	params.err_sum = 0;
-	params.err_last = 0;
+	pid_paramsEngine.kp = kp;
+	pid_paramsEngine.ki = ki;
+	pid_paramsEngine.kd = kd;
+	pid_paramsEngine.err = 0;
+	pid_paramsEngine.err_sum = 0;
+	pid_paramsEngine.err_last = 0;
+}
+
+void pid_paramsinitServoPos(float kp, float ki, float kd)
+{
+	pid_paramsServoPos.kp = kp;
+	pid_paramsServoPos.ki = ki;
+	pid_paramsServoPos.kd = kd;
+	pid_paramsServoPos.err = 0;
+	pid_paramsServoPos.err_sum = 0;
+	pid_paramsServoPos.err_last = 0;
+}
+
+void pid_paramsinitServoAng(float kp, float ki, float kd)
+{
+	pid_paramsServoAng.kp = kp;
+	pid_paramsServoAng.ki = ki;
+	pid_paramsServoAng.kd = kd;
+	pid_paramsServoAng.err = 0;
+	pid_paramsServoAng.err_sum = 0;
+	pid_paramsServoAng.err_last = 0;
 }
 
 
@@ -117,6 +139,7 @@ float pid_calculateEngine(float set_val, float read_val)
 	u = (pid_paramsEngine.kp * pid_paramsEngine.err + pid_paramsEngine.ki * pid_paramsEngine.err_sum
 			+ pid_paramsEngine.kd * err_d);
 
+	wyjscieRegulatoraE = u;
 	u = 1500 + (u/5000);
 	if(set_val < 0) u -= 100;
 	else if(set_val > 0) u += 60;
@@ -136,7 +159,6 @@ float pid_calculateEngine(float set_val, float read_val)
 
 
 	errorE = pid_paramsEngine.err;
-	wyjscieRegulatoraE = u;
 	return u;
 }
 
