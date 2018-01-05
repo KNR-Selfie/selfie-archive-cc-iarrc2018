@@ -74,6 +74,9 @@ void StartDriveTask(void const * argument){
         	TIM2->CCR3 = dutyServo;
         else
         	TIM2->CCR3 = pid_calculateServo(set_pos, set_angle, j_jetsonData[0], (j_jetsonData[1]+j_jetsonData[2])*0.5);
-        TIM2->CCR4 = pid_calculateEngine(set_spd, actualSpeed);
+        /* Nie dziala pid_calculate, bypass bezpoœrednio z dr¹¿ka */
+//        TIM2->CCR4 = pid_calculateEngine(set_spd, actualSpeed);
+        TIM2->CCR4 = (1500 + 1000 * (a_channels[1] - 1027) / (1680 - 368));
+
 	}
 }
