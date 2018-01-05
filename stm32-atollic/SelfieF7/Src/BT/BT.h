@@ -9,5 +9,6 @@
 #define BT_BT_H_
 
 void StartBTTask(void const * argument);
-
+void BluetoothRx_Irq(void);
+void BluetoothTx_Irq(void);
 #endif /* BT_BT_H_ */
