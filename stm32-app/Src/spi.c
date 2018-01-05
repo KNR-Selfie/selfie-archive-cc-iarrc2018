@@ -187,8 +187,8 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* spiHandle)
 
     /* SPI4 DMA Init */
     /* SPI4_TX Init */
-    hdma_spi4_tx.Instance = DMA2_Stream1;
-    hdma_spi4_tx.Init.Channel = DMA_CHANNEL_4;
+    hdma_spi4_tx.Instance = DMA2_Stream4;
+    hdma_spi4_tx.Init.Channel = DMA_CHANNEL_5;
     hdma_spi4_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
     hdma_spi4_tx.Init.PeriphInc = DMA_PINC_DISABLE;
     hdma_spi4_tx.Init.MemInc = DMA_MINC_ENABLE;

@@ -42,7 +42,7 @@ void watch(bool &end_of_app)
         std::cout << "Setting new flag value: " << flag << std::endl;
 
         watchdog.push_flag(flag);
-
+ 
         std::cout << "New flag value written!" << std::endl;
         std::cout << "Press enter to exit" << std::endl;
 
@@ -66,9 +66,9 @@ void watch(bool &end_of_app)
                 std::cout << "Warning: second packet lost!" << std::endl;
                 std::cout << "Warning: app reset!" << std::endl;
 
-                system("pkill -9 -f app");
+                //system("pkill -9 -f app");
 
-                system("gnome-terminal --geometry 20x10+0+0 -x sh -c \"sudo /home/odroid/Desktop/opencv-app/opencv-app/build/opencv-app; bash\"");
+                system("gnome-terminal --geometry 20x35+0+0 -x sh -c \"sudo /home/odroid/Desktop/opencv-app/opencv-app/build/opencv-app; bash\"");
                 wait_for_connection(end_of_app);
             }
             else
@@ -110,7 +110,7 @@ int main()
     watchdog.push_flag(0);
 
     //Start new terminal with opencv-app
-    system("gnome-terminal -x sh -c \"/home/odroid/Desktop/opencv-app/opencv-app/build/opencv-app; bash\"");
+    system("gnome-terminal --geometry 20x35+0+0 -x sh -c \"/home/odroid/Desktop/opencv-app/opencv-app/build/opencv-app; bash\"");
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
 
