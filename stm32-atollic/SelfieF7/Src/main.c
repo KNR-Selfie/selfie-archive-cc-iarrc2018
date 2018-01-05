@@ -5,6 +5,7 @@
   ******************************************************************************
 
   * Dziala mi (KOT to chuj)
+  * Mi też działa (Perciak to chuj)
   * This notice applies to any and all portions of this file
   * that are not between comment pairs USER CODE BEGIN and
   * USER CODE END. Other portions of this file, whether 
