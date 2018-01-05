@@ -10,7 +10,7 @@
   * inserted by the user or by software development tools
   * are owned by their respective copyright owners.
   *
-  * Copyright (c) 2017 STMicroelectronics International N.V. 
+  * Copyright (c) 2018 STMicroelectronics International N.V. 
   * All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
@@ -74,7 +74,7 @@ void MX_SPI1_Init(void);
 void MX_SPI4_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-void Selfie_SPI1_Init(uint32_t Mode);
+HAL_StatusTypeDef Selfie_SPI1_Init(uint32_t Mode);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

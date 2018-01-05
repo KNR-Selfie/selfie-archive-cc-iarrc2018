@@ -9,7 +9,7 @@
   * inserted by the user or by software development tools
   * are owned by their respective copyright owners.
   *
-  * Copyright (c) 2017 STMicroelectronics International N.V. 
+  * Copyright (c) 2018 STMicroelectronics International N.V. 
   * All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
@@ -53,13 +53,23 @@
 
 /* USER CODE BEGIN Includes */     
 #include "Lighting.h"
+#include "Gyro.h"
+#include "Battery.h"
 #include "main.h"
+#include "gpio.h"
+
+#include "usbd_cdc_if.h"
+extern USBD_HandleTypeDef hUsbDeviceFS;
+uint8_t usbTxBuffer[256];
+uint32_t len;
+uint8_t able_to_receive = 0;
 /* USER CODE END Includes */
 
 /* Variables -----------------------------------------------------------------*/
 osThreadId defaultTaskHandle;
 osThreadId LightingTaskHandle;
 osThreadId GyroTaskHandle;
+osThreadId BatteryManagerHandle;
 
 /* USER CODE BEGIN Variables */
 osThreadId blinkTID;
@@ -73,6 +83,7 @@ osThreadId SDcardTID;
 void StartDefaultTask(void const * argument);
 extern void StartLightingTask(void const * argument);
 extern void StartGyroTask(void const * argument);
+extern void StartBatteryManager(void const * argument);
 
 extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -130,13 +141,17 @@ void MX_FREERTOS_Init(void) {
   LightingTaskHandle = osThreadCreate(osThread(LightingTask), NULL);
 
   /* definition and creation of GyroTask */
-  osThreadDef(GyroTask, StartGyroTask, osPriorityNormal, 0, 128);
+  osThreadDef(GyroTask, StartGyroTask, osPriorityHigh, 0, 128);
   GyroTaskHandle = osThreadCreate(osThread(GyroTask), NULL);
+
+  /* definition and creation of BatteryManager */
+  osThreadDef(BatteryManager, StartBatteryManager, osPriorityLow, 0, 128);
+  BatteryManagerHandle = osThreadCreate(osThread(BatteryManager), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
-    osThreadDef(blink, blinkThread, osPriorityLow, 0, 128);
-    blinkTID = osThreadCreate (osThread(blink), NULL);
+//    osThreadDef(blink, blinkThread, osPriorityLow, 0, 128);
+//    blinkTID = osThreadCreate (osThread(blink), NULL);
 
     osThreadDef(drive, driveControl, osPriorityNormal, 0, 128);
     driveControlTID = osThreadCreate (osThread(drive), NULL);
@@ -160,16 +175,45 @@ void StartDefaultTask(void const * argument)
   MX_USB_DEVICE_Init();
 
   /* USER CODE BEGIN StartDefaultTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
+	/* Infinite loop */
+	for (;;) {
+		if (hUsbDeviceFS.dev_state == USBD_STATE_CONFIGURED) {
+
+			static uint16_t cnt00 = 0;
+			if (cnt00++ > 9) {
+				HAL_GPIO_TogglePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin);
+				cnt00 = 0;
+			}
+
+		}
+		osDelay(10);
+	}
   /* USER CODE END StartDefaultTask */
 }
 
 /* USER CODE BEGIN Application */
-     
+int8_t MAIN_USB_Receive(uint8_t* Buf, uint32_t *Len) {
+	if (Buf[0] == 'B')
+		machine_bootloader();
+	else if (Buf[0] == 'a') {
+		len = sprintf((char*) usbTxBuffer,
+				"YawRate\t\t= %.5f deg/s\r\nCumulativeYaw\t= %.5f deg\r\n\r\n",
+				YawRate, CumulativeYaw);
+		CDC_Transmit_FS(usbTxBuffer, len);
+	} else if (Buf[0] == 'b') {
+		len = sprintf((char*) usbTxBuffer,
+				"GyroTemp\t= %.2f degC\r\n\r\n",
+				temperature);
+		CDC_Transmit_FS(usbTxBuffer, len);
+	} else if (Buf[0] == 'c') {
+		len = sprintf((char*) usbTxBuffer,
+				"Voltage\t\t= %.2f Volts\r\nCurrent\t= %.2f Amps\r\nFuel\t= %.1f mAh\r\n\r\n",
+				Volts_f, Amps_f, mAhs_drawn);
+		CDC_Transmit_FS(usbTxBuffer, len);
+	} else if (Buf[0] == 'R')
+		NVIC_SystemReset();
+	return 0;
+}
 /* USER CODE END Application */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

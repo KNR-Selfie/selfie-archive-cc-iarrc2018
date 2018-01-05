@@ -150,6 +150,8 @@
 #define BIT_ACC                     2
 #define BIT_TEMP 1
 
+#define GYRO_SCALE_FACTOR  0.00053292f  // (4/131) * pi/180   (32.75 LSB = 1 DPS)
+
 enum gyro_fsr_e {
     INV_FSR_250DPS = 0,
     INV_FSR_500DPS,

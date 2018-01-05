@@ -4,7 +4,7 @@
   * @brief   This file contains the headers of the interrupt handlers.
   ******************************************************************************
   *
-  * COPYRIGHT(c) 2017 STMicroelectronics
+  * COPYRIGHT(c) 2018 STMicroelectronics
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -57,6 +57,7 @@ void SysTick_Handler(void);
 void EXTI4_IRQHandler(void);
 void DMA1_Stream2_IRQHandler(void);
 void DMA1_Stream4_IRQHandler(void);
+void ADC_IRQHandler(void);
 void TIM1_UP_TIM10_IRQHandler(void);
 void I2C2_EV_IRQHandler(void);
 void SPI1_IRQHandler(void);
@@ -67,6 +68,8 @@ void TIM7_IRQHandler(void);
 void DMA2_Stream0_IRQHandler(void);
 void DMA2_Stream1_IRQHandler(void);
 void DMA2_Stream2_IRQHandler(void);
+void DMA2_Stream3_IRQHandler(void);
+void DMA2_Stream4_IRQHandler(void);
 void OTG_FS_IRQHandler(void);
 void DMA2_Stream7_IRQHandler(void);
 
