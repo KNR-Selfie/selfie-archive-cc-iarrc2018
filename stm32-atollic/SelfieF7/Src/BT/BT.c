@@ -15,5 +15,6 @@ void StartBTTask(void const * argument) {
 	osSemaphoreId osSemaphore = osSemaphoreCreate(osSemaphore(BTSemaphore), 1);
 	osSemaphoreWait(osSemaphore, osWaitForever);
 	while (1) {
+		osDelay(5000);
 	}
 }
