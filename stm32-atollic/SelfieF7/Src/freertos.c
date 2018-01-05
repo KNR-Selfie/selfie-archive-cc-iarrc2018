@@ -70,6 +70,13 @@ osThreadId defaultTaskHandle;
 osThreadId LightingTaskHandle;
 osThreadId GyroTaskHandle;
 osThreadId BatteryManagerHandle;
+osThreadId EncTaskHandle;
+osThreadId CzujnikiTaskHandle;
+osThreadId BTTaskHandle;
+osThreadId MotorContrTaskHandle;
+osThreadId DriveTaskHandle;
+osSemaphoreId DriveControlSemaphoreHandle;
+osSemaphoreId EngineSemaphoreHandle;
 
 /* USER CODE BEGIN Variables */
 osThreadId blinkTID;
@@ -84,6 +91,11 @@ void StartDefaultTask(void const * argument);
 extern void StartLightingTask(void const * argument);
 extern void StartGyroTask(void const * argument);
 extern void StartBatteryManager(void const * argument);
+extern void StartEncTask(void const * argument);
+extern void StartCzujnikiTask(void const * argument);
+extern void StartBTTask(void const * argument);
+extern void StartMotorControlTask(void const * argument);
+extern void StartDriveTask(void const * argument);
 
 extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -123,6 +135,15 @@ void MX_FREERTOS_Init(void) {
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
 
+  /* Create the semaphores(s) */
+  /* definition and creation of DriveControlSemaphore */
+  osSemaphoreDef(DriveControlSemaphore);
+  DriveControlSemaphoreHandle = osSemaphoreCreate(osSemaphore(DriveControlSemaphore), 1);
+
+  /* definition and creation of EngineSemaphore */
+  osSemaphoreDef(EngineSemaphore);
+  EngineSemaphoreHandle = osSemaphoreCreate(osSemaphore(EngineSemaphore), 1);
+
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
   /* USER CODE END RTOS_SEMAPHORES */
@@ -148,19 +169,30 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(BatteryManager, StartBatteryManager, osPriorityLow, 0, 128);
   BatteryManagerHandle = osThreadCreate(osThread(BatteryManager), NULL);
 
+  /* definition and creation of EncTask */
+  osThreadDef(EncTask, StartEncTask, osPriorityAboveNormal, 0, 128);
+  EncTaskHandle = osThreadCreate(osThread(EncTask), NULL);
+
+  /* definition and creation of CzujnikiTask */
+//  osThreadDef(CzujnikiTask, StartCzujnikiTask, osPriorityNormal, 0, 128);
+//  CzujnikiTaskHandle = osThreadCreate(osThread(CzujnikiTask), NULL);
+
+  /* definition and creation of BTTask */
+//  osThreadDef(BTTask, StartBTTask, osPriorityBelowNormal, 0, 128);
+//  BTTaskHandle = osThreadCreate(osThread(BTTask), NULL);
+
+  /* definition and creation of MotorContrTask */
+  osThreadDef(MotorContrTask, StartMotorControlTask, osPriorityAboveNormal, 0, 128);
+  MotorContrTaskHandle = osThreadCreate(osThread(MotorContrTask), NULL);
+
+  /* definition and creation of DriveTask */
+  osThreadDef(DriveTask, StartDriveTask, osPriorityAboveNormal, 0, 128);
+  DriveTaskHandle = osThreadCreate(osThread(DriveTask), NULL);
+
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
 //    osThreadDef(blink, blinkThread, osPriorityLow, 0, 128);
 //    blinkTID = osThreadCreate (osThread(blink), NULL);
-
-    osThreadDef(drive, driveControl, osPriorityNormal, 0, 128);
-    driveControlTID = osThreadCreate (osThread(drive), NULL);
-
-//    osThreadDef(servo, servoControl, osPriorityNormal, 0, 128);
-//    servoTID = osThreadCreate (osThread(servo), NULL);
-
-    osThreadDef(engine, engineControl, osPriorityNormal, 0, 128);
-    engineTID = osThreadCreate (osThread(engine), NULL);
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
