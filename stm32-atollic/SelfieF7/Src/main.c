@@ -7,6 +7,7 @@
   * Dziala mi (KOT to chuj)
   * Mi też działa (Perciak to chuj)
   * Mi też działa (każdy Mateusz chuj)
+  * Z Attolica(Janusz chuj)
   * This notice applies to any and all portions of this file
   * that are not between comment pairs USER CODE BEGIN and
   * USER CODE END. Other portions of this file, whether 
@@ -396,7 +397,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 //    	        HAL_UART_Transmit_IT(&huart6, tekst, size);
 //    	        HAL_UART_Receive_IT(&huart6, &nr, 1);
 //    	    } else if (tmp == 98) { //podmenu wysylania
-//    	        sendflag = 1; // flaga pomocnicza - uruchamia wysy�anie danych z STM
+//    	        sendflag = 1; // flaga pomocnicza - uruchamia wysy�anie danych z STM
 //    	        flag = 0;
 //    	        tmp = 0;
 //    	        HAL_UART_Receive_IT(&huart6, &choice, 1);
