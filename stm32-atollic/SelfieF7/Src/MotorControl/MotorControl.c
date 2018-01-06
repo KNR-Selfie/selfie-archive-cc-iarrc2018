@@ -15,6 +15,7 @@ float set_pos = 0;
 float set_angle = 0;
 uint16_t dutyServo = 0;
 
+float pid_speed = 0;
 void StartMotorControlTask(void const * argument){
     //uruchomienie ESC
     TIM2->CCR4 = 2000;
@@ -33,7 +34,7 @@ void StartMotorControlTask(void const * argument){
             osSemaphoreWait (DriveControlSemaphoreHandle, osWaitForever);
             if (a_channels[5] == 1024) //srodkowa pozycja przeÂ³acznika, sterowanie z aparatury
                 {
-                    set_spd = (300000 * (a_channels[1] - 1027) / (1680 - 368));
+                    set_spd = 300000 * (a_channels[1] - 1027) / (1680 - 368);
                     dutyServo = (1400 + 800 * (a_channels[3] - 1000) / (1921 - 80));
                 }
             else if (a_channels[5] == 144) //gorna pozycja prze31cznika, jazda autonomiczna
@@ -75,7 +76,7 @@ void StartDriveTask(void const * argument){
         else
         	TIM2->CCR3 = pid_calculateServo(set_pos, set_angle, j_jetsonData[0], (j_jetsonData[1]+j_jetsonData[2])*0.5);
         /* Nie dziala pid_calculate, bypass bezpoœrednio z dr¹¿ka */
-//        TIM2->CCR4 = pid_calculateEngine(set_spd, actualSpeed);
+        pid_speed = pid_calculateEngine(set_spd, actualSpeed);
         TIM2->CCR4 = (1500 + 1000 * (a_channels[1] - 1027) / (1680 - 368));
 
 	}

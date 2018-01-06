@@ -135,7 +135,7 @@ float pid_calculateEngine(float set_val, float read_val)
 		pid_paramsEngine.err_sum = -ERR_SUM_MAX_ENGINE;
 	}
 
-	err_d = pid_paramsEngine.err_last - pid_paramsEngine.err;
+	err_d = pid_paramsEngine.err - pid_paramsEngine.err_last;
 	u = (pid_paramsEngine.kp * pid_paramsEngine.err + pid_paramsEngine.ki * pid_paramsEngine.err_sum
 			+ pid_paramsEngine.kd * err_d);
 
