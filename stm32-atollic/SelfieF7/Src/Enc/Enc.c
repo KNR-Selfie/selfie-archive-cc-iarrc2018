@@ -19,7 +19,7 @@
 #define kpEng 6.32379796804752
 #define kiEng 42.982508097399*0.005
 #define kdEng 0
-#define kpServoPos 2.5
+#define kpServoPos 5.0
 #define kiServoPos 0
 #define kdServoPos 0
 #define kpServoAng 10
@@ -85,6 +85,9 @@ void StartEncTask(void const * argument) {
 			if(koniec_kolo2 > 60000)
 					koniec_kolo2 -= 65535;
 		actualSpeed = ((koniec_kolo1 - poczatek_kolo1)/0.005 + (koniec_kolo2 - poczatek_kolo2)/0.005) * 0.5;
+
+
+
 	}
 }
 
@@ -206,7 +209,7 @@ float pid_calculateServo(float set_pos, float set_angle, float read_pos, float r
 
 
 	/////////////waga dwoch wartosci z pida
-	u = (uPos+uAng)*0.5;
+	u = 0.9*uPos+uAng *0.1;
 
 	////////dane do debuggowania
 	errorS = pid_paramsServoPos.err + pid_paramsServoAng.err;

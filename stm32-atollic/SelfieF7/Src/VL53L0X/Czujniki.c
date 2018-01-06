@@ -21,6 +21,7 @@ void czujnikINIT(void);
 
 void StartCzujnikiTask(void const * argument)
 {
+	/*
 	HAL_GPIO_WritePin(XSHUT0_GPIO_Port, XSHUT0_Pin, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(XSHUT1_GPIO_Port, XSHUT1_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(XSHUT2_GPIO_Port, XSHUT2_Pin, GPIO_PIN_RESET);
@@ -44,22 +45,23 @@ void StartCzujnikiTask(void const * argument)
 	osDelay(1);
 	czujnikINIT();
 	VL53L0X_setAddress(adresy[3]);
-
+	*/
 	while (1) {
 		osDelay(5000);
-		address = adresy[0];
-		range[0] = VL53L0X_readRangeSingleMillimeters();
-
-		address = adresy[1];
-		range[1] = VL53L0X_readRangeSingleMillimeters();
-
-		address = adresy[2];
-		range[2] = VL53L0X_readRangeSingleMillimeters();
-
-		address = adresy[3];
-		range[3] = VL53L0X_readRangeSingleMillimeters();
+//		address = adresy[0];
+//		range[0] = VL53L0X_readRangeSingleMillimeters();
+//
+//		address = adresy[1];
+//		range[1] = VL53L0X_readRangeSingleMillimeters();
+//
+//		address = adresy[2];
+//		range[2] = VL53L0X_readRangeSingleMillimeters();
+//
+//		address = adresy[3];
+//		range[3] = VL53L0X_readRangeSingleMillimeters();
 
 	}
+
 }
 
 void czujnikINIT(void)

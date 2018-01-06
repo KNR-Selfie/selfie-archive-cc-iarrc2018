@@ -55,6 +55,7 @@
 #include "Lighting.h"
 #include "Gyro.h"
 #include "Battery.h"
+#include "BT.h"
 #include "main.h"
 #include "gpio.h"
 
@@ -178,11 +179,11 @@ void MX_FREERTOS_Init(void) {
   EncTaskHandle = osThreadCreate(osThread(EncTask), NULL);
 
   /* definition and creation of CzujnikiTask */
-//  osThreadDef(CzujnikiTask, StartCzujnikiTask, osPriorityNormal, 0, 128);
-//  CzujnikiTaskHandle = osThreadCreate(osThread(CzujnikiTask), NULL);
+  osThreadDef(CzujnikiTask, StartCzujnikiTask, osPriorityNormal, 0, 128);
+  CzujnikiTaskHandle = osThreadCreate(osThread(CzujnikiTask), NULL);
 
   /* definition and creation of BTTask */
-  osThreadDef(BTTask, StartBTTask, osPriorityBelowNormal, 0, 128);
+  osThreadDef(BTTask, StartBTTask, osPriorityNormal, 0, 128);
   BTTaskHandle = osThreadCreate(osThread(BTTask), NULL);
 
   /* definition and creation of MotorContrTask */

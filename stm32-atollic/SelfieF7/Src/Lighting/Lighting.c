@@ -29,13 +29,16 @@ uint16_t RX_SW;
 uint16_t RX_POT;
 
 int rgb[22][3];
-
+float brightness;
 
 void StartLightingTask(void const * argument) {
 	ws2812_init();
 	while (1) {
 		RXtoLighting(a_channels);
+
+
 		if (RX_POT > 1027) {
+			brightness = (RX_POT - 1027.f) / 706.f;
 			static int16_t scounter1 = 1;
 			scounter1++;
 			if (scounter1 > 359)
@@ -51,7 +54,7 @@ void StartLightingTask(void const * argument) {
 						rgb[indeks][2]);
 			}
 		} else {
-
+			brightness = -(RX_POT - 1027.f) / 706.f;
 			ws2812_set_color(4, 0, 0, 0);
 			ws2812_set_color(5, 0, 0, 0);
 			ws2812_set_color(6, 0, 0, 0);
@@ -274,6 +277,9 @@ void ws2812_set_color(int led, uint8_t r, uint8_t g, uint8_t b) {
     int i = led * BITS_PER_LED;
     uint8_t mask;
     mask = 0x80;
+    r=(uint8_t)(r*brightness);
+    g=(uint8_t)(g*brightness);
+    b=(uint8_t)(b*brightness);
     while (mask) {
         ws2812BitBuf[i] = (mask & g) ? H_VAL : L_VAL;
         mask >>= 1;

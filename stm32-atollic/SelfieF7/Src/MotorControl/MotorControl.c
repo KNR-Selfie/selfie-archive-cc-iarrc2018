@@ -16,6 +16,14 @@ float set_angle = 0;
 uint16_t dutyServo = 0;
 
 float pid_speed = 0;
+extern float KpJetson;
+
+extern uint8_t parking_mode;
+extern float parking_angle;
+extern float parking_speed;
+
+uint16_t AngleToServo(float angle);
+
 void StartMotorControlTask(void const * argument){
     //uruchomienie ESC
     TIM2->CCR4 = 2000;
@@ -32,16 +40,20 @@ void StartMotorControlTask(void const * argument){
     while (1)
         {
             osSemaphoreWait (DriveControlSemaphoreHandle, osWaitForever);
-            if (a_channels[5] == 1024) //srodkowa pozycja przeÂ³acznika, sterowanie z aparatury
+            if (a_channels[5] < 500) //gorna pozycja przelacznika - pelna kontrola
                 {
                     set_spd = 300000 * (a_channels[1] - 1027) / (1680 - 368);
                     dutyServo = (1400 + 800 * (a_channels[3] - 1000) / (1921 - 80));
                 }
-            else if (a_channels[5] == 144) //gorna pozycja prze31cznika, jazda autonomiczna
+            else if (a_channels[5] > 1500) //dolna pozycja prze31cznika, jazda autonomiczna
                 {
                     HAL_TIM_Base_Start_IT (&htim10); // timer od sprawdzania komunikacji
                     //jezeli jest komunikacja na linii Jetson <-> STM
-                    if (j_syncByte == 255)
+                    if(parking_mode)
+                    {
+                    	set_spd = 0;
+                    }
+                    else if (j_syncByte == 255)
                         {
                             //gdy brak wykrytej linii stop lub zbocze opadajace -> jedz.
                     	    //pozostawiona furtka zeby z BT zadawac spd/pos. Wystawic transition na 1 i dopisac kod na zadawanie z bt
@@ -57,7 +69,7 @@ void StartMotorControlTask(void const * argument){
                             set_spd = 0;
                         }
                 }
-            else if (a_channels[5] == 1904) //dolna pozycja przeÂ³acznika, tryb pÃ³Â³autonomiczny
+            else //srodkowa pozycja przeÂ³acznika, tryb polautonomiczny
                 {
                     set_spd = (300000 * (a_channels[1] - 1027) / (1680 - 368));
                     set_pos = 1000;
@@ -71,13 +83,27 @@ void StartDriveTask(void const * argument){
 
 	while(1){
 		osSemaphoreWait(EngineSemaphoreHandle, osWaitForever);
-        if(a_channels[5] == 1024)
+        if(a_channels[5] < 500)
         	TIM2->CCR3 = dutyServo;
         else
-        	TIM2->CCR3 = pid_calculateServo(set_pos, set_angle, j_jetsonData[0], (j_jetsonData[1]+j_jetsonData[2])*0.5);
-        /* Nie dziala pid_calculate, bypass bezpoœrednio z dr¹¿ka */
+        {
+//        	if(parking_mode){
+//        		TIM2->CCR3 = AngleToServo(parking_angle);
+//        	}
+//        	else
+        	float jetsonRatio = (j_jetsonData[0] - 1000.f) / 1000.f;
+			TIM2->CCR3 = 1400 + (int)(KpJetson * jetsonRatio);
+//        			AngleToServo( (j_jetsonData[0] - 1000) * KpJetson /1000 );
+//        	TIM2->CCR3 = pid_calculateServo(set_pos, set_angle, j_jetsonData[0], (j_jetsonData[1]+j_jetsonData[2])*0.5);
+        }
+        /* Dziala pid */
         pid_speed = pid_calculateEngine(set_spd, actualSpeed);
-        TIM2->CCR4 = (1500 + 1000 * (a_channels[1] - 1027) / (1680 - 368));
+        TIM2->CCR4 = pid_speed;//(1500 + 1000 * (a_channels[1] - 1027) / (1680 - 368));
 
 	}
+}
+/* +/- 90^ */
+uint16_t AngleToServo(float angle)
+{
+	return (1400 + (uint16_t)(400.f * angle/90.f));
 }
