@@ -63,6 +63,10 @@ extern USBD_HandleTypeDef hUsbDeviceFS;
 uint8_t usbTxBuffer[256];
 uint32_t len;
 uint8_t able_to_receive = 0;
+
+extern float set_spd;
+extern float actualSpeed;
+extern float pid_speed;
 /* USER CODE END Includes */
 
 /* Variables -----------------------------------------------------------------*/
@@ -178,8 +182,8 @@ void MX_FREERTOS_Init(void) {
 //  CzujnikiTaskHandle = osThreadCreate(osThread(CzujnikiTask), NULL);
 
   /* definition and creation of BTTask */
-//  osThreadDef(BTTask, StartBTTask, osPriorityBelowNormal, 0, 128);
-//  BTTaskHandle = osThreadCreate(osThread(BTTask), NULL);
+  osThreadDef(BTTask, StartBTTask, osPriorityBelowNormal, 0, 128);
+  BTTaskHandle = osThreadCreate(osThread(BTTask), NULL);
 
   /* definition and creation of MotorContrTask */
   osThreadDef(MotorContrTask, StartMotorControlTask, osPriorityAboveNormal, 0, 128);
@@ -241,6 +245,11 @@ int8_t MAIN_USB_Receive(uint8_t* Buf, uint32_t *Len) {
 		len = sprintf((char*) usbTxBuffer,
 				"Voltage\t\t= %.2f Volts\r\nCurrent\t= %.2f Amps\r\nFuel\t= %.1f mAh\r\n\r\n",
 				Volts_f, Amps_f, mAhs_drawn);
+		CDC_Transmit_FS(usbTxBuffer, len);
+	} else if (Buf[0] == 'm') {
+		len = sprintf((char*) usbTxBuffer,
+				"set_speed\t\t= %.1f\r\act_speed\t= %.1f\r\npid\t= %.1f \r\n\r\n",
+				set_spd, actualSpeed, pid_speed);
 		CDC_Transmit_FS(usbTxBuffer, len);
 	} else if (Buf[0] == 'R')
 		NVIC_SystemReset();
