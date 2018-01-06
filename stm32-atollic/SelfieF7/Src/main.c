@@ -3,6 +3,11 @@
   * File Name          : main.c
   * Description        : Main program body
   ******************************************************************************
+
+  * Dziala mi (KOT to chuj)
+  * Mi też działa (Perciak to chuj)
+  * Mi też działa (każdy Mateusz chuj)
+  * Z Attolica(Janusz chuj)
   * This notice applies to any and all portions of this file
   * that are not between comment pairs USER CODE BEGIN and
   * USER CODE END. Other portions of this file, whether 
@@ -73,6 +78,28 @@
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
+////////testy BT
+uint8_t choice = 0;
+int tmp = 0;
+
+uint16_t dane[4];
+uint16_t data[20]; // Tablica przechowujaca wysylana wiadomosc.
+int size;
+uint8_t tekst[20];
+
+int nr = 0;
+uint8_t value[6];
+int speed = 0;
+float angle;
+int flag = 0;
+int flag2 = 0;
+int sendflag = 0;
+
+float r_kpPredkosc = 16.91;
+float pom = 0;
+uint8_t table[4];
+char tab[6];
+///////////KONIEC TESTY BT
 
 ///////////semaphore potrzebny aby go zwolnic w UARCie
 extern osSemaphoreId DriveControlSemaphoreHandle;
@@ -145,7 +172,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
 	HAL_UART_Receive_DMA(&huart4, &j_syncByte, 1);
 	HAL_UART_Receive_DMA(&huart1, &a_syncbyte, 1);
-
+	HAL_UART_Receive_DMA(&huart6, &choice, 1);
 	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
 	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
 	HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
@@ -349,9 +376,95 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
         }
 
-    if(huart->Instance == USART3){
-    	BluetoothRx_Irq();
+    if(huart->Instance == USART6){ ////////////////Bluetooth HC-05
+        size = sprintf(tekst, "Wybierz co chcesz zrobic: a - nast b - dane \n\r");
+        HAL_UART_Transmit_DMA(&huart6, tekst, size);
+
+
+//    	if (choice == 122) {
+//    	        size = sprintf(tekst,
+//    	                "Wybierz co chcesz zrobic: a - nast b - dane \n\r");
+//    	        HAL_UART_Transmit_IT(&huart6, tekst, size);
+//    	        choice = 0;
+//    	        sendflag = 0;
+//    	        HAL_UART_Receive_IT(&huart6, &tmp, 1);
+//
+//    	    } else if (tmp == 97) {
+//    	        tmp = 0;
+//    	        size = sprintf(tekst,
+//    	                "Ustaw  a-r_kpPredkosc, b-ki , c-r_kpPredkosc2, d-ki2, e - speed\n\r");
+//    	        flag = 1;
+//    	        HAL_UART_Transmit_IT(&huart6, tekst, size);
+//    	        HAL_UART_Receive_IT(&huart6, &nr, 1);
+//    	    } else if (tmp == 98) { //podmenu wysylania
+//    	        sendflag = 1; // flaga pomocnicza - uruchamia wysy�anie danych z STM
+//    	        flag = 0;
+//    	        tmp = 0;
+//    	        HAL_UART_Receive_IT(&huart6, &choice, 1);
+//    	    }
+//
+//    	    else if (nr > 10 && flag == 1) {
+//    	        flag = 0;
+//    	        size = sprintf(tekst, "wartosc:\n\r ");
+//    	        HAL_UART_Transmit_IT(&huart6, tekst, size);
+//    	        HAL_UART_Receive_IT(&huart6, &value, 6);
+//    	    }
+//
+//    	    else if (value[0] != 0) {
+//    	        switch (nr) {
+//    	        case 97:
+//    	            for (int i = 0; i < 6; i++) {
+//    	                tab[i] = (char) value[i];
+//    	            }
+//    	            r_kpPredkosc = atof(tab);
+//    	            value[0] = 0;
+//    	            break;
+//
+//    	        case 98:
+//    	            for (int i = 0; i < 6; i++) {
+//    	                tab[i] = (char) value[i];
+//    	            }
+//    	            angle = atof(tab);
+//    	            value[0] = 0;
+//    	            //przypisz wartosc nastawy
+//    	            break;
+//    	        case 99:
+//    	            for (int i = 0; i < 6; i++) {
+//    	                tab[i] = (char) value[i];
+//    	            }
+//    	            angle = atof(tab);
+//    	            value[0] = 0;
+//    	            //przypisz wartosc nastawy
+//    	            break;
+//    	        case 100:
+//    	            for (int i = 0; i < 6; i++) {
+//    	                tab[i] = (char) value[i];
+//    	            }
+//    	            angle = atof(tab);
+//    	            value[0] = 0;
+//    	            //przypisz wartosc nastawy
+//    	            break;
+//    	        case 101:
+//    	            for (int i = 0; i < 6; i++) {
+//    	                tab[i] = (char) value[i];
+//    	            }
+//
+//    	            angle = atof(tab);
+//    	            speed = (int) angle;
+//    	            value[0] = 0;
+//    	            //przypisz wartosc nastawy
+//    	            break;
+//
+//    	        default:
+//    	            break;
+//
+//    	        }
+//    	        HAL_UART_Receive_IT(&huart6, &choice, 1);
+//    	    }
+
+    	    HAL_UART_Receive_DMA(&huart6, &choice, 1);
     }
+
 
 }
 void machine_bootloader(void) {
