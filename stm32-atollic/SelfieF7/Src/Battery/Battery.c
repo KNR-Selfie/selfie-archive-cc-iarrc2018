@@ -34,15 +34,16 @@ void StartBatteryManager(void const * argument){
 	vSemaphoreCreateBinary(ADCSemaphore);
 	osSemaphoreWait(ADCSemaphore, osWaitForever);
 	HAL_ADC_Start_DMA(&hadc1, (uint32_t*) adc_raw, 3);
-	lpf_filter_init(&amps_filter, 100, 1/dT);
+	lpf_filter_init(&amps_filter, 20, 1.f/dT);
 	while(1)
 	{
 		osSemaphoreWait(ADCSemaphore, osWaitForever);
-		Amps_raw = adc_raw[1] / 4096.f * 3.3f *20.f;
+		Amps_raw = (float)adc_raw[1] * 3.05f / 4095.f *20.f;
 		Amps_f = filter_apply(&amps_filter, Amps_raw);
-		mAhs_drawn +=Amps_f*1000*dT;
 
-		Volts_f = adc_raw[2] / 4096.f * 3.3f *5.7f;
+		mAhs_drawn += Amps_raw *41.f / 375.f;
+
+		Volts_f = (float)adc_raw[2] * 3.05f / 4095.f *5.7f;
 	}
 }
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
