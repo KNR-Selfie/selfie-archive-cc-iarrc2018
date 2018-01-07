@@ -82,9 +82,9 @@ volatile int16_t rightCount;
 volatile int16_t fwdCount;
 volatile int16_t rotCount;
 //distances
-volatile int32_t leftRoad; // mm
-volatile int32_t rightRoad; // mm
-volatile int32_t fwdRoad ; // mm
+volatile float leftRoad; // mm
+volatile float rightRoad; // mm
+volatile float fwdRoad ; // mm
 
 volatile int32_t leftTotal;
 volatile int32_t rightTotal;
@@ -193,11 +193,12 @@ float pid_calculateEngine(float set_val, float read_val)
 			+ pid_paramsEngine.kd * err_d);
 
 	wyjscieRegulatoraE = u;
+	if(set_val < 0) u*=1.5f;
 	u = 1500 + (u/5000);
 	if(set_val < 0) u -= 100;
 	else if(set_val > 0) u += 60;
-	if(u > 1700) u = 1700;
-	if(u< 1300) u = 1300;
+	if(u > 1800) u = 1800;
+	if(u< 1100) u = 1100;
 
 	if(kierunek == 1 && set_val < 0){
 	TIM2->CCR4 = 1300;
@@ -272,9 +273,9 @@ float pid_calculateServo(float set_pos, float set_angle, float read_pos, float r
 }
 void encodersRead(void) {
 	oldLeftEncoder = leftEncoder;
-	leftEncoder = TIM3->CNT;
+	leftEncoder = TIM5->CNT;
 	oldRightEncoder = rightEncoder;
-	rightEncoder = TIM5->CNT;
+	rightEncoder = TIM3->CNT;
 	leftCount = leftEncoder - oldLeftEncoder;
 	rightCount = rightEncoder - oldRightEncoder;
 	fwdCount = leftCount + rightCount;
@@ -288,9 +289,9 @@ void encodersRead(void) {
 	vright = rightCount * enc_coeff;
 	vfwd = (vleft + vright) / 2 ;
 
-	rightRoad +=vright*ENC_DT;
-	leftRoad +=vleft*ENC_DT;
-	fwdRoad +=vfwd*ENC_DT;
+	rightRoad += vleft * ENC_DT;
+	leftRoad += vright * ENC_DT;
+	fwdRoad += vfwd * ENC_DT;
 }
 void encodersReset(void) {
 	__disable_irq();
