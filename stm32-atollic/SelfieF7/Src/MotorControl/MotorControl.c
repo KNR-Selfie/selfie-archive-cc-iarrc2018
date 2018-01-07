@@ -92,7 +92,7 @@ void StartDriveTask(void const * argument){
 //        	}
 //        	else
         	float jetsonRatio = (j_jetsonData[0] - 1000.f) / 1000.f;
-			TIM2->CCR3 = 1400 + (int)(KpJetson * jetsonRatio);
+			TIM2->CCR3 = 1400 - (int)(3000.0 * jetsonRatio);
 //        			AngleToServo( (j_jetsonData[0] - 1000) * KpJetson /1000 );
 //        	TIM2->CCR3 = pid_calculateServo(set_pos, set_angle, j_jetsonData[0], (j_jetsonData[1]+j_jetsonData[2])*0.5);
         }
