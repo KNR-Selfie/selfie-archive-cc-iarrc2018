@@ -8,8 +8,9 @@
 #ifndef VL53L0X_CZUJNIKI_H_
 #define VL53L0X_CZUJNIKI_H_
 
-#include "cmsis_os.h"
-extern uint8_t address;
+#include "stm32f7xx_hal.h"
+
+uint16_t range;
 
 void StartCzujnikiTask(void const * argument);
 

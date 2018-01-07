@@ -55,6 +55,7 @@
 #include "Lighting.h"
 #include "Gyro.h"
 #include "Battery.h"
+#include "Czujniki.h"
 #include "BT.h"
 #include "main.h"
 #include "gpio.h"
@@ -251,6 +252,11 @@ int8_t MAIN_USB_Receive(uint8_t* Buf, uint32_t *Len) {
 		len = sprintf((char*) usbTxBuffer,
 				"set_speed\t\t= %.1f\r\act_speed\t= %.1f\r\npid\t= %.1f \r\n\r\n",
 				set_spd, actualSpeed, pid_speed);
+		CDC_Transmit_FS(usbTxBuffer, len);
+	} else if (Buf[0] == 'v') {
+		len = sprintf((char*) usbTxBuffer,
+				"vlx\t\t= %d\r\n\r\n",
+				range);
 		CDC_Transmit_FS(usbTxBuffer, len);
 	} else if (Buf[0] == 'R')
 		NVIC_SystemReset();

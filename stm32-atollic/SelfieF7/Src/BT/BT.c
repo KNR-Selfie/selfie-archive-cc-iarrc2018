@@ -17,6 +17,8 @@
 
 /* Zeby miec podstawowe dane z Gyro i Baterii */
 #include "Gyro.h"
+#include "Enc.h"
+#include "MotorControl.h"
 #include "Battery.h"
 /* oraz silnika*/
 extern float set_spd;
@@ -54,8 +56,11 @@ char tab[6];
 ///////////KONIEC TESTY BT
 
 uint8_t parking_mode = 0;
+uint8_t parking_move = 0;
 float parking_angle = 0;
 float parking_speed = 0;
+float start_angle = 0;
+float start_distance = 0;
 
 void BT_Commands(uint8_t* Buf, uint32_t length);
 
@@ -68,15 +73,42 @@ void StartBTTask(void const * argument) {
 	while (1) {
 //		osSemaphoreWait(BTSemaphore, osWaitForever);
 //		osSignalWait(0x01, osWaitForever);
-		if(parking_mode)
-		{
-			const float start_angle = CumulativeYaw;
-			parking_angle = -90.f;
-			parking_speed = -15000;
-			if((CumulativeYaw - start_angle)> 45 || (CumulativeYaw - start_angle)< -45)
-				parking_angle = 0;
+		if (parking_mode) {
+			float steering = 0, velocity = 0;
+			if (parking_move == 0) {
+				start_angle = CumulativeYaw;
+				++parking_move;
+			}
+			if (parking_move == 1) {
+				steering = -90.f;
+				velocity = -15000;
+				if ((CumulativeYaw - start_angle) > 45
+						|| (CumulativeYaw - start_angle) < -45)
+					++parking_move;
+				start_distance = fwdRoad;
+			}
+			if (parking_move == 2) {
+				steering = 0;
+				velocity = -15000;
+				if ((fwdRoad - start_distance) > 100)
+					++parking_move;
+			}
+			if (parking_move == 3) {
+				steering = 90.f;
+				velocity = -15000;
+				if ((CumulativeYaw - start_angle) > 45
+						|| (CumulativeYaw - start_angle) < -45) {
+					steering = 0.f;
+					velocity = 0.f;
+					parking_move = 0;
+					parking_mode = 0;
+				}
+			}
+			parking_angle = steering;
+			parking_speed = velocity;
+			osSemaphoreRelease(DriveControlSemaphoreHandle);
 		}
-		osDelay(100);
+		osDelay(50);
 	}
 }
 void BT_Commands(uint8_t* Buf, uint32_t length) {
@@ -102,10 +134,13 @@ void BT_Commands(uint8_t* Buf, uint32_t length) {
 				set_spd, actualSpeed, pid_speed);
 		HAL_UART_Transmit_DMA(&huart3, txdata, size);
 	} else if (Buf[0] == 'p') {
-		size = sprintf((char*) txdata,"bede parkowal \r\n\r\n");
-		HAL_UART_Transmit_DMA(&huart3, txdata, size);
-		if(parking_mode) parking_mode = 0;
-		else parking_mode = 1;
+		if (parking_mode)
+			parking_mode = 0;
+		else {
+			parking_mode = 1;
+			size = sprintf((char*) txdata, "bede parkowal \r\n\r\n");
+			HAL_UART_Transmit_DMA(&huart3, txdata, size);
+		}
 	} else if (Buf[0] == '+') {
 		KpJetson += 20.f;
 		size = sprintf((char*) txdata, "Kp = %.1f \r\n\r\n", KpJetson);
