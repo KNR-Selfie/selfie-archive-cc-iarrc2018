@@ -62,8 +62,55 @@ void pid_paramsinitServoAng(float kp, float ki, float kd);
 float pid_calculateEngine(float set_val, float read_val);
 float pid_calculateServo(float set_pos, float set_angle, float read_pos, float read_angle);
 
+/************ Testy matiego **************/
+#define M_PI_FLOAT  3.14159265358979323846f
+#define ENC_RESOLUTION 10240
+#define ENC_DT 0.005f
+#define WHEEL_DIAMETER 50.f
+
+//speeds
+volatile int16_t vleft; //(mm/s)
+volatile int16_t vright; //(mm/s)
+volatile int16_t vfwd; //(mm/s)
+
+
+float enc_coeff =  1.f/ (ENC_RESOLUTION / WHEEL_DIAMETER / M_PI_FLOAT * ENC_DT);
+
+volatile int16_t leftCount;
+volatile int16_t rightCount;
+
+volatile int16_t fwdCount;
+volatile int16_t rotCount;
+//distances
+volatile int32_t leftRoad; // mm
+volatile int32_t rightRoad; // mm
+volatile int32_t fwdRoad ; // mm
+
+volatile int32_t leftTotal;
+volatile int32_t rightTotal;
+volatile int32_t fwdTotal;
+volatile int32_t rotTotal;
+
+// local variables
+static volatile int16_t oldLeftEncoder;
+static volatile int16_t oldRightEncoder;
+static volatile int16_t leftEncoder;
+static volatile int16_t rightEncoder;
+static volatile int16_t encoderSum;
+static volatile int16_t encoderDiff;
+void encodersReset (void);
+void encodersRead (void);
+int16_t wheel_pid(float kp, float ki, float kd, int16_t setfwd);
+
+/************ Testy matiego **************/
 
 void StartEncTask(void const * argument) {
+	MX_TIM5_Init();
+	MX_TIM3_Init();
+	HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
+	HAL_TIM_Encoder_Start(&htim5, TIM_CHANNEL_ALL);
+	encodersReset();
+
 	pid_paramsinitEng(kpEng, kiEng, kdEng);
 	pid_paramsinitServoPos(kpServoPos, kiServoPos, kdServoPos);
 	pid_paramsinitServoAng(kpServoAng, kiServoAng, kdServoAng);
@@ -74,6 +121,7 @@ void StartEncTask(void const * argument) {
 	float koniec_kolo2 = 0;
 
 	while (1) {
+		/*
 		TIM3->CNT = 0;
 	  	poczatek_kolo1 = TIM3->CNT;
 	  	poczatek_kolo2 = TIM3->CNT;
@@ -85,8 +133,10 @@ void StartEncTask(void const * argument) {
 			if(koniec_kolo2 > 60000)
 					koniec_kolo2 -= 65535;
 		actualSpeed = ((koniec_kolo1 - poczatek_kolo1)/0.005 + (koniec_kolo2 - poczatek_kolo2)/0.005) * 0.5;
-
-
+		 */
+		encodersRead();
+		actualSpeed = ((leftCount)/0.005 + (rightCount)/0.005) * 0.5;
+		osDelay(5);
 
 	}
 }
@@ -219,4 +269,82 @@ float pid_calculateServo(float set_pos, float set_angle, float read_pos, float r
 	wyjscieRegulatoraSA = uAng;
 	wyjscieRegulatoraS = u;
 	return u;
+}
+void encodersRead(void) {
+	oldLeftEncoder = leftEncoder;
+	leftEncoder = TIM3->CNT;
+	oldRightEncoder = rightEncoder;
+	rightEncoder = TIM5->CNT;
+	leftCount = leftEncoder - oldLeftEncoder;
+	rightCount = rightEncoder - oldRightEncoder;
+	fwdCount = leftCount + rightCount;
+	rotCount = -(leftCount - rightCount);
+	fwdTotal += fwdCount;
+	rotTotal += rotCount;
+	leftTotal += leftCount;
+	rightTotal += rightCount;
+
+	vleft = leftCount * enc_coeff;
+	vright = rightCount * enc_coeff;
+	vfwd = (vleft + vright) / 2 ;
+
+	rightRoad +=vright*ENC_DT;
+	leftRoad +=vleft*ENC_DT;
+	fwdRoad +=vfwd*ENC_DT;
+}
+void encodersReset(void) {
+	__disable_irq();
+	oldLeftEncoder = 0;
+	oldRightEncoder = 0;
+	leftTotal = 0;
+	rightTotal = 0;
+	fwdTotal = 0;
+	rotTotal = 0;
+
+	vleft = 0;
+	vright = 0;
+	vfwd = 0;
+
+	rightRoad = 0;
+	leftRoad = 0;
+	fwdRoad = 0;
+
+	TIM3->CNT = 0;
+	TIM5->CNT = 0;
+	encodersRead();
+	__enable_irq();
+}
+int16_t wheel_pid(float kp, float ki, float kd, int16_t setfwd) {
+	int16_t pterm, iterm, dterm, pid;
+	int32_t error, delta;
+	static int32_t error_sum;
+	static int32_t error_last;
+
+	encodersRead();
+	error = setfwd - vfwd;
+	error_sum += error;
+	if (error_sum > 10000)
+		error_sum = 10000;
+	else if (error_sum < -10000)
+		error_sum = -10000;
+
+	delta = error_last - error_sum;
+	error_last = error_sum;
+
+	pterm = kp * error;
+	iterm = ki * error_sum;
+	if (iterm > 250)
+		iterm = 250;
+	else if (iterm < -250)
+		iterm = -250;
+
+	dterm = kd * delta;
+
+	pid = pterm + iterm + dterm;
+	if (pid > 1000)
+		pid = 1000;
+	else if (pid < -1000)
+		pid = 1000;
+
+	return pid;
 }

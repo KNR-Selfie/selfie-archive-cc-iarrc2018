@@ -8,8 +8,8 @@
 #ifndef BATTERY_BATTERY_H_
 #define BATTERY_BATTERY_H_
 
-extern float Amps_f;
-extern float Volts_f;
+float Amps_f;
+float Volts_f;
 float mAhs_drawn;
 void StartBatteryManager(void const * argument);
 #endif /* BATTERY_BATTERY_H_ */

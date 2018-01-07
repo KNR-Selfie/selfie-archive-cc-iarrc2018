@@ -4,9 +4,10 @@
 #include "stm32f7xx_hal.h"
 #include <stdbool.h>
 
-#define VL53L0X_I2C_TIMEOUT	10 // milliseconds
+bool VL53L0X_init(void);
+uint16_t readRangeSingleMillimeters(void);
 
-    enum VL53L0X_regAddr
+enum regAddr
     {
       SYSRANGE_START                              = 0x00,
 
@@ -89,44 +90,8 @@
 
       ALGO_PHASECAL_LIM                           = 0x30,
       ALGO_PHASECAL_CONFIG_TIMEOUT                = 0x30,
-    };
-
-    typedef enum VL53L0X_vcselPeriodType { VL53L0X_VcselPeriodPreRange, VL53L0X_VcselPeriodFinalRange } VL53L0X_vcselPeriodType;
-
-    extern uint8_t VL53L0X_last_status; // status of last I2C transmission
-    extern I2C_HandleTypeDef hi2c2;
-
-    void VL53L0X_setAddress(uint8_t new_addr);
-    uint8_t VL53L0X_getAddress(void);
-
-    bool VL53L0X_init(bool io_2v8); // default "io_2v8 = true"
-
-    void VL53L0X_writeReg(uint8_t reg, uint8_t value);
-    void VL53L0X_writeReg16Bit(uint8_t reg, uint16_t value);
-    void VL53L0X_writeReg32Bit(uint8_t reg, uint32_t value);
-    uint8_t VL53L0X_readReg(uint8_t reg);
-    uint16_t VL53L0X_readReg16Bit(uint8_t reg);
-    uint32_t VL53L0X_readReg32Bit(uint8_t reg);
-
-    void VL53L0X_writeMulti(uint8_t reg, uint8_t const * src, uint8_t count);
-    void VL53L0X_readMulti(uint8_t reg, uint8_t * dst, uint8_t count);
-
-    bool VL53L0X_setSignalRateLimit(float limit_Mcps);
-    float VL53L0X_getSignalRateLimit(void);
-
-    bool VL53L0X_setMeasurementTimingBudget(uint32_t budget_us);
-    uint32_t VL53L0X_getMeasurementTimingBudget(void);
-
-    bool VL53L0X_setVcselPulsePeriod(VL53L0X_vcselPeriodType type, uint8_t period_pclks);
-    uint8_t VL53L0X_getVcselPulsePeriod(VL53L0X_vcselPeriodType type);
-
-    void VL53L0X_startContinuous(uint32_t period_ms); // default "period_ms = 0"
-    void VL53L0X_stopContinuous(void);
-    uint16_t VL53L0X_readRangeContinuousMillimeters(void);
-    uint16_t VL53L0X_readRangeSingleMillimeters(void);
-    void VL53L0X_setTimeout(uint16_t timeout);
-    uint16_t VL53L0X_getTimeout(void);
-    bool VL53L0X_timeoutOccurred(void);
+};
+typedef enum vcselPeriodType_e { VcselPeriodPreRange, VcselPeriodFinalRange }vcselPeriodType;
 
 #endif
 
