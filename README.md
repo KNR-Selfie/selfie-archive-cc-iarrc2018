@@ -1,22 +1,23 @@
 # Selfie-autonomous-car
 Autonomous RC car project
 
-## android-app
-Application for Android System to handle vehicle parameters via Bluetooth
+## Description of content
 
-## RPi-robot
+### cpp-opencv-app (under development)
+Computer Vision application designed to run on NVidia Jetson / Odroid platform.
+
+### stm32-app (under development) 
+Vehicle controller based on FreeRTOS. Project for STM32F7 (AnyFC F7 board)
+
+### java-desktop-app (under development / suspended)
+Java application for Desktop communicating via Bluetooth.
+
+### RPi-robot (under development / suspended)
 To run projects, on your RPi, have to fill remotedebug.xml files with your pi logging data and remove .dist extention.
 Remote debuging done according to: http://www.raspirecipes.org/archives/218
 
-## java-desktop-app
-Java application for Desktop communicating via Bluetooth.
-
-## cpp-opencv-app
-Computer Vision application designed to run on NVidia Jetson platform.
-
-## stm32-app
-Vehicle controller fro STM32F7 (AnyFC F7)
-
+### android-app (under development / suspended)
+Application for Android System to handle vehicle parameters via Bluetooth
 
 ## How to contribute
 
