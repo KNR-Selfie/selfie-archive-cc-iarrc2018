@@ -256,7 +256,7 @@ float pid_calculateServo(float set_pos, float set_angle, float read_pos, float r
 
 
 	/////////////waga dwoch wartosci z pida
-	u = 0.9*uPos+uAng *0.1;
+	u = 1*uPos+uAng *0;
 
 	////////dane do debuggowania
 	errorS = pid_paramsServoPos.err + pid_paramsServoAng.err;
