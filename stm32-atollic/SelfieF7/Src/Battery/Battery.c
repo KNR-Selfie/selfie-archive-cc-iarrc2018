@@ -22,8 +22,6 @@ uint16_t adc_raw[3];
 float Amps_raw;
 float Amps_f;
 
-float Volts_raw;
-float Volts_f;
 
 float dT = 41.f / 375000.f;
 
@@ -37,17 +35,19 @@ void StartBatteryManager(void const * argument){
 	lpf_filter_init(&amps_filter, 20, 1.f/dT);
 	while(1)
 	{
-		osSemaphoreWait(ADCSemaphore, osWaitForever);
+		osDelay(500);
+//		osSemaphoreWait(ADCSemaphore, osWaitForever);
+
+	}
+}
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
+	if (hadc->Instance == hadc1.Instance) {
+//		osSemaphoreRelease(ADCSemaphore);
 		Amps_raw = (float)adc_raw[1] * 3.05f / 4095.f *20.f;
 		Amps_f = filter_apply(&amps_filter, Amps_raw);
 
 		mAhs_drawn += Amps_raw *41.f / 375.f;
 
 		Volts_f = (float)adc_raw[2] * 3.05f / 4095.f *5.7f;
-	}
-}
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
-	if (hadc->Instance == hadc1.Instance) {
-		osSemaphoreRelease(ADCSemaphore);
 	}
 }

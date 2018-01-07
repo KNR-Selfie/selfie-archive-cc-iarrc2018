@@ -56,6 +56,7 @@
 #include "Gyro.h"
 #include "Battery.h"
 #include "Czujniki.h"
+#include "Enc.h"
 #include "BT.h"
 #include "main.h"
 #include "gpio.h"
@@ -248,14 +249,14 @@ int8_t MAIN_USB_Receive(uint8_t* Buf, uint32_t *Len) {
 				"Voltage\t\t= %.2f Volts\r\nCurrent\t= %.2f Amps\r\nFuel\t= %.1f mAh\r\n\r\n",
 				Volts_f, Amps_f, mAhs_drawn);
 		CDC_Transmit_FS(usbTxBuffer, len);
-	} else if (Buf[0] == 'm') {
-		len = sprintf((char*) usbTxBuffer,
-				"set_speed\t\t= %.1f\r\act_speed\t= %.1f\r\npid\t= %.1f \r\n\r\n",
-				set_spd, actualSpeed, pid_speed);
+	} else if (Buf[0] == 'e') {
+		len =
+				sprintf((char*) usbTxBuffer,
+						"vleft = %d \r\nvright = %d \r\nvfwd = %d \r\ndistleft = %d \r\ndistright = %dfwdDist = %d \r\n\r\n\r\n",
+						vleft, vright, vfwd, leftRoad, rightRoad, fwdRoad);
 		CDC_Transmit_FS(usbTxBuffer, len);
 	} else if (Buf[0] == 'v') {
-		len = sprintf((char*) usbTxBuffer,
-				"vlx\t\t= %d\r\n\r\n",
+		len = sprintf((char*) usbTxBuffer, "vlx distance\t\t= %d\r\n\r\n",
 				range);
 		CDC_Transmit_FS(usbTxBuffer, len);
 	} else if (Buf[0] == 'R')

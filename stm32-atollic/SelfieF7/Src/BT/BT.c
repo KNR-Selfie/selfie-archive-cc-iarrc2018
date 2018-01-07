@@ -18,6 +18,7 @@
 /* Zeby miec podstawowe dane z Gyro i Baterii */
 #include "Gyro.h"
 #include "Enc.h"
+#include "Czujniki.h"
 #include "MotorControl.h"
 #include "Battery.h"
 /* oraz silnika*/
@@ -25,7 +26,7 @@ extern float set_spd;
 extern float actualSpeed;
 extern float pid_speed;
 
-float KpJetson = 300.f;
+float KpJetson = 3000.f;
 
 extern osThreadId BTTaskHandle;
 xSemaphoreHandle BTSemaphore = NULL;
@@ -130,8 +131,11 @@ void BT_Commands(uint8_t* Buf, uint32_t length) {
 		HAL_UART_Transmit_DMA(&huart3, txdata, size);
 	} else if (Buf[0] == 'm') {
 		size = sprintf((char*) txdata,
-				"set_speed\t\t= %.1f\r\act_speed\t= %.1f\r\npid\t= %.1f \r\n\r\n",
-				set_spd, actualSpeed, pid_speed);
+				"vleft = %d \r\nvright = %d \r\nvfwd = %d \r\ndistleft = %d \r\ndistright = %dfwdDist = %d \r\n\r\n\r\n",
+				vleft, vright, vfwd, leftRoad, rightRoad, fwdRoad);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	} else if (Buf[0] == 'v') {
+		size = sprintf((char*) txdata, "vlx distance\t\t= %d\r\n\r\n", range);
 		HAL_UART_Transmit_DMA(&huart3, txdata, size);
 	} else if (Buf[0] == 'p') {
 		if (parking_mode)

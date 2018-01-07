@@ -15,7 +15,7 @@ extern volatile int16_t vright; //(mm/s)
 extern volatile int16_t vfwd; //(mm/s)
 
 extern volatile int32_t leftRoad; // mm
-extern volatile int32_t rightRpad; // mm
+extern volatile int32_t rightRoad; // mm
 extern volatile int32_t fwdRoad ; // mm
 int16_t wheel_pid(float kp, float ki, float kd, int16_t setfwd);
 

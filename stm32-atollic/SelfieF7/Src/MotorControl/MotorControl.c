@@ -90,7 +90,7 @@ void StartDriveTask(void const * argument){
 				TIM2->CCR3 = AngleToServo(parking_angle);
 			} else {
 				float jetsonRatio = (j_jetsonData[0] - 1000.f) / 1000.f;
-				TIM2->CCR3 = 1400 - (int) (3000.0 * jetsonRatio);
+				TIM2->CCR3 = 1400 - (int) (KpJetson * jetsonRatio);
 //        			AngleToServo( (j_jetsonData[0] - 1000) * KpJetson /1000 );
 //        	TIM2->CCR3 = pid_calculateServo(set_pos, set_angle, j_jetsonData[0], (j_jetsonData[1]+j_jetsonData[2])*0.5);
 			}
@@ -104,5 +104,5 @@ void StartDriveTask(void const * argument){
 /* +/- 90^ */
 uint16_t AngleToServo(float angle)
 {
-	return (1400 + (uint16_t)(400.f * angle/90.f));
+	return (1400 + (int16_t)(400.f * angle/90.f));
 }

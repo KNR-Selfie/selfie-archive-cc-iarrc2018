@@ -83,7 +83,7 @@ volatile int16_t fwdCount;
 volatile int16_t rotCount;
 //distances
 volatile int32_t leftRoad; // mm
-volatile int32_t rightRpad; // mm
+volatile int32_t rightRoad; // mm
 volatile int32_t fwdRoad ; // mm
 
 volatile int32_t leftTotal;
@@ -121,6 +121,7 @@ void StartEncTask(void const * argument) {
 	float koniec_kolo2 = 0;
 
 	while (1) {
+		/*
 		TIM3->CNT = 0;
 	  	poczatek_kolo1 = TIM3->CNT;
 	  	poczatek_kolo2 = TIM3->CNT;
@@ -132,8 +133,10 @@ void StartEncTask(void const * argument) {
 			if(koniec_kolo2 > 60000)
 					koniec_kolo2 -= 65535;
 		actualSpeed = ((koniec_kolo1 - poczatek_kolo1)/0.005 + (koniec_kolo2 - poczatek_kolo2)/0.005) * 0.5;
-
-
+		 */
+		encodersRead();
+		actualSpeed = ((leftCount)/0.005 + (rightCount)/0.005) * 0.5;
+		osDelay(5);
 
 	}
 }
@@ -284,7 +287,10 @@ void encodersRead(void) {
 	vleft = leftCount * enc_coeff;
 	vright = rightCount * enc_coeff;
 	vfwd = (vleft + vright) / 2 ;
-	fwdRoad +=vfwd;
+
+	rightRoad +=vright*ENC_DT;
+	leftRoad +=vleft*ENC_DT;
+	fwdRoad +=vfwd*ENC_DT;
 }
 void encodersReset(void) {
 	__disable_irq();
@@ -294,6 +300,15 @@ void encodersReset(void) {
 	rightTotal = 0;
 	fwdTotal = 0;
 	rotTotal = 0;
+
+	vleft = 0;
+	vright = 0;
+	vfwd = 0;
+
+	rightRoad = 0;
+	leftRoad = 0;
+	fwdRoad = 0;
+
 	TIM3->CNT = 0;
 	TIM5->CNT = 0;
 	encodersRead();
