@@ -252,7 +252,7 @@ int8_t MAIN_USB_Receive(uint8_t* Buf, uint32_t *Len) {
 	} else if (Buf[0] == 'e') {
 		len =
 				sprintf((char*) usbTxBuffer,
-						"vleft = %d \r\nvright = %d \r\nvfwd = %d \r\ndistleft = %d \r\ndistright = %dfwdDist = %d \r\n\r\n\r\n",
+						"vleft = %d \r\nvright = %d \r\nvfwd = %d \r\ndistleft = %.1f \r\ndistright = %.1f\r\nfwdDist = %.1f \r\n\r\n",
 						vleft, vright, vfwd, leftRoad, rightRoad, fwdRoad);
 		CDC_Transmit_FS(usbTxBuffer, len);
 	} else if (Buf[0] == 'v') {
