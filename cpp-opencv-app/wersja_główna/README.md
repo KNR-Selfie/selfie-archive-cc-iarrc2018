@@ -10,4 +10,4 @@ $ make
 
 ### To properly run the whole project from any of "build" dirs execute:
 
- $ sudo ../../autostart/build/autostart  
+$ sudo ../../autostart/build/autostart  
