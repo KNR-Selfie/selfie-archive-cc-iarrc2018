@@ -7,14 +7,15 @@
 
 #include "MotorControl.h"
 #include "tim.h"
-#include "Lighting.h"
 #include "cmsis_os.h"
+#include "Lighting.h"
 
 
 float set_spd = 0;
 float set_pos = 0;
 float set_angle = 0;
 uint16_t dutyServo = 0;
+extern uint16_t range;
 
 float pid_speed = 0;
 extern float KpJetson;
@@ -25,62 +26,60 @@ extern float parking_speed;
 
 uint16_t AngleToServo(float angle);
 
-void StartMotorControlTask(void const * argument){
-    //uruchomienie ESC
-    TIM2->CCR4 = 2000;
-    osDelay(1000);
-    TIM2->CCR4 = 1500;
-    osDelay(2000);
+void StartMotorControlTask(void const * argument) {
+	//uruchomienie ESC
+	TIM2->CCR4 = 2000;
+	osDelay(1000);
+	TIM2->CCR4 = 1500;
+	osDelay(2000);
 
-    //zabezpieczenie przed jazd¹ do ty³u
-    TIM2->CCR4 = 1520;
-    osDelay(50);
+	//zabezpieczenie przed jazd¹ do ty³u
+	TIM2->CCR4 = 1520;
+	osDelay(50);
 
-    int transition = 0;
+	int transition = 0;
 
-    while (1)
-        {
-            osSemaphoreWait (DriveControlSemaphoreHandle, osWaitForever);
-            if (a_channels[5] < 500) //gorna pozycja przelacznika - pelna kontrola
-                {
-                    set_spd = 300000 * (a_channels[1] - 1027) / (1680 - 368);
-                    dutyServo = (1400 + 800 * (a_channels[3] - 1000) / (1921 - 80));
-                }
-            else if (a_channels[5] > 1500) //dolna pozycja prze31cznika, jazda autonomiczna
-                {
-                    HAL_TIM_Base_Start_IT (&htim10); // timer od sprawdzania komunikacji
-                    //jezeli jest komunikacja na linii Jetson <-> STM
-                    if(parking_mode)
-                    {
-                    	set_spd = parking_speed;
-                    }
-                    else if (j_syncByte == 255)
-                        {
-                            //gdy brak wykrytej linii stop lub zbocze opadajace -> jedz.
-                    	    //pozostawiona furtka zeby z BT zadawac spd/pos. Wystawic transition na 1 i dopisac kod na zadawanie z bt
-                            if (!(transition))
-                                {
-                            	      set_spd = 30000;
-                            	      set_pos = 1000;
-                            	      set_angle = 90;
-                                }
-                        }
-                    else if (j_syncByte == 200) //je?eli nie istnieje Jetson <-> STM, wylacz naped (wartosc j_syncByte = 200 jest ustawiana przez TIMER10)
-                        {
-                            set_spd = 0;
-                        }
-                }
-            else //srodkowa pozycja prze³acznika, tryb polautonomiczny
-                {
-                    set_spd = (300000 * (a_channels[1] - 1027) / (1680 - 368));
-                    set_pos = 1000;
-                    set_angle = 90;
-                }
-            osSemaphoreRelease(EngineSemaphoreHandle);
-        }
+	while (1) {
+		osSemaphoreWait(DriveControlSemaphoreHandle, osWaitForever);
+		if (a_channels[5] < 500) //gorna pozycja przelacznika - pelna kontrola
+				{
+			set_spd = 300000 * (a_channels[1] - 1027) / (1680 - 368);
+			dutyServo = (1400 + 800 * (a_channels[3] - 1000) / (1921 - 80));
+		} else if (a_channels[5] > 1500) //dolna pozycja prze31cznika, jazda autonomiczna
+				{
+			HAL_TIM_Base_Start_IT(&htim10); // timer od sprawdzania komunikacji
+			//jezeli jest komunikacja na linii Jetson <-> STM
+			if (parking_mode) {
+				set_spd = parking_speed;
+			} else if (j_syncByte == 255) {
+				//gdy brak wykrytej linii stop lub zbocze opadajace -> jedz.
+				//pozostawiona furtka zeby z BT zadawac spd/pos. Wystawic transition na 1 i dopisac kod na zadawanie z bt
+				if (!(transition)) {
+					if (range < 400) {
+						set_spd = 0;
+						sidesignals = SIDETURN_LEFT;
+					} else {
+						set_spd = 30000;
+						sidesignals = SIDETURN_NONE;
+					}
+					set_pos = 1000;
+					set_angle = 90;
+				}
+			} else if (j_syncByte == 200) //je?eli nie istnieje Jetson <-> STM, wylacz naped (wartosc j_syncByte = 200 jest ustawiana przez TIMER10)
+					{
+				set_spd = 0;
+			}
+		} else //srodkowa pozycja prze³acznika, tryb polautonomiczny
+		{
+			set_spd = (300000 * (a_channels[1] - 1027) / (1680 - 368));
+			set_pos = 1000;
+			set_angle = 90;
+		}
+		osSemaphoreRelease(EngineSemaphoreHandle);
+	}
 }
 
-void StartDriveTask(void const * argument){
+void StartDriveTask(void const * argument) {
 
 	while (1) {
 		osSemaphoreWait(EngineSemaphoreHandle, osWaitForever);
@@ -98,14 +97,15 @@ void StartDriveTask(void const * argument){
 		}
 		/* Dziala pid */
 		pid_speed = pid_calculateEngine(set_spd, actualSpeed);
-		if(pid_speed < 1500) brakesignals = BRAKE_NORMAL;
-		else brakesignals = BRAKE_NONE;
+		if (pid_speed < 1500)
+			brakesignals = BRAKE_NORMAL;
+		else
+			brakesignals = BRAKE_NONE;
 		TIM2->CCR4 = pid_speed; //(1500 + 1000 * (a_channels[1] - 1027) / (1680 - 368));
 
 	}
 }
 /* +/- 90^ */
-uint16_t AngleToServo(float angle)
-{
-	return (1400 + (int16_t)(400.f * angle/90.f));
+uint16_t AngleToServo(float angle) {
+	return (1400 + (int16_t) (400.f * angle / 90.f));
 }

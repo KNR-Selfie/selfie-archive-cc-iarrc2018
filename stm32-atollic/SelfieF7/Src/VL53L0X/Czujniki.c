@@ -20,7 +20,7 @@ void StartCzujnikiTask(void const * argument)
 		;
 
 	while (1) {
-		osDelay(100);
+		osDelay(33);
 		range = readRangeSingleMillimeters();
 	}
 
