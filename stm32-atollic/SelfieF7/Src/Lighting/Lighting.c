@@ -31,14 +31,15 @@ uint16_t RX_POT;
 int rgb[22][3];
 float brightness;
 
+SideTurnSignalType_e sidesignals = SIDETURN_NONE;
+BrakeSignalType_e brakesignals = BRAKE_NONE;
+
 void StartLightingTask(void const * argument) {
 	ws2812_init();
 	while (1) {
 		RXtoLighting(a_channels);
-
-
 		if (RX_POT > 1027) {
-			brightness = (RX_POT - 1027.f) / 706.f;
+			brightness = (RX_POT - 1027.f) / 920.f;
 			static int16_t scounter1 = 1;
 			scounter1++;
 			if (scounter1 > 359)
@@ -54,7 +55,7 @@ void StartLightingTask(void const * argument) {
 						rgb[indeks][2]);
 			}
 		} else {
-			brightness = -(RX_POT - 1027.f) / 706.f;
+			brightness = -(RX_POT - 1027.f) / 920.f;
 			ws2812_set_color(4, 0, 0, 0);
 			ws2812_set_color(5, 0, 0, 0);
 			ws2812_set_color(6, 0, 0, 0);
@@ -62,7 +63,7 @@ void StartLightingTask(void const * argument) {
 			ws2812_set_color(15, 0, 0, 0);
 			ws2812_set_color(16, 0, 0, 0);
 			ws2812_set_color(17, 0, 0, 0);
-			if (RX_AETR[3] > 1250) {
+			if (RX_AETR[3] > 1250 || sidesignals == SIDETURN_LEFT) {
 				static int cnt_ind1 = 0;
 				++cnt_ind1;
 				if (cnt_ind1 > 200) {
@@ -134,7 +135,7 @@ void StartLightingTask(void const * argument) {
 				ws2812_set_color(1, 255, 255, 255);
 				ws2812_set_color(2, 255, 255, 255);
 				ws2812_set_color(3, 255, 255, 255);
-				if (RX_AETR[1] < 1027) {
+				if (RX_AETR[1] < 1027 || brakesignals == BRAKE_NORMAL) {
 					ws2812_set_color(20, 255, 0, 0);
 					ws2812_set_color(19, 255, 0, 0);
 					ws2812_set_color(18, 255, 0, 0);
@@ -144,7 +145,7 @@ void StartLightingTask(void const * argument) {
 					ws2812_set_color(19, 50, 0, 0);
 					ws2812_set_color(18, 50, 0, 0);
 				}
-			} else if (RX_AETR[3] < 800) {
+			} else if (RX_AETR[3] < 800 || sidesignals == SIDETURN_RIGHT) {
 				static int cnt_ind2 = 0;
 				++cnt_ind2;
 				if (cnt_ind2 > 200) {
@@ -216,7 +217,7 @@ void StartLightingTask(void const * argument) {
 				ws2812_set_color(7, 255, 255, 255);
 				ws2812_set_color(8, 255, 255, 255);
 				ws2812_set_color(9, 255, 255, 255);
-				if (RX_AETR[1] < 1027) {
+				if (RX_AETR[1] < 1027 || brakesignals == BRAKE_NORMAL) {
 					ws2812_set_color(12, 255, 0, 0);
 					ws2812_set_color(13, 255, 0, 0);
 					ws2812_set_color(14, 255, 0, 0);
@@ -241,7 +242,7 @@ void StartLightingTask(void const * argument) {
 				ws2812_set_color(21, 0, 0, 0);
 				ws2812_set_color(11, 0, 0, 0);
 				ws2812_set_color(10, 0, 0, 0);
-				if (RX_AETR[1] < 1027) {
+				if (RX_AETR[1] < 1027 || brakesignals == BRAKE_NORMAL) {
 					ws2812_set_color(12, 255, 0, 0);
 					ws2812_set_color(13, 255, 0, 0);
 					ws2812_set_color(14, 255, 0, 0);
@@ -262,7 +263,7 @@ void StartLightingTask(void const * argument) {
 			}
 
 		}
-		osDelay(5);
+		osDelay(10);
 	}
 }
 void ws2812_init(void) {

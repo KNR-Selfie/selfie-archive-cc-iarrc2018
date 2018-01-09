@@ -10,6 +10,8 @@
 
 #include "math.h"
 
+
+
 void StartLightingTask(void const * argument);
 void ws2812_init(void);
 void ws2812_set_color(int led, uint8_t r, uint8_t g, uint8_t b);
@@ -19,4 +21,17 @@ void hsi2rgb(float H, float S, float I, int* rgb);
 extern uint16_t a_channels[16];
 void RXtoLighting(const uint16_t* rx_data);
 
+typedef enum {
+	SIDETURN_NONE = 0,
+    SIDETURN_LEFT,
+	SIDETURN_RIGHT,
+} SideTurnSignalType_e;
+typedef enum {
+	BRAKE_NONE = 0,
+    BRAKE_NORMAL,
+	BRAKE_EMERGENCY,
+} BrakeSignalType_e;
+
+extern SideTurnSignalType_e sidesignals;
+extern BrakeSignalType_e brakesignals;
 #endif /* APPLICATION_USER_LIGHTING_LIGHTING_H_ */

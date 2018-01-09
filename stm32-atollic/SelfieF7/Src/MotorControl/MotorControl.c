@@ -7,6 +7,7 @@
 
 #include "MotorControl.h"
 #include "tim.h"
+#include "Lighting.h"
 #include "cmsis_os.h"
 
 
@@ -97,6 +98,8 @@ void StartDriveTask(void const * argument){
 		}
 		/* Dziala pid */
 		pid_speed = pid_calculateEngine(set_spd, actualSpeed);
+		if(pid_speed < 1500) brakesignals = BRAKE_NORMAL;
+		else brakesignals = BRAKE_NONE;
 		TIM2->CCR4 = pid_speed; //(1500 + 1000 * (a_channels[1] - 1027) / (1680 - 368));
 
 	}

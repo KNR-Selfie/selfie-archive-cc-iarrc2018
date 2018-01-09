@@ -18,6 +18,7 @@
 /* Zeby miec podstawowe dane z Gyro i Baterii */
 #include "Gyro.h"
 #include "Enc.h"
+#include "Lighting.h"
 #include "Czujniki.h"
 #include "MotorControl.h"
 #include "Battery.h"
@@ -75,6 +76,7 @@ void StartBTTask(void const * argument) {
 //		osSemaphoreWait(BTSemaphore, osWaitForever);
 //		osSignalWait(0x01, osWaitForever);
 		if (parking_mode) {
+			sidesignals = SIDETURN_RIGHT;
 			float steering = 0, velocity = 0;
 			if (parking_move == 0) {
 				start_angle = CumulativeYaw;
@@ -122,6 +124,7 @@ void StartBTTask(void const * argument) {
 					velocity = 0.f;
 					parking_move = 0;
 					parking_mode = 0;
+					sidesignals = SIDETURN_NONE;
 				}
 			}
 			parking_angle = steering;
