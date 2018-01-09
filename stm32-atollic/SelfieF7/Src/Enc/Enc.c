@@ -75,6 +75,7 @@ volatile int16_t vfwd; //(mm/s)
 
 
 float enc_coeff =  1.f/ (ENC_RESOLUTION / WHEEL_DIAMETER / M_PI_FLOAT * ENC_DT);
+float enc_totalcoeff = 1.f/ (ENC_RESOLUTION / WHEEL_DIAMETER / M_PI_FLOAT);
 
 volatile int16_t leftCount;
 volatile int16_t rightCount;
@@ -289,9 +290,9 @@ void encodersRead(void) {
 	vright = rightCount * enc_coeff;
 	vfwd = (vleft + vright) / 2 ;
 
-	rightRoad += vleft * ENC_DT;
-	leftRoad += vright * ENC_DT;
-	fwdRoad += vfwd * ENC_DT;
+	rightRoad = rightTotal * enc_totalcoeff;
+	leftRoad = leftTotal * enc_totalcoeff;
+	fwdRoad = 0.5f*leftRoad + 0.5f*rightRoad;
 }
 void encodersReset(void) {
 	__disable_irq();
