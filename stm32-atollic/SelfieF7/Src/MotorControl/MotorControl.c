@@ -14,6 +14,7 @@ float set_spd = 0;
 float set_pos = 0;
 float set_angle = 0;
 uint16_t dutyServo = 0;
+extern uint16_t range;
 
 float pid_speed = 0;
 extern float KpJetson;
@@ -59,6 +60,9 @@ void StartMotorControlTask(void const * argument){
                     	    //pozostawiona furtka zeby z BT zadawac spd/pos. Wystawic transition na 1 i dopisac kod na zadawanie z bt
                             if (!(transition))
                                 {
+                            		if(range < 400)
+                            			set_spd = 0;
+                            		else
                             	      set_spd = 30000;
                             	      set_pos = 1000;
                             	      set_angle = 90;
