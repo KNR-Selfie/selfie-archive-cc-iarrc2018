@@ -547,26 +547,28 @@ void LineDetector::restart_lane_detection()
 
 	left_ang_st = 90;
 	right_ang_st = 90;
+
+	current_lane = 1;
 }
 
 //
 void LineDetector::change_lane()
 {
-	if(actual_lane)
+	if(current_lane)
 	{
-		actual_lane = 0;
+		current_lane = 0;
 		last_top_middle_point.coordinates.x -= width;
 		last_bottom_middle_point.coordinates.x -= width;
 		new_middle -= width;
-		width *= 1.5;
+		width *= 1.8;
 	}
 	else
 	{
-		actual_lane = 1;
+		current_lane = 1;
 		last_top_middle_point.coordinates.x += width;
 		last_bottom_middle_point.coordinates.x += width;
 		new_middle += width;
-		width *= 1.5;
+		width *= 1.8;
 	}
 }
 

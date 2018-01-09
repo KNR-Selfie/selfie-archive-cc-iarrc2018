@@ -304,7 +304,40 @@ int main()
 
         //Send fixed data, do not proceed incoming frames
         case 'z':
-            //
+            while(true)
+			{
+				 //Set flag for watchdog
+        		watchdog.push_flag(1);
+				
+				camera >> frame;
+
+				uart_1.unia_danych.dane.sync_byte = 0xff;
+				uart_1.unia_danych.dane.data_0 = 320;
+				uart_1.unia_danych.dane.data_1 = 90;
+				uart_1.unia_danych.dane.data_2 = 90;
+				uart_1.unia_danych.dane.flags = 0b11000000;
+				uart_1.unia_danych.dane.end_byte = 0xfe;
+
+				uart_1.send_data();
+
+				std::cout << "\033[2J\033[1;1H";
+				std::cout << "Fixed data sent" << std::endl;
+
+				std::cout << "==========UART==========" << std::endl;
+				std::cout << "Srodek:    " << uart_1.unia_danych.dane.data_0 << std::endl;
+				std::cout << "Kat lewo:  " << uart_1.unia_danych.dane.data_1 << std::endl;
+				std::cout << "Kat prawo: " << uart_1.unia_danych.dane.data_2 << std::endl;
+				std::cout << "==========UART==========" << std::endl;
+
+				cv::imshow("Vision GRAY", frame_gray);
+				cv::imshow("Masked", frame_edges_masked);
+				cv::imshow("Data", frame_data);
+
+				keypressed = (char)cv::waitKey(FRAME_TIME);
+
+		        if( keypressed == 27 || keypressed == 'z')
+		            break;
+			}
             break;
 
         //Force lane change

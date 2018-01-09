@@ -53,7 +53,7 @@ class LineDetector
 	int right_ang_st;
 	
 	// 0 - left lane, 1 - right lane
-	bool actual_lane = 1;
+	bool current_lane;
 
 public:
 	LineDetector()
@@ -70,6 +70,8 @@ public:
 		new_pos_right = 70; 
 	 	new_middle = 320;
 	 	width = 500;
+
+		current_lane = 1;
 	}
 
 	//Dane do wysylki
