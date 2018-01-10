@@ -41,7 +41,12 @@ class LineDetector
 			TR_sector,
 			BR_sector,
 			Horizontal_lines;
-	
+
+	bool 	Parking_line;
+	bool	Detect_parking_line;	
+	bool	Cross_line;
+	bool	Vertical_line;
+
 	float 	new_slope_left; 
 	float 	new_slope_right; 
 	int 	new_pos_left; 
@@ -53,7 +58,7 @@ class LineDetector
 	int right_ang_st;
 	
 	// 0 - left lane, 1 - right lane
-	bool actual_lane = 1;
+	bool current_lane;
 
 public:
 	LineDetector()
@@ -70,6 +75,8 @@ public:
 		new_pos_right = 70; 
 	 	new_middle = 320;
 	 	width = 500;
+
+		current_lane = 1;
 	}
 
 	//Dane do wysylki
@@ -105,6 +112,12 @@ public:
 	//
 	void change_lane();
 	void display_last_middle();
+
+	//
+	void parking_line (cv::Mat frame);
+
+	//
+	void cross_line (cv::Mat frame);
 	//Sortowanie wektorow:
 	//void quick_sort (vector<Punkt> points);
 };
