@@ -41,7 +41,12 @@ class LineDetector
 			TR_sector,
 			BR_sector,
 			Horizontal_lines;
-	
+
+	bool 	Parking_line;
+	bool	Detect_parking_line;	
+	bool	Cross_line;
+	bool	Vertical_line;
+
 	float 	new_slope_left; 
 	float 	new_slope_right; 
 	int 	new_pos_left; 
@@ -107,6 +112,12 @@ public:
 	//
 	void change_lane();
 	void display_last_middle();
+
+	//
+	void parking_line (cv::Mat frame);
+
+	//
+	void cross_line (cv::Mat frame);
 	//Sortowanie wektorow:
 	//void quick_sort (vector<Punkt> points);
 };

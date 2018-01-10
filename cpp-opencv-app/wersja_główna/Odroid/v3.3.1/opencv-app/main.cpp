@@ -223,6 +223,9 @@ int main()
 		lineDetector.sort_lines();
 		lineDetector.save_for_next_step();	
 
+		lineDetector.parking_line(frame_thresh);
+		//lineDetector.cross_line(frame_thresh);
+
 		lineDetector.draw_data(frame_data);
 
 		lineDetector.send_data_to_main(detected_middle_pos_near, left_lane_angle_st, right_lane_angle_st, flags_to_UART);
