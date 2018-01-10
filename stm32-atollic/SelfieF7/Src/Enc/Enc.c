@@ -11,6 +11,7 @@
 #include "math.h"
 #include "tim.h"
 #include "gpio.h"
+#include "Filtering.h"
 
 #define ERR_SUM_MAX_ENGINE 1000000
 #define ERR_SUM_MAX_SERVOPOS 1500
@@ -66,9 +67,12 @@ float pid_calculateServo(float set_pos, float set_angle, float read_pos, float r
 #define M_PI_FLOAT  3.14159265358979323846f
 #define ENC_RESOLUTION 10240
 #define ENC_DT 0.005f
+#define MOTOR_DT 0.02f
 #define WHEEL_DIAMETER 50.f
 
 //speeds
+extern float set_spd;
+
 volatile int16_t vleft; //(mm/s)
 volatile int16_t vright; //(mm/s)
 volatile int16_t vfwd; //(mm/s)
@@ -99,6 +103,13 @@ static volatile int16_t leftEncoder;
 static volatile int16_t rightEncoder;
 static volatile int16_t encoderSum;
 static volatile int16_t encoderDiff;
+
+float wheel_kp = 0.2f;
+float wheel_ki = 0.004f;
+float wheel_kd = 0.02f;
+
+pt1Filter_t DtermLPF;
+
 void encodersReset (void);
 void encodersRead (void);
 int16_t wheel_pid(float kp, float ki, float kd, int16_t setfwd);
@@ -111,6 +122,7 @@ void StartEncTask(void const * argument) {
 	HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
 	HAL_TIM_Encoder_Start(&htim5, TIM_CHANNEL_ALL);
 	encodersReset();
+	pt1FilterInit(&DtermLPF, 50, MOTOR_DT);
 
 	pid_paramsinitEng(kpEng, kiEng, kdEng);
 	pid_paramsinitServoPos(kpServoPos, kiServoPos, kdServoPos);
@@ -122,6 +134,7 @@ void StartEncTask(void const * argument) {
 	float koniec_kolo2 = 0;
 
 	while (1) {
+		static int16_t pid_value;
 		/*
 		TIM3->CNT = 0;
 	  	poczatek_kolo1 = TIM3->CNT;
@@ -139,6 +152,11 @@ void StartEncTask(void const * argument) {
 		actualSpeed = ((leftCount)/0.005 + (rightCount)/0.005) * 0.5;
 		osDelay(5);
 
+		/* motor loop needs own separate tick
+		pid_value = wheel_pid(wheel_kp, wheel_ki, wheel_kd, set_spd);
+		TIM2->CCR4 = 1500 + pid_value;
+		osDelay(20);
+		 */
 	}
 }
 
@@ -317,10 +335,12 @@ void encodersReset(void) {
 	__enable_irq();
 }
 int16_t wheel_pid(float kp, float ki, float kd, int16_t setfwd) {
-	int16_t pterm, iterm, dterm, pid;
+	int16_t pid;
+	float pterm, iterm, dterm;
 	int32_t error, delta;
 	static int32_t error_sum;
 	static int32_t error_last;
+
 
 	encodersRead();
 	error = setfwd - vfwd;
@@ -330,23 +350,24 @@ int16_t wheel_pid(float kp, float ki, float kd, int16_t setfwd) {
 	else if (error_sum < -10000)
 		error_sum = -10000;
 
-	delta = error_last - error_sum;
-	error_last = error_sum;
+
+	delta = pt1FilterApply(&DtermLPF, (float)(error_last - error));
+	error_last = error;
 
 	pterm = kp * error;
 	iterm = ki * error_sum;
-	if (iterm > 250)
-		iterm = 250;
-	else if (iterm < -250)
-		iterm = -250;
+	if (iterm > 125)
+		iterm = 125;
+	else if (iterm < -125)
+		iterm = -125;
 
 	dterm = kd * delta;
 
-	pid = pterm + iterm + dterm;
-	if (pid > 1000)
-		pid = 1000;
-	else if (pid < -1000)
-		pid = 1000;
+	pid = (int16_t)(pterm + iterm + dterm);
+	if (pid > 500)
+		pid = 500;
+	else if (pid < -500)
+		pid = -500;
 
 	return pid;
 }

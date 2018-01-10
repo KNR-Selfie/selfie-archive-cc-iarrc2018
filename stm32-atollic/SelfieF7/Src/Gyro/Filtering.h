@@ -23,6 +23,13 @@ typedef struct filter_s {
     float d1, d2;
 } filter_t;
 
+typedef struct pt1Filter_s {
+    float state;
+    float k;
+    float RC;
+    float dT;
+} pt1Filter_t;
+
 typedef float (*filterApplyFnPtr)(void *filter, float input);
 
 float filter_apply(filter_t *filter, float input);
@@ -33,6 +40,9 @@ void lpf_filter_init(filter_t *filter, float filterFreq, uint32_t refreshRate);
 /* Filtr �rodkowozaporowy */
 float notch_filter_qualityfactor(uint16_t centerFreq, uint16_t cutoff);
 void notch_filter_init(filter_t *filter, float filterFreq, uint32_t refreshRate, float Q);
+
+void pt1FilterInit(pt1Filter_t *filter, uint8_t f_cut, float dT);
+float pt1FilterApply(pt1Filter_t *filter, float input);
 
 float nullFilterApply(void *filter, float input);
 
