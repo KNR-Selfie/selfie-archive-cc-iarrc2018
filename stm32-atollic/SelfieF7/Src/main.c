@@ -300,6 +300,12 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
                 j_jetsonData[5]  = (int16_t) ((j_buffer[6]>>7 |j_buffer[7]<<1 |j_buffer[8]<<9)            & 0x07FF);
                 j_jetsonData[6]  = (int16_t) ((j_buffer[8]>>2 |j_buffer[9]<<6)                          & 0x07FF);
                 j_jetsonData[7]  = (int16_t) ((j_buffer[9]>>5 |j_buffer[10]<<3)                         & 0x07FF);
+				if ((j_jetsonFlags[0] & 0x30) == 0x20) {
+					ParkingFlag = 1; //wykrycie strefy parkowania
+				}
+				if ((j_jetsonFlags[0] & 0x30) == 0x10) {
+					CrossFlag = 1; //wykrycie strefy parkowania
+				}
         	}
         	synchroniseUARTOdroid = 0;
             HAL_UART_Receive_DMA(&huart4, &j_syncByte, 1);
