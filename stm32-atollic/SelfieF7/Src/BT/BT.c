@@ -26,6 +26,10 @@ extern float set_spd;
 extern float actualSpeed;
 extern float pid_speed;
 
+//informacja o flagach z przerwania odroida
+extern int ParkingFlag;
+extern int CrossFlag;
+
 float KpJetson = 3000.f;
 
 extern osThreadId BTTaskHandle;
@@ -115,6 +119,16 @@ void StartBTTask(void const * argument) {
 			parking_angle = steering;
 			parking_speed = velocity;
 			osSemaphoreRelease(DriveControlSemaphoreHandle);
+		}
+		if (ParkingFlag == 1) {
+			size = sprintf((char*) txdata, "Strefa parkowania\r\n\r\n");
+			HAL_UART_Transmit_DMA(&huart3, txdata, size);
+			ParkingFlag = 0;
+		}
+		if (CrossFlag == 1) {
+			size = sprintf((char*) txdata, "Skrzy¿owanie\r\n\r\n");
+			HAL_UART_Transmit_DMA(&huart3, txdata, size);
+			CrossFlag = 0;
 		}
 		osDelay(50);
 	}
