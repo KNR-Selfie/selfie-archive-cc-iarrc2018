@@ -85,6 +85,10 @@ uint16_t j_jetsonData[8];
 uint8_t j_jetsonFlags[2];
 uint8_t synchroniseUARTOdroid = 0;
 
+//flagi odroida
+int ParkingFlag = 0;
+int CrossFlag = 0;
+
 //deklaracja zmiennych uzywanych do komunikacji z Aparaturka
 uint8_t a_syncbyte;
 uint8_t a_buffer[24];
