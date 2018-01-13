@@ -45,7 +45,7 @@ void StartMotorControlTask(void const * argument) {
 		if (a_channels[5] < 500) //gorna pozycja przelacznika - pelna kontrola
 		{
 			if (abs(a_channels[1] - 1027) > 50)
-				set_spd = (300000 * (a_channels[1] - 1027) / (1680 - 368));
+				set_spd = (1840 * (a_channels[1] - 1027) / (1680 - 368));
 			else set_spd = 0;
 
 			dutyServo = (900 + 600 * (a_channels[3] - 1000) / (1921 - 80));
@@ -67,7 +67,7 @@ void StartMotorControlTask(void const * argument) {
 					if (range < 400)
 						set_spd = 0;
 					else
-						set_spd = 40000;
+						set_spd = 920;
 					set_pos = 1000;
 					set_angle = 90;
 				}
@@ -80,7 +80,7 @@ void StartMotorControlTask(void const * argument) {
 		else //srodkowa pozycja prze³acznika, tryb polautonomiczny
 		{
 			if (abs(a_channels[1] - 1027) > 50)
-				set_spd = (300000 * (a_channels[1] - 1027) / (1680 - 368));
+				set_spd = (1840 * (a_channels[1] - 1027) / (1680 - 368));
 			else set_spd = 0;
 			set_pos = 1000;
 			set_angle = 90;
@@ -106,7 +106,6 @@ void StartDriveTask(void const * argument) {
 		}
 		pid_speed = pid_calculateEngine(set_spd, actualSpeed);
 		TIM2->CCR4 = pid_speed;
-
 	}
 }
 
