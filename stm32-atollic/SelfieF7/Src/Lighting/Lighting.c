@@ -66,7 +66,7 @@ void StartLightingTask(void const * argument) {
 			if (RX_AETR[3] > 1250 || sidesignals == SIDETURN_LEFT) {
 				static int cnt_ind1 = 0;
 				++cnt_ind1;
-				if (cnt_ind1 > 200) {
+				if (cnt_ind1 > 100) {
 					cnt_ind1 = 0;
 					ws2812_set_color(7, 0, 0, 0);
 					ws2812_set_color(8, 0, 0, 0);
@@ -77,7 +77,7 @@ void StartLightingTask(void const * argument) {
 					ws2812_set_color(13, 0, 0, 0);
 					ws2812_set_color(12, 0, 0, 0);
 					ws2812_set_color(11, 0, 0, 0);
-				} else if (cnt_ind1 > 120) {
+				} else if (cnt_ind1 > 60) {
 					ws2812_set_color(7, 0, 0, 0);
 					ws2812_set_color(8, 0, 0, 0);
 					ws2812_set_color(9, 0, 0, 0);
@@ -87,7 +87,7 @@ void StartLightingTask(void const * argument) {
 					ws2812_set_color(13, 0, 0, 0);
 					ws2812_set_color(12, 0, 0, 0);
 					ws2812_set_color(11, 0, 0, 0);
-				} else if (cnt_ind1 > 80) {
+				} else if (cnt_ind1 > 40) {
 					ws2812_set_color(7, 0, 0, 0);
 					ws2812_set_color(8, 0, 0, 0);
 					ws2812_set_color(9, 0, 0, 0);
@@ -97,7 +97,7 @@ void StartLightingTask(void const * argument) {
 					ws2812_set_color(13, 0, 0, 0);
 					ws2812_set_color(12, 0, 0, 0);
 					ws2812_set_color(11, 255, 120, 0);
-				} else if (cnt_ind1 > 60) {
+				} else if (cnt_ind1 > 30) {
 					ws2812_set_color(7, 0, 0, 0);
 					ws2812_set_color(8, 0, 0, 0);
 					ws2812_set_color(9, 255, 120, 0);
@@ -107,7 +107,7 @@ void StartLightingTask(void const * argument) {
 					ws2812_set_color(13, 0, 0, 0);
 					ws2812_set_color(12, 255, 120, 0);
 					ws2812_set_color(11, 0, 0, 0);
-				} else if (cnt_ind1 > 40) {
+				} else if (cnt_ind1 > 20) {
 					ws2812_set_color(7, 0, 0, 0);
 					ws2812_set_color(8, 255, 120, 0);
 					ws2812_set_color(9, 0, 0, 0);
@@ -117,7 +117,7 @@ void StartLightingTask(void const * argument) {
 					ws2812_set_color(13, 255, 120, 0);
 					ws2812_set_color(12, 0, 0, 0);
 					ws2812_set_color(11, 0, 0, 0);
-				} else if (cnt_ind1 > 20) {
+				} else if (cnt_ind1 > 10) {
 					ws2812_set_color(7, 255, 120, 0);
 					ws2812_set_color(8, 0, 0, 0);
 					ws2812_set_color(9, 0, 0, 0);
@@ -148,7 +148,7 @@ void StartLightingTask(void const * argument) {
 			} else if (RX_AETR[3] < 800 || sidesignals == SIDETURN_RIGHT) {
 				static int cnt_ind2 = 0;
 				++cnt_ind2;
-				if (cnt_ind2 > 200) {
+				if (cnt_ind2 > 100) {
 					cnt_ind2 = 0;
 					ws2812_set_color(3, 0, 0, 0);
 					ws2812_set_color(2, 0, 0, 0);
@@ -159,7 +159,7 @@ void StartLightingTask(void const * argument) {
 					ws2812_set_color(19, 0, 0, 0);
 					ws2812_set_color(20, 0, 0, 0);
 					ws2812_set_color(21, 0, 0, 0);
-				} else if (cnt_ind2 > 120) {
+				} else if (cnt_ind2 > 60) {
 					ws2812_set_color(3, 0, 0, 0);
 					ws2812_set_color(2, 0, 0, 0);
 					ws2812_set_color(1, 0, 0, 0);
@@ -169,7 +169,7 @@ void StartLightingTask(void const * argument) {
 					ws2812_set_color(19, 0, 0, 0);
 					ws2812_set_color(20, 0, 0, 0);
 					ws2812_set_color(21, 0, 0, 0);
-				} else if (cnt_ind2 > 80) {
+				} else if (cnt_ind2 > 40) {
 					ws2812_set_color(3, 0, 0, 0);
 					ws2812_set_color(2, 0, 0, 0);
 					ws2812_set_color(1, 0, 0, 0);
@@ -179,7 +179,7 @@ void StartLightingTask(void const * argument) {
 					ws2812_set_color(19, 0, 0, 0);
 					ws2812_set_color(20, 0, 0, 0);
 					ws2812_set_color(21, 255, 120, 0);
-				} else if (cnt_ind2 > 60) {
+				} else if (cnt_ind2 > 30) {
 					ws2812_set_color(3, 0, 0, 0);
 					ws2812_set_color(2, 0, 0, 0);
 					ws2812_set_color(1, 255, 120, 0);
@@ -189,7 +189,7 @@ void StartLightingTask(void const * argument) {
 					ws2812_set_color(19, 0, 0, 0);
 					ws2812_set_color(20, 255, 120, 0);
 					ws2812_set_color(21, 0, 0, 0);
-				} else if (cnt_ind2 > 40) {
+				} else if (cnt_ind2 > 20) {
 					ws2812_set_color(3, 0, 0, 0);
 					ws2812_set_color(2, 255, 120, 0);
 					ws2812_set_color(1, 0, 0, 0);
@@ -199,7 +199,7 @@ void StartLightingTask(void const * argument) {
 					ws2812_set_color(19, 255, 120, 0);
 					ws2812_set_color(20, 0, 0, 0);
 					ws2812_set_color(21, 0, 0, 0);
-				} else if (cnt_ind2 > 20) {
+				} else if (cnt_ind2 > 10) {
 					ws2812_set_color(3, 255, 120, 0);
 					ws2812_set_color(2, 0, 0, 0);
 					ws2812_set_color(1, 0, 0, 0);

@@ -148,5 +148,5 @@ void StartDriveTask(void const * argument) {
 /* +/- 90^ */
 uint16_t AngleToServo(float angle)
 {
-	return (900 + (int16_t)(400.f * angle / 90.f));
+	return (900 + (int16_t)(300.f * angle / 90.f));
 }
