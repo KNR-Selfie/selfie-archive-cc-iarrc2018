@@ -18,7 +18,7 @@
 
 #define kpEng 35
 #define kiEng 0.2
-#define kdEng 0
+#define kdEng 0.1
 #define kpServoPos 3.2
 #define kiServoPos 0
 #define kdServoPos 0
@@ -128,6 +128,9 @@ void StartEncTask(void const * argument) {
 		koniec_kolo1 = TIM3->CNT;
 		koniec_kolo2 = TIM5->CNT;
 		actualSpeed = ((koniec_kolo1 - poczatek_kolo1) / 0.005 + (koniec_kolo2 - poczatek_kolo2) / 0.005) * 0.5;
+		//zamiana na mm/s
+		actualSpeed = actualSpeed * 6.2832 * 0.05 * 1000 / 10240;
+
 
 
 		encodersRead();
@@ -171,6 +174,9 @@ void pid_paramsinitServoAng(float kp, float ki, float kd)
 uint8_t kierunek = 0; //0 stoi, 1 przod, 2 tyl
 float pid_calculateEngine(float set_val, float read_val)
 {
+	read_val = read_val * 32.59485f;
+	set_val = set_val * 32.59485f;
+
 	float err_d, u;
 
 	pid_paramsEngine.err = set_val - read_val;
@@ -183,16 +189,15 @@ float pid_calculateEngine(float set_val, float read_val)
 		pid_paramsEngine.err_sum = -ERR_SUM_MAX_ENGINE;
 	}
 
-	err_d = pid_paramsEngine.err_last - pid_paramsEngine.err;
+	err_d = pid_paramsEngine.err - pid_paramsEngine.err_last;
 	u = (pid_paramsEngine.kp * pid_paramsEngine.err + pid_paramsEngine.ki * pid_paramsEngine.err_sum
 		+ pid_paramsEngine.kd * err_d);
 
-	wyjscieRegulatoraE = u;
 	u = 1500 + (u / 5000);
-	if (set_val < 0) u -= 100;
+	if (set_val < 0) u -= 140;
 	else if (set_val > 0) u += 60;
-	if (u > 1650) u = 1680;
-	if (u< 1280) u = 1280;
+	if (u > 1660) u = 1660;
+	if (u< 1260) u = 1260;
 
 	if (kierunek == 1 && set_val < 0) {
 		TIM2->CCR4 = 1300;
@@ -206,6 +211,7 @@ float pid_calculateEngine(float set_val, float read_val)
 	else kierunek = 0;
 
 
+	wyjscieRegulatoraE = u;
 	errorE = pid_paramsEngine.err;
 	return u;
 }
@@ -227,7 +233,7 @@ float pid_calculateServo(float set_pos, float set_angle, float read_pos, float r
 		pid_paramsServoPos.err_sum = -ERR_SUM_MAX_SERVOPOS;
 	}
 
-	err_d = pid_paramsServoPos.err_last - pid_paramsServoPos.err;
+	err_d = pid_paramsServoPos.err - pid_paramsServoPos.err_last;
 	uPos = (pid_paramsServoPos.kp * pid_paramsServoPos.err + pid_paramsServoPos.ki * pid_paramsServoPos.err_sum
 		+ pid_paramsServoPos.kd * err_d);
 
@@ -246,7 +252,7 @@ float pid_calculateServo(float set_pos, float set_angle, float read_pos, float r
 		pid_paramsServoAng.err_sum = -ERR_SUM_MAX_SERVOANG;
 	}
 
-	err_d = pid_paramsServoAng.err_last - pid_paramsServoAng.err;
+	err_d = pid_paramsServoAng.err - pid_paramsServoAng.err_last;
 	uAng = (pid_paramsServoAng.kp * pid_paramsServoAng.err + pid_paramsServoAng.ki * pid_paramsServoAng.err_sum
 		+ pid_paramsServoAng.kd * err_d);
 
