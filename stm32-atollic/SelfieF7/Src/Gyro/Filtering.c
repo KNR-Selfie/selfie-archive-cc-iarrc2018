@@ -70,6 +70,18 @@ void notch_filter_init(filter_t *filter, float filterFreq, uint32_t refreshRate,
 
 	filter->d1 = filter->d2 = 0;
 }
+void pt1FilterInit(pt1Filter_t *filter, uint8_t f_cut, float dT)
+{
+    filter->RC = 1.0f / ( 2.0f * M_PI_FLOAT * f_cut );
+    filter->dT = dT;
+    filter->k = filter->dT / (filter->RC + filter->dT);
+}
+
+float pt1FilterApply(pt1Filter_t *filter, float input)
+{
+    filter->state = filter->state + filter->k * (input - filter->state);
+    return filter->state;
+}
 float nullFilterApply(void *filter, float input)
 {
     UNUSED(filter);

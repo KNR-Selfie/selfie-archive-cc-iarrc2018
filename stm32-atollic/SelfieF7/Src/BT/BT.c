@@ -18,6 +18,7 @@
 /* Zeby miec podstawowe dane z Gyro i Baterii */
 #include "Gyro.h"
 #include "Enc.h"
+#include "Lighting.h"
 #include "Czujniki.h"
 #include "MotorControl.h"
 #include "Battery.h"
@@ -79,41 +80,55 @@ void StartBTTask(void const * argument) {
 //		osSemaphoreWait(BTSemaphore, osWaitForever);
 //		osSignalWait(0x01, osWaitForever);
 		if (parking_mode) {
+			sidesignals = SIDETURN_RIGHT;
 			float steering = 0, velocity = 0;
 			if (parking_move == 0) {
 				start_angle = CumulativeYaw;
 				++parking_move;
-				velocity = 0;
+				velocity = -25000;
+				parking_angle = steering;
+				parking_speed = velocity;
+				osSemaphoreRelease(DriveControlSemaphoreHandle);
+				osDelay(20);
 			}
-			else if (parking_move == 1) {
+			if (parking_move == 1) {
+				++parking_move;
+				velocity = 0;
+				parking_angle = steering;
+				parking_speed = velocity;
+				osSemaphoreRelease(DriveControlSemaphoreHandle);
+				osDelay(20);
+			}
+			if (parking_move == 2) {
 				steering = -90.f;
 				velocity = -25000;
-				if ((CumulativeYaw - start_angle) > 45
-						|| (CumulativeYaw - start_angle) < -45){
+				if ((CumulativeYaw - start_angle) > 35
+						|| (CumulativeYaw - start_angle) < -35){
 					++parking_move;
 					start_distance = fwdRoad;
 					start_angle = CumulativeYaw;
 				}
 			}
-			if (parking_move == 2) {
+			if (parking_move == 3) {
 
 				steering = -(CumulativeYaw - start_angle);
 				velocity = -25000;
-				if ((fwdRoad - start_distance) < -100)
+				if ((fwdRoad - start_distance) < -50)
 				{
 					++parking_move;
 					start_angle = CumulativeYaw;
 				}
 			}
-			if (parking_move == 3) {
+			if (parking_move == 4) {
 				steering = 90.f;
 				velocity = -25000;
-				if ((CumulativeYaw - start_angle) > 45
-						|| (CumulativeYaw - start_angle) < -45) {
+				if ((CumulativeYaw - start_angle) > 35
+						|| (CumulativeYaw - start_angle) < -35) {
 					steering = 0.f;
 					velocity = 0.f;
 					parking_move = 0;
 					parking_mode = 0;
+					sidesignals = SIDETURN_NONE;
 				}
 			}
 			parking_angle = steering;
@@ -130,7 +145,7 @@ void StartBTTask(void const * argument) {
 			HAL_UART_Transmit_DMA(&huart3, txdata, size);
 			CrossFlag = 0;
 		}
-		osDelay(50);
+		osDelay(20);
 	}
 }
 void BT_Commands(uint8_t* Buf, uint32_t length) {

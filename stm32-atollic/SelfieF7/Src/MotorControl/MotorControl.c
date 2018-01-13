@@ -6,6 +6,7 @@
 */
 
 #include "MotorControl.h"
+#include "Lighting.h"
 #include "tim.h"
 #include "cmsis_os.h"
 
@@ -112,6 +113,11 @@ void StartDriveTask(void const * argument) {
 		}
 		pid_speed = pid_calculateEngine(set_spd, actualSpeed);
 		TIM2->CCR4 = pid_speed;
+
+		if (pid_speed < 1500)
+					brakesignals = BRAKE_NORMAL;
+				else
+					brakesignals = BRAKE_NONE;
 	}
 }
 
