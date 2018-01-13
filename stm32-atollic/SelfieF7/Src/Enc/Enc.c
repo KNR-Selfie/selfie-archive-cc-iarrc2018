@@ -68,7 +68,7 @@ float pid_calculateServo(float set_pos, float set_angle, float read_pos, float r
 #define ENC_RESOLUTION 10240
 #define ENC_DT 0.005f
 #define MOTOR_DT 0.02f
-#define WHEEL_DIAMETER 50.f
+#define WHEEL_DIAMETER 64.f
 
 //speeds
 extern float set_spd;
@@ -128,31 +128,17 @@ void StartEncTask(void const * argument) {
 	pid_paramsinitServoPos(kpServoPos, kiServoPos, kdServoPos);
 	pid_paramsinitServoAng(kpServoAng, kiServoAng, kdServoAng);
 
-	float poczatek_kolo1 = 0;
-	float poczatek_kolo2 = 0;
-	float koniec_kolo1 = 0;
-	float koniec_kolo2 = 0;
-
 	while (1) {
 		static int16_t pid_value;
 		encodersRead();
-
-		TIM3->CNT = 900000;
-		poczatek_kolo1 = TIM3->CNT;
-		poczatek_kolo2 = TIM5->CNT;
-		osDelay(5);
-		koniec_kolo1 = TIM3->CNT;
-		koniec_kolo2 = TIM5->CNT;
-		actualSpeed = ((koniec_kolo1 - poczatek_kolo1) / 0.005 + (koniec_kolo2 - poczatek_kolo2) / 0.005) * 0.5;
-		//zamiana na mm/s
-		actualSpeed = actualSpeed * 6.2832 * 0.05 * 1000 / 10240;
+		actualSpeed = vfwd;
 
 		/* motor loop needs own separate tick
 		pid_value = wheel_pid(wheel_kp, wheel_ki, wheel_kd, set_spd);
 		TIM2->CCR4 = 1500 + pid_value;
 		osDelay(20);
 		 */
-
+		osDelay(5);
 	}
 }
 

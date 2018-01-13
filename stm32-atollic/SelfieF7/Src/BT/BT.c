@@ -30,6 +30,8 @@ extern float pid_speed;
 //informacja o flagach z przerwania odroida
 extern int ParkingFlag;
 extern int CrossFlag;
+uint8_t LastCrossFlag = 0;
+uint8_t LastParkingFlag = 0;
 
 float KpJetson = 3000.f;
 
@@ -85,7 +87,7 @@ void StartBTTask(void const * argument) {
 			if (parking_move == 0) {
 				start_angle = CumulativeYaw;
 				++parking_move;
-				velocity = -25000;
+				velocity = -100;
 				parking_angle = steering;
 				parking_speed = velocity;
 				osSemaphoreRelease(DriveControlSemaphoreHandle);
@@ -101,7 +103,7 @@ void StartBTTask(void const * argument) {
 			}
 			if (parking_move == 2) {
 				steering = -90.f;
-				velocity = -25000;
+				velocity = -500;
 				if ((CumulativeYaw - start_angle) > 35
 						|| (CumulativeYaw - start_angle) < -35){
 					++parking_move;
@@ -112,7 +114,7 @@ void StartBTTask(void const * argument) {
 			if (parking_move == 3) {
 
 				steering = -(CumulativeYaw - start_angle);
-				velocity = -25000;
+				velocity = -500;
 				if ((fwdRoad - start_distance) < -50)
 				{
 					++parking_move;
@@ -121,30 +123,34 @@ void StartBTTask(void const * argument) {
 			}
 			if (parking_move == 4) {
 				steering = 90.f;
-				velocity = -25000;
+				velocity = -500;
 				if ((CumulativeYaw - start_angle) > 35
 						|| (CumulativeYaw - start_angle) < -35) {
 					steering = 0.f;
 					velocity = 0.f;
 					parking_move = 0;
 					parking_mode = 0;
-					sidesignals = SIDETURN_NONE;
 				}
 			}
 			parking_angle = steering;
 			parking_speed = velocity;
 			osSemaphoreRelease(DriveControlSemaphoreHandle);
 		}
-		if (ParkingFlag == 1) {
+		else
+			sidesignals = SIDETURN_NONE;
+
+		if (ParkingFlag && LastParkingFlag == 0) {
 			size = sprintf((char*) txdata, "Strefa parkowania\r\n\r\n");
 			HAL_UART_Transmit_DMA(&huart3, txdata, size);
-			ParkingFlag = 0;
 		}
-		if (CrossFlag == 1) {
+		if (CrossFlag && LastCrossFlag == 0) {
 			size = sprintf((char*) txdata, "Skrzy¿owanie\r\n\r\n");
 			HAL_UART_Transmit_DMA(&huart3, txdata, size);
 			CrossFlag = 0;
 		}
+		LastCrossFlag = CrossFlag;
+		LastParkingFlag = ParkingFlag;
+
 		osDelay(20);
 	}
 }
