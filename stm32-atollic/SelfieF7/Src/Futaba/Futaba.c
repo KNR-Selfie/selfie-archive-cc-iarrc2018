@@ -88,7 +88,7 @@ void StartFutabaTask(void const * argument)
 
 	while(1)
 	{
-
+		osDelay(1000);
 	}
 }
 void FutabaRx_Irq(void) {
