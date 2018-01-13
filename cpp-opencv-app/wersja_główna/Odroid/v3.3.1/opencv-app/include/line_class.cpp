@@ -2,6 +2,7 @@
 #define HEIGHT 380
 #define WIDTH 640
 #define BORDER 140
+#define PARAMETER 2
 
 void dec_to_bin(char liczba)
 {
@@ -513,6 +514,14 @@ void LineDetector::send_data_to_main(int &detected_middle_pos_near, int &left_la
 	else
 		flags_to_UART &= (0<<6);
 
+	if(Parking_line)
+	{
+	flags_to_UART |= (1<<5);
+	Parking_line = false;
+	}
+	else
+		flags_to_UART &= (0<<5);
+
 	std::cout << flags_to_UART << std::endl;
 
 	std::cout << "==========UART==========" << std::endl;
@@ -547,26 +556,190 @@ void LineDetector::restart_lane_detection()
 
 	left_ang_st = 90;
 	right_ang_st = 90;
+
+	current_lane = 1;
 }
 
 //
 void LineDetector::change_lane()
 {
-	if(actual_lane)
+	if(current_lane)
 	{
-		actual_lane = 0;
+		current_lane = 0;
 		last_top_middle_point.coordinates.x -= width;
 		last_bottom_middle_point.coordinates.x -= width;
-		new_middle -= width;
-		width *= 1.5;
+		new_middle -= 2 * width;
+		width *= 2;
 	}
 	else
 	{
-		actual_lane = 1;
+		current_lane = 1;
 		last_top_middle_point.coordinates.x += width;
 		last_bottom_middle_point.coordinates.x += width;
 		new_middle += width;
-		width *= 1.5;
+		width *= 1.8;
+	}
+}
+
+void LineDetector::parking_line (cv:: Mat frame)
+{
+    int number_of_pixels = 10;
+
+	int x = new_pos_left + 40;		
+    int y = 220;
+
+    int width = (new_pos_right - new_pos_left) - 40 ;
+	int left_width = 0.5 * width;
+
+    int height = 120;
+
+	int left_x = x - 150;
+	std::cout << "X:" << left_x << std::endl;
+	std::cout << "Xx:" << x << std::endl;
+
+    int count_white_pix = 0;
+	cv::Scalar white_pix;
+	cv::Scalar left_white_pix;
+
+    cv::namedWindow("roi",1);
+
+	//Parking_line = false;
+	
+	if(BL_sector == true && BR_sector == true && Detect_parking_line == false)
+	{
+
+    cv::Mat roi;
+	cv::Mat left_roi;
+	cv::Mat right_roi;
+	cv::Mat masked_roi;
+
+    cv::Rect roi_rect(x, y, width, height);
+	//cv::Rect left_roi_rect(left_x, y, left_width, height);	
+
+    roi = frame(roi_rect);
+	//left_roi = frame(left_roi_rect);
+
+    cv::Mat mask = cv::Mat::zeros(cv::Size(roi.cols, roi.rows), CV_8UC1);
+    cv::Point points[4] =
+    {
+		cv::Point(60, 0),
+        cv::Point(0, roi.rows),
+		cv::Point(roi.cols, roi.rows),
+        cv::Point(roi.cols - 50, 0)
+    };
+	cv::fillConvexPoly(mask, points, 4, cv::Scalar(255, 0, 0));
+	cv::bitwise_and(roi, mask, masked_roi);
+
+	white_pix = cv::mean(masked_roi);
+	//left_white_pix = cv::mean(left_roi);
+
+    std::cout << "White pixels:" << white_pix[0] << std::endl;
+	std::cout << "Left white pxels:" << left_white_pix[0] << std::endl;
+
+    if (white_pix[0] >= number_of_pixels )
+    {
+        Parking_line = true;
+		std::cout << "=======PARKING=======" << std::endl;
+		std::cout << "PARKING LINE!" << std::endl;
+		std::cout << "=====================" << std::endl;		
+    }
+    imshow("roi", roi);
+	imshow("masked roi", masked_roi);
+	//imshow("left roi", left_roi);
+
+	}
+}
+
+void LineDetector::cross_line(cv::Mat frame)
+{
+	///
+	int number_of_pixels = 10;
+	int x = new_pos_left + 40;
+    int y = 220;
+    int width = (new_pos_right - new_pos_left) - 40 ;
+    int height = 120;
+	cv::Scalar white_pix;
+	///
+
+	///
+	int number_of_vert_pixels = 10;
+	int vert_x = new_pos_right - 100;
+	int vert_y = 30;
+	int vert_width = 180;
+	int vert_height = 280;
+	cv::Scalar white_vert_pix;
+	///
+
+	Cross_line = false;
+	Vertical_line = false;
+	
+	if(BL_sector == true && BR_sector == true && Detect_parking_line == false)
+	{
+
+	///
+    cv::Mat roi;
+	cv::Mat masked_roi;
+    cv::Rect roi_rect(x, y, width, height);
+    roi = frame(roi_rect);
+	///
+	
+	///
+	cv::Mat vert_roi;
+	cv::Mat masked_vert_roi;
+	cv::Rect vert_roi_rect(vert_x, vert_y, vert_width, vert_height);
+    vert_roi = frame(vert_roi_rect);
+	///
+
+	///
+    cv::Mat mask = cv::Mat::zeros(cv::Size(roi.cols, roi.rows), CV_8UC1);
+	cv::Mat vert_mask = cv::Mat::zeros(cv::Size(vert_roi.cols, vert_roi.rows), CV_8UC1);
+	///
+
+
+    cv::Point points[4] =
+    {
+		cv::Point(60, 0),
+        cv::Point(0, roi.rows),
+		cv::Point(roi.cols, roi.rows),
+        cv::Point(roi.cols - 50, 0)
+    };
+
+    cv::Point vert_points[4] =
+    {
+		cv::Point(15, 60),
+        cv::Point(vert_roi.cols, vert_height - 50),
+		cv::Point(0, vert_height - 50),
+        cv::Point(0, 60)
+    }; 
+
+	cv::fillConvexPoly(mask, points, 4, cv::Scalar(255, 0, 0));
+	cv::fillConvexPoly(vert_mask, vert_points, 4, cv::Scalar(255, 0, 0));
+
+	cv::bitwise_and(roi, mask, masked_roi);
+	cv::bitwise_and(vert_roi, vert_mask, masked_vert_roi);
+
+	white_pix = cv::mean(masked_roi);
+
+    std::cout << "White pixels:" << white_pix[0] << std::endl;
+	std::cout << "White vertical pixels:" << white_vert_pix[0] << std::endl;
+
+    if (white_pix[0] >= number_of_pixels )
+    {
+        Cross_line = true;
+		std::cout << "CROSS LINE!" << std::endl;
+		white_vert_pix = cv::mean(masked_vert_roi);
+
+		if (white_vert_pix[0] >= number_of_vert_pixels )
+    	{
+        Vertical_line = true;
+		std::cout << "VERTICAL LINE!" << std::endl;
+    	}
+    }
+
+	imshow("cross line roi", masked_roi);
+	imshow("vertical line roi", vert_roi);
+	imshow("masked vertical line roi", masked_vert_roi);
+
 	}
 }
 

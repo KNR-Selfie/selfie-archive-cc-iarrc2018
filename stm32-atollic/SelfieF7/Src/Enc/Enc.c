@@ -1,9 +1,9 @@
 /*
- * Enc.c
- *
- *  Created on: 14.12.2017
- *      Author: Michal
- */
+* Enc.c
+*
+*  Created on: 14.12.2017
+*      Author: Michal
+*/
 
 #include "Enc.h"
 
@@ -13,17 +13,17 @@
 #include "gpio.h"
 #include "Filtering.h"
 
-#define ERR_SUM_MAX_ENGINE 1000000
+#define ERR_SUM_MAX_ENGINE 300000
 #define ERR_SUM_MAX_SERVOPOS 1500
 #define ERR_SUM_MAX_SERVOANG 1500
 
-#define kpEng 6.32379796804752
-#define kiEng 42.982508097399*0.005
+#define kpEng 35
+#define kiEng 0.2
 #define kdEng 0
-#define kpServoPos 5.0
+#define kpServoPos 3.2
 #define kiServoPos 0
 #define kdServoPos 0
-#define kpServoAng 10
+#define kpServoAng 3
 #define kiServoAng 0
 #define kdServoAng 0
 
@@ -78,7 +78,7 @@ volatile int16_t vright; //(mm/s)
 volatile int16_t vfwd; //(mm/s)
 
 
-float enc_coeff =  1.f/ (ENC_RESOLUTION / WHEEL_DIAMETER / M_PI_FLOAT * ENC_DT);
+float enc_coeff = 1.f / (ENC_RESOLUTION / WHEEL_DIAMETER / M_PI_FLOAT * ENC_DT);
 float enc_totalcoeff = 1.f/ (ENC_RESOLUTION / WHEEL_DIAMETER / M_PI_FLOAT);
 
 volatile int16_t leftCount;
@@ -89,7 +89,7 @@ volatile int16_t rotCount;
 //distances
 volatile float leftRoad; // mm
 volatile float rightRoad; // mm
-volatile float fwdRoad ; // mm
+volatile float fwdRoad; // mm
 
 volatile int32_t leftTotal;
 volatile int32_t rightTotal;
@@ -109,9 +109,9 @@ float wheel_ki = 0.004f;
 float wheel_kd = 0.02f;
 
 pt1Filter_t DtermLPF;
+void encodersReset(void);
+void encodersRead(void);
 
-void encodersReset (void);
-void encodersRead (void);
 int16_t wheel_pid(float kp, float ki, float kd, int16_t setfwd);
 
 /************ Testy matiego **************/
@@ -135,22 +135,15 @@ void StartEncTask(void const * argument) {
 
 	while (1) {
 		static int16_t pid_value;
-		/*
-		TIM3->CNT = 0;
-	  	poczatek_kolo1 = TIM3->CNT;
-	  	poczatek_kolo2 = TIM3->CNT;
-	  	osDelay(5);
-	  	  koniec_kolo1 = TIM3->CNT;
-	  	  koniec_kolo2 = TIM3->CNT;
-			if(koniec_kolo1 > 60000)
-					koniec_kolo1 -= 65535;
-			if(koniec_kolo2 > 60000)
-					koniec_kolo2 -= 65535;
-		actualSpeed = ((koniec_kolo1 - poczatek_kolo1)/0.005 + (koniec_kolo2 - poczatek_kolo2)/0.005) * 0.5;
-		 */
 		encodersRead();
-		actualSpeed = ((leftCount)/0.005 + (rightCount)/0.005) * 0.5;
+
+		TIM3->CNT = 900000;
+		poczatek_kolo1 = TIM3->CNT;
+		poczatek_kolo2 = TIM5->CNT;
 		osDelay(5);
+		koniec_kolo1 = TIM3->CNT;
+		koniec_kolo2 = TIM5->CNT;
+		actualSpeed = ((koniec_kolo1 - poczatek_kolo1) / 0.005 + (koniec_kolo2 - poczatek_kolo2) / 0.005) * 0.5;
 
 		/* motor loop needs own separate tick
 		pid_value = wheel_pid(wheel_kp, wheel_ki, wheel_kd, set_spd);
@@ -203,32 +196,32 @@ float pid_calculateEngine(float set_val, float read_val)
 
 	if (pid_paramsEngine.err_sum > ERR_SUM_MAX_ENGINE) {
 		pid_paramsEngine.err_sum = ERR_SUM_MAX_ENGINE;
-	} else if (pid_paramsEngine.err_sum < -ERR_SUM_MAX_ENGINE) {
+	}
+	else if (pid_paramsEngine.err_sum < -ERR_SUM_MAX_ENGINE) {
 		pid_paramsEngine.err_sum = -ERR_SUM_MAX_ENGINE;
 	}
 
-	err_d = pid_paramsEngine.err - pid_paramsEngine.err_last;
+	err_d = pid_paramsEngine.err_last - pid_paramsEngine.err;
 	u = (pid_paramsEngine.kp * pid_paramsEngine.err + pid_paramsEngine.ki * pid_paramsEngine.err_sum
-			+ pid_paramsEngine.kd * err_d);
+		+ pid_paramsEngine.kd * err_d);
 
 	wyjscieRegulatoraE = u;
-	if(set_val < 0) u*=1.5f;
-	u = 1500 + (u/5000);
-	if(set_val < 0) u -= 100;
-	else if(set_val > 0) u += 60;
-	if(u > 1800) u = 1800;
-	if(u< 1100) u = 1100;
+	u = 1500 + (u / 5000);
+	if (set_val < 0) u -= 100;
+	else if (set_val > 0) u += 60;
+	if (u > 1650) u = 1680;
+	if (u< 1280) u = 1280;
 
-	if(kierunek == 1 && set_val < 0){
-	TIM2->CCR4 = 1300;
-	osDelay(25);
-	TIM2->CCR4 = 1500;
-	osDelay(25);
+	if (kierunek == 1 && set_val < 0) {
+		TIM2->CCR4 = 1300;
+		osDelay(25);
+		TIM2->CCR4 = 1500;
+		osDelay(25);
 	}
 
-	if(set_val > 0) kierunek = 1;
-	else if(set_val < 0) kierunek = 2;
-	else kierunek =0;
+	if (set_val > 0) kierunek = 1;
+	else if (set_val < 0) kierunek = 2;
+	else kierunek = 0;
 
 
 	errorE = pid_paramsEngine.err;
@@ -247,17 +240,18 @@ float pid_calculateServo(float set_pos, float set_angle, float read_pos, float r
 
 	if (pid_paramsServoPos.err_sum > ERR_SUM_MAX_SERVOPOS) {
 		pid_paramsServoPos.err_sum = ERR_SUM_MAX_SERVOPOS;
-	} else if (pid_paramsServoPos.err_sum < -ERR_SUM_MAX_SERVOPOS) {
+	}
+	else if (pid_paramsServoPos.err_sum < -ERR_SUM_MAX_SERVOPOS) {
 		pid_paramsServoPos.err_sum = -ERR_SUM_MAX_SERVOPOS;
 	}
 
 	err_d = pid_paramsServoPos.err_last - pid_paramsServoPos.err;
 	uPos = (pid_paramsServoPos.kp * pid_paramsServoPos.err + pid_paramsServoPos.ki * pid_paramsServoPos.err_sum
-			+ pid_paramsServoPos.kd * err_d);
+		+ pid_paramsServoPos.kd * err_d);
 
-	uPos = 1400 + uPos;
-	if(uPos > 1700) uPos = 1700;
-	if(uPos < 1100) uPos = 1100;
+	uPos = 900 + uPos;
+	if (uPos > 1200) uPos = 1200;
+	if (uPos < 600) uPos = 600;
 
 	///////////////regulator od kata
 	pid_paramsServoAng.err = set_angle - read_angle;
@@ -265,21 +259,23 @@ float pid_calculateServo(float set_pos, float set_angle, float read_pos, float r
 
 	if (pid_paramsServoAng.err_sum > ERR_SUM_MAX_SERVOANG) {
 		pid_paramsServoAng.err_sum = ERR_SUM_MAX_SERVOANG;
-	} else if (pid_paramsServoAng.err_sum < -ERR_SUM_MAX_SERVOANG) {
+	}
+	else if (pid_paramsServoAng.err_sum < -ERR_SUM_MAX_SERVOANG) {
 		pid_paramsServoAng.err_sum = -ERR_SUM_MAX_SERVOANG;
 	}
 
 	err_d = pid_paramsServoAng.err_last - pid_paramsServoAng.err;
 	uAng = (pid_paramsServoAng.kp * pid_paramsServoAng.err + pid_paramsServoAng.ki * pid_paramsServoAng.err_sum
-			+ pid_paramsServoAng.kd * err_d);
+		+ pid_paramsServoAng.kd * err_d);
 
-	uAng = 1400 - uAng;
-	if(uAng > 1700) uPos = 1700;
-	if(uAng < 1100) uPos = 1100;
+	//	uAng = 900 + uAng;
+	//	if(uAng > 1200) uAng = 1200;
+	//	if(uAng < 600) uAng = 600;
 
 
 	/////////////waga dwoch wartosci z pida
-	u = 1*uPos+uAng *0;
+	//u = (uPos*2+uAng)/3;
+	u = uPos;
 
 	////////dane do debuggowania
 	errorS = pid_paramsServoPos.err + pid_paramsServoAng.err;
@@ -290,6 +286,8 @@ float pid_calculateServo(float set_pos, float set_angle, float read_pos, float r
 	wyjscieRegulatoraS = u;
 	return u;
 }
+
+
 void encodersRead(void) {
 	oldLeftEncoder = leftEncoder;
 	leftEncoder = TIM5->CNT;
@@ -306,7 +304,7 @@ void encodersRead(void) {
 
 	vleft = leftCount * enc_coeff;
 	vright = rightCount * enc_coeff;
-	vfwd = (vleft + vright) / 2 ;
+	vfwd = (vleft + vright) / 2;
 
 	rightRoad = rightTotal * enc_totalcoeff;
 	leftRoad = leftTotal * enc_totalcoeff;
