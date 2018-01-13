@@ -22,6 +22,10 @@ extern float actualSpeed;
 extern osSemaphoreId DriveControlSemaphoreHandle;
 extern osSemaphoreId EngineSemaphoreHandle;
 
+/* SRODEK SERWA! */
+
+extern uint16_t servo_middle;
+
 extern float pid_calculateEngine(float set_val, float read_val);
 extern float pid_calculateServo(float set_pos, float set_angle, float read_pos, float read_angle);
 
