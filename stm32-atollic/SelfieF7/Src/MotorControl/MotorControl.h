@@ -13,7 +13,7 @@
 extern uint16_t j_jetsonData[8];
 extern uint8_t j_jetsonFlags[2];
 extern uint8_t j_syncByte;
-extern uint16_t a_channels[16];
+
 
 
 extern float actualSpeed;
