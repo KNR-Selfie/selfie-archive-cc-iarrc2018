@@ -515,9 +515,12 @@ void LineDetector::send_data_to_main(int &detected_middle_pos_near, int &left_la
 		flags_to_UART &= (0<<6);
 
 	if(Parking_line)
-		flags_to_UART |= (1<<4);
+	{
+	flags_to_UART |= (1<<5);
+	Parking_line = false;
+	}
 	else
-		flags_to_UART &= (0<<4);
+		flags_to_UART &= (0<<5);
 
 	std::cout << flags_to_UART << std::endl;
 
@@ -581,12 +584,23 @@ void LineDetector::change_lane()
 void LineDetector::parking_line (cv:: Mat frame)
 {
     int number_of_pixels = 10;
-	int x = new_pos_left + 40;
+
+	int x = new_pos_left + 40;		
     int y = 220;
+
     int width = (new_pos_right - new_pos_left) - 40 ;
+	int left_width = 0.5 * width;
+
     int height = 120;
+
+	int left_x = x - 150;
+	std::cout << "X:" << left_x << std::endl;
+	std::cout << "Xx:" << x << std::endl;
+
     int count_white_pix = 0;
 	cv::Scalar white_pix;
+	cv::Scalar left_white_pix;
+
     cv::namedWindow("roi",1);
 
 	//Parking_line = false;
@@ -595,10 +609,15 @@ void LineDetector::parking_line (cv:: Mat frame)
 	{
 
     cv::Mat roi;
+	cv::Mat left_roi;
+	cv::Mat right_roi;
 	cv::Mat masked_roi;
+
     cv::Rect roi_rect(x, y, width, height);
+	//cv::Rect left_roi_rect(left_x, y, left_width, height);	
 
     roi = frame(roi_rect);
+	//left_roi = frame(left_roi_rect);
 
     cv::Mat mask = cv::Mat::zeros(cv::Size(roi.cols, roi.rows), CV_8UC1);
     cv::Point points[4] =
@@ -612,18 +631,21 @@ void LineDetector::parking_line (cv:: Mat frame)
 	cv::bitwise_and(roi, mask, masked_roi);
 
 	white_pix = cv::mean(masked_roi);
+	//left_white_pix = cv::mean(left_roi);
+
     std::cout << "White pixels:" << white_pix[0] << std::endl;
+	std::cout << "Left white pxels:" << left_white_pix[0] << std::endl;
 
     if (white_pix[0] >= number_of_pixels )
     {
         Parking_line = true;
-		//Detect_parking_line = true;
 		std::cout << "=======PARKING=======" << std::endl;
 		std::cout << "PARKING LINE!" << std::endl;
 		std::cout << "=====================" << std::endl;		
     }
     imshow("roi", roi);
 	imshow("masked roi", masked_roi);
+	//imshow("left roi", left_roi);
 
 	}
 }
