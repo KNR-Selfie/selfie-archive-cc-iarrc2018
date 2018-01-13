@@ -9,6 +9,7 @@
 #include <stdlib.h>
 
 #include "Lighting.h"
+#include "Futaba.h"
 
 #include "cmsis_os.h"
 #include "math.h"
@@ -37,7 +38,7 @@ BrakeSignalType_e brakesignals = BRAKE_NONE;
 void StartLightingTask(void const * argument) {
 	ws2812_init();
 	while (1) {
-		RXtoLighting(a_channels);
+		RXtoLighting(FutabaChannelData);
 		if (RX_POT > 1027) {
 			brightness = (RX_POT - 1027.f) / 920.f;
 			static int16_t scounter1 = 1;
