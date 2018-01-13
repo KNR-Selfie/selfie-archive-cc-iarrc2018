@@ -10,7 +10,6 @@
 #include "tim.h"
 #include "cmsis_os.h"
 
-
 float set_spd = 0;
 float set_pos = 0;
 float set_angle = 0;
@@ -24,6 +23,8 @@ extern float KpJetson;
 extern uint8_t parking_mode;
 extern float parking_angle;
 extern float parking_speed;
+
+uint16_t servo_middle = 943;
 
 uint16_t AngleToServo(float angle);
 
@@ -49,7 +50,7 @@ void StartMotorControlTask(void const * argument) {
 				set_spd = (1840 * (a_channels[1] - 1027) / (1680 - 368));
 			else set_spd = 0;
 
-			dutyServo = (900 + 600 * (a_channels[3] - 1000) / (1921 - 80));
+			dutyServo = (servo_middle + 600 * (a_channels[3] - 1000) / (1921 - 80));
 		}
 		else if (a_channels[5] > 1500) //dolna pozycja prze31cznika, jazda autonomiczna
 		{
@@ -142,5 +143,5 @@ void StartDriveTask(void const * argument) {
 /* +/- 90^ */
 uint16_t AngleToServo(float angle)
 {
-	return (900 + (int16_t)(300.f * angle / 90.f));
+	return (servo_middle + (int16_t)(300.f * angle / 90.f));
 }

@@ -6,6 +6,7 @@
 */
 
 #include "Enc.h"
+#include "MotorControl.h"
 
 #include "cmsis_os.h"
 #include "math.h"
@@ -200,8 +201,8 @@ float pid_calculateEngine(float set_val, float read_val)
 	u = 1500 + (u / 5000);
 	if (set_val < 0) u -= 140;
 	else if (set_val > 0) u += 60;
-	if (u > 1660) u = 1660;
-	if (u< 1260) u = 1260;
+	if (u > 1800) u = 1800;
+	if (u< 1100) u = 1100;
 
 	if (kierunek == 1 && set_val < 0) {
 		TIM2->CCR4 = 1300;
@@ -241,9 +242,9 @@ float pid_calculateServo(float set_pos, float set_angle, float read_pos, float r
 	uPos = (pid_paramsServoPos.kp * pid_paramsServoPos.err + pid_paramsServoPos.ki * pid_paramsServoPos.err_sum
 		+ pid_paramsServoPos.kd * err_d);
 
-	uPos = 900 + uPos;
-	if (uPos > 1200) uPos = 1200;
-	if (uPos < 600) uPos = 600;
+	uPos = servo_middle + uPos;
+	if (uPos > (servo_middle+300)) uPos = servo_middle+300;
+	if (uPos < (servo_middle-300)) uPos = servo_middle-300;
 
 	///////////////regulator od kata
 	pid_paramsServoAng.err = set_angle - read_angle;
@@ -260,7 +261,7 @@ float pid_calculateServo(float set_pos, float set_angle, float read_pos, float r
 	uAng = (pid_paramsServoAng.kp * pid_paramsServoAng.err + pid_paramsServoAng.ki * pid_paramsServoAng.err_sum
 		+ pid_paramsServoAng.kd * err_d);
 
-	//	uAng = 900 + uAng;
+	//	uAng = servo_middle + uAng;
 	//	if(uAng > 1200) uAng = 1200;
 	//	if(uAng < 600) uAng = 600;
 
