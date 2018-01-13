@@ -64,10 +64,16 @@ void StartMotorControlTask(void const * argument) {
 				//pozostawiona furtka zeby z BT zadawac spd/pos. Wystawic transition na 1 i dopisac kod na zadawanie z bt
 				if (!(transition))
 				{
-					if (range < 400)
+					if (range < 1000 && range > 800)
+						set_spd = 800;
+					else if (range < 800 && range > 600)
+						set_spd = 600;
+					else if (range < 600 && range > 400)
+						set_spd = 400;
+					else if (range < 400)
 						set_spd = 0;
 					else
-						set_spd = 920;
+					set_spd = 920;
 					set_pos = 1000;
 					set_angle = 90;
 				}
