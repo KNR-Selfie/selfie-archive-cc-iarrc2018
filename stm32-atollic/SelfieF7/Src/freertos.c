@@ -82,6 +82,7 @@ osThreadId CzujnikiTaskHandle;
 osThreadId BTTaskHandle;
 osThreadId MotorContrTaskHandle;
 osThreadId DriveTaskHandle;
+osThreadId FutabaTaskHandle;
 osSemaphoreId DriveControlSemaphoreHandle;
 osSemaphoreId EngineSemaphoreHandle;
 
@@ -103,6 +104,7 @@ extern void StartCzujnikiTask(void const * argument);
 extern void StartBTTask(void const * argument);
 extern void StartMotorControlTask(void const * argument);
 extern void StartDriveTask(void const * argument);
+extern void StartFutabaTask(void const * argument);
 
 extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -195,6 +197,10 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of DriveTask */
   osThreadDef(DriveTask, StartDriveTask, osPriorityAboveNormal, 0, 128);
   DriveTaskHandle = osThreadCreate(osThread(DriveTask), NULL);
+
+  /* definition and creation of FutabaTask */
+  osThreadDef(FutabaTask, StartFutabaTask, osPriorityHigh, 0, 128);
+  FutabaTaskHandle = osThreadCreate(osThread(FutabaTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */

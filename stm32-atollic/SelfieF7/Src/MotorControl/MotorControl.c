@@ -7,6 +7,8 @@
 
 #include "MotorControl.h"
 #include "Lighting.h"
+#include "Futaba.h"
+
 #include "tim.h"
 #include "cmsis_os.h"
 
@@ -44,15 +46,15 @@ void StartMotorControlTask(void const * argument) {
 	while (1)
 	{
 		osSemaphoreWait(DriveControlSemaphoreHandle, osWaitForever);
-		if (a_channels[5] < 500) //gorna pozycja przelacznika - pelna kontrola
+		if (FutabaChannelData[5] < 500) //gorna pozycja przelacznika - pelna kontrola
 		{
-			if (abs(a_channels[1] - 1027) > 50)
-				set_spd = (1840 * (a_channels[1] - 1027) / (1680 - 368));
+			if (abs(FutabaChannelData[1] - 1027) > 50)
+				set_spd = (1840 * (FutabaChannelData[1] - 1027) / (1680 - 368));
 			else set_spd = 0;
 
-			dutyServo = (servo_middle + 600 * (a_channels[3] - 1000) / (1921 - 80));
+			dutyServo = (servo_middle + 600 * (FutabaChannelData[3] - 1000) / (1921 - 80));
 		}
-		else if (a_channels[5] > 1500) //dolna pozycja prze31cznika, jazda autonomiczna
+		else if (FutabaChannelData[5] > 1500) //dolna pozycja prze31cznika, jazda autonomiczna
 		{
 			HAL_TIM_Base_Start_IT(&htim10); // timer od sprawdzania komunikacji
 											//jezeli jest komunikacja na linii Jetson <-> STM
@@ -87,13 +89,13 @@ void StartMotorControlTask(void const * argument) {
 		}
 		else //srodkowa pozycja prze³acznika, tryb polautonomiczny
 		{
-			if (abs(a_channels[1] - 1027) > 50)
-				set_spd = (1840 * (a_channels[1] - 1027) / (1680 - 368));
+			if (abs(FutabaChannelData[1] - 1027) > 50)
+				set_spd = (1840 * (FutabaChannelData[1] - 1027) / (1680 - 368));
 			else set_spd = 0;
 			set_pos = 1000;
 			set_angle = 90;
 		}
-		if (a_channels[5] > 50)
+		if (FutabaChannelData[5] > 50)
 			osSemaphoreRelease(EngineSemaphoreHandle);
 	}
 }
@@ -101,7 +103,7 @@ void StartDriveTask(void const * argument) {
 
 	while (1) {
 		osSemaphoreWait(EngineSemaphoreHandle, osWaitForever);
-		if (a_channels[5] < 500)
+		if (FutabaChannelData[5] < 500)
 			TIM2->CCR3 = dutyServo;
 		else {
 			if (parking_mode) {
@@ -126,7 +128,7 @@ void StartDriveTask(void const * argument) {
 //
 //	while (1) {
 //		osSemaphoreWait(EngineSemaphoreHandle, osWaitForever);
-//		if (a_channels[5] < 500)
+//		if (FutabaChannelData[5] < 500)
 //			TIM2->CCR3 = dutyServo;
 //		else
 //		{
@@ -141,7 +143,7 @@ void StartDriveTask(void const * argument) {
 //		}
 //		/* Dziala pid */
 //		pid_speed = pid_calculateEngine(set_spd, actualSpeed);
-//		TIM2->CCR4 = pid_speed; //(1500 + 1000 * (a_channels[1] - 1027) / (1680 - 368));
+//		TIM2->CCR4 = pid_speed; //(1500 + 1000 * (FutabaChannelData[1] - 1027) / (1680 - 368));
 //
 //	}
 //}
