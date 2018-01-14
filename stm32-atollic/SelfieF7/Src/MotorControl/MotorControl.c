@@ -49,7 +49,7 @@ void StartMotorControlTask(void const * argument) {
 				set_spd = (1840 * (a_channels[1] - 1027) / (1680 - 368));
 			else set_spd = 0;
 
-			dutyServo = (900 + 600 * (a_channels[3] - 1000) / (1921 - 80));
+			dutyServo = (943 + 600 * (a_channels[3] - 1000) / (1921 - 80));
 		}
 		else if (a_channels[5] > 1500) //dolna pozycja prze31cznika, jazda autonomiczna
 		{
@@ -65,16 +65,16 @@ void StartMotorControlTask(void const * argument) {
 				//pozostawiona furtka zeby z BT zadawac spd/pos. Wystawic transition na 1 i dopisac kod na zadawanie z bt
 				if (!(transition))
 				{
-					if (range < 1000 && range > 800)
-						set_spd = 800;
-					else if (range < 800 && range > 600)
-						set_spd = 600;
-					else if (range < 600 && range > 400)
-						set_spd = 400;
-					else if (range < 400)
-						set_spd = 0;
-					else
-					set_spd = 920;
+//					if (range < 1000 && range > 800)
+//						set_spd = 800;
+//					else if (range < 800 && range > 600)
+//						set_spd = 600;
+//					else if (range < 600 && range > 400)
+//						set_spd = 400;
+//					else if (range < 400)
+//						set_spd = 0;
+//					else
+					set_spd = 600;
 					set_pos = 1000;
 					set_angle = 90;
 				}

@@ -20,10 +20,10 @@
 #define kpEng 35
 #define kiEng 0.2
 #define kdEng 0.1
-#define kpServoPos 3.2
+#define kpServoPos 3.5
 #define kiServoPos 0
 #define kdServoPos 0
-#define kpServoAng 3
+#define kpServoAng 0 //3
 #define kiServoAng 0
 #define kdServoAng 0
 
@@ -129,7 +129,6 @@ void StartEncTask(void const * argument) {
 	pid_paramsinitServoAng(kpServoAng, kiServoAng, kdServoAng);
 
 	while (1) {
-		static int16_t pid_value;
 		encodersRead();
 		actualSpeed = vfwd;
 
@@ -200,13 +199,13 @@ float pid_calculateEngine(float set_val, float read_val)
 	u = 1500 + (u / 5000);
 	if (set_val < 0) u -= 140;
 	else if (set_val > 0) u += 60;
-	if (u > 1660) u = 1660;
-	if (u< 1260) u = 1260;
+	if (u > 1680) u = 1680;
+	if (u< 1240) u = 1240;
 
 	if (kierunek == 1 && set_val < 0) {
-		TIM2->CCR4 = 1300;
-		osDelay(25);
 		TIM2->CCR4 = 1500;
+		osDelay(25);
+		TIM2->CCR4 = 1300;
 		osDelay(25);
 	}
 
@@ -241,9 +240,9 @@ float pid_calculateServo(float set_pos, float set_angle, float read_pos, float r
 	uPos = (pid_paramsServoPos.kp * pid_paramsServoPos.err + pid_paramsServoPos.ki * pid_paramsServoPos.err_sum
 		+ pid_paramsServoPos.kd * err_d);
 
-	uPos = 900 + uPos;
-	if (uPos > 1200) uPos = 1200;
-	if (uPos < 600) uPos = 600;
+	uPos = 943 + uPos;
+	if (uPos > 1243) uPos = 1243;
+	if (uPos < 643) uPos = 643;
 
 	///////////////regulator od kata
 	pid_paramsServoAng.err = set_angle - read_angle;
@@ -260,9 +259,9 @@ float pid_calculateServo(float set_pos, float set_angle, float read_pos, float r
 	uAng = (pid_paramsServoAng.kp * pid_paramsServoAng.err + pid_paramsServoAng.ki * pid_paramsServoAng.err_sum
 		+ pid_paramsServoAng.kd * err_d);
 
-	//	uAng = 900 + uAng;
-	//	if(uAng > 1200) uAng = 1200;
-	//	if(uAng < 600) uAng = 600;
+//		uAng = 943 + uAng;
+//		if(uAng > 1243) uAng = 1243;
+//		if(uAng < 643) uAng = 643;
 
 
 	/////////////waga dwoch wartosci z pida
