@@ -8,6 +8,7 @@
 #include "MotorControl.h"
 #include "Lighting.h"
 #include "Futaba.h"
+#include "Czujniki.h"
 
 #include "tim.h"
 #include "cmsis_os.h"
@@ -16,7 +17,6 @@ float set_spd = 0;
 float set_pos = 0;
 float set_angle = 0;
 uint16_t dutyServo = 0;
-extern uint16_t range;
 
 float pid_speed = 0;
 float pid_servo = 0;
@@ -68,7 +68,7 @@ void StartMotorControlTask(void const * argument) {
 				//pozostawiona furtka zeby z BT zadawac spd/pos. Wystawic transition na 1 i dopisac kod na zadawanie z bt
 				if (!(transition))
 				{
-					if (range < 400)
+					if (range[0] < 400)
 						set_spd = 0;
 					else
 						set_spd = 920;

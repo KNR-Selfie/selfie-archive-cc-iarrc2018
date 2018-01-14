@@ -178,7 +178,11 @@ void BT_Commands(uint8_t* Buf, uint32_t length) {
 				vleft, vright, vfwd, leftRoad, rightRoad, fwdRoad);
 		HAL_UART_Transmit_DMA(&huart3, txdata, size);
 	} else if (Buf[0] == 'v') {
-		size = sprintf((char*) txdata, "vlx distance\t\t= %d\r\n\r\n", range);
+		size = 0;
+		for (int sensor = 0; sensor < VLX_SENSOR_COUNT; sensor++)
+			size += sprintf((char*) txdata + size, "vlx[%d] = %d\r\n",
+					sensor+1, range[sensor]);
+		size += sprintf((char*)txdata + size, "\r\n");
 		HAL_UART_Transmit_DMA(&huart3, txdata, size);
 	} else if (Buf[0] == 'p') {
 		if (parking_mode)
