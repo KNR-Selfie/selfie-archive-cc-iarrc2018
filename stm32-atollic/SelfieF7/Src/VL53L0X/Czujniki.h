@@ -10,7 +10,7 @@
 
 #include "stm32f7xx_hal.h"
 
-#define VLX_SENSOR_COUNT 4
+#define VLX_SENSOR_COUNT 8
 
 uint16_t range[VLX_SENSOR_COUNT];
 
