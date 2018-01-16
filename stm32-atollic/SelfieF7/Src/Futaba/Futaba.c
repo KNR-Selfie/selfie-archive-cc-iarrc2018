@@ -94,7 +94,8 @@ void StartFutabaTask(void const * argument)
 void FutabaRx_Irq(void) {
 	sbusDataReceive(FutabaBuffer[0]);
 	FutabaStatus = sbusFrameStatus();
-	if(FutabaStatus == RX_FRAME_COMPLETE)
+	HAL_UART_Receive_DMA(&huart1, FutabaBuffer, 1);
+	if (FutabaStatus == RX_FRAME_COMPLETE)
 		osSemaphoreRelease(DriveControlSemaphoreHandle);
 }
 void sbusDataReceive(uint16_t c)
