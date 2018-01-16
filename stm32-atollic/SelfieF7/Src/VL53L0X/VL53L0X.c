@@ -1,9 +1,10 @@
 #include "VL53L0X.h"
 #include "stdbool.h"
 #include "stdint.h"
+#include "cmsis_os.h"
 #include "i2c.h"
 
-uint16_t VLX_CURRENT_ADRESS = ADDRESS_DEFAULT + 1;
+uint16_t VLX_CURRENT_ADRESS = ADDRESS_DEFAULT + 10;
 // Decode VCSEL (vertical cavity surface emitting laser) pulse period in PCLKs
 // from register value
 // based on VL53L0X_decode_vcsel_period()
@@ -50,7 +51,7 @@ uint32_t timeoutMicrosecondsToMclks(uint32_t timeout_period_us,
 uint8_t readReg(uint16_t adress, uint8_t reg);
 uint16_t readReg16Bit(uint16_t adress, uint8_t reg);
 uint32_t readReg32Bit(uint16_t adress, uint8_t reg);
-void writeReg(uint16_t adress, uint8_t reg, uint8_t value);
+int writeReg(uint16_t adress, uint8_t reg, uint8_t value);
 void writeReg16Bit(uint16_t adress, uint8_t reg, uint16_t value);
 void writeReg32Bit(uint16_t adress, uint8_t reg, uint32_t value);
 
@@ -61,12 +62,12 @@ uint16_t readRangeSingleMillimeters(void);
 
 bool VL53L0X_init(void) {
 	// ZMIANA ADRESU Z DEFAULT NA CURRENT
-	writeReg(ADDRESS_DEFAULT, I2C_SLAVE_DEVICE_ADDRESS, VLX_CURRENT_ADRESS);
-
+	if(writeReg(ADDRESS_DEFAULT, I2C_SLAVE_DEVICE_ADDRESS, VLX_CURRENT_ADRESS >> 1) != HAL_OK)
+		return false;
+	osDelay(10);
 	// VL53L0X_DataInit() begin
 
 	// sensor uses 1V8 mode for I/O by default; switch to 2V8 mode if necessary
-
 	writeReg(VLX_CURRENT_ADRESS, VHV_CONFIG_PAD_SCL_SDA__EXTSUP_HV,
 			readReg(VLX_CURRENT_ADRESS, VHV_CONFIG_PAD_SCL_SDA__EXTSUP_HV)
 					| 0x01); // set bit 0
@@ -587,7 +588,9 @@ uint16_t readRangeContinuousMillimeters(void) {
 // millimeters
 // based on VL53L0X_PerformSingleRangingMeasurement()
 uint16_t readRangeSingleMillimeters(void) {
-	writeReg(VLX_CURRENT_ADRESS, 0x80, 0x01);
+
+	if(writeReg(VLX_CURRENT_ADRESS, 0x80, 0x01) != HAL_OK)
+		return 8192;
 	writeReg(VLX_CURRENT_ADRESS, 0xFF, 0x01);
 	writeReg(VLX_CURRENT_ADRESS, 0x00, 0x00);
 	writeReg(VLX_CURRENT_ADRESS, 0x91, stop_variable);
@@ -638,10 +641,12 @@ uint32_t readReg32Bit(uint16_t adress, uint8_t reg) {
 
 	return value;
 }
-void writeReg(uint16_t adress, uint8_t reg, uint8_t value) {
+int writeReg(uint16_t adress, uint8_t reg, uint8_t value) {
+	int status = 1;
 	i2cTxBuffer[0] = value;
-	HAL_I2C_Mem_Write(&hi2c2, adress, reg, I2C_MEMADD_SIZE_8BIT, i2cTxBuffer, 1,
+	status = HAL_I2C_Mem_Write(&hi2c2, adress, reg, I2C_MEMADD_SIZE_8BIT, i2cTxBuffer, 1,
 			5);
+	return status;
 }
 void writeReg16Bit(uint16_t adress, uint8_t reg, uint16_t value) {
 	i2cTxBuffer[0] = (value >> 8) & 0xFF;

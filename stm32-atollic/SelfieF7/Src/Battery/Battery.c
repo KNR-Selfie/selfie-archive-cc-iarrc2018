@@ -45,7 +45,6 @@ void StartBatteryManager(void const * argument){
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
 	if (hadc->Instance == hadc1.Instance) {
 //		osSemaphoreRelease(ADCSemaphore);
-		static float mAs_drawn = 0;
 		Amps_raw = (float)adc_raw[1] * 3.05f / 4095.f *20.f;
 		Amps_f = filter_apply(&amps_filter, Amps_raw);
 
