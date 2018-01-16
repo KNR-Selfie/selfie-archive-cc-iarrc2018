@@ -64,6 +64,7 @@
 #include "Lighting.h"
 #include "Gyro.h"
 #include "Enc.h"
+#include "Futaba.h"
 #include "BT.h"
 #include "Czujniki.h"
 #include "MotorControl.h"
@@ -89,15 +90,6 @@ uint8_t synchroniseUARTOdroid = 0;
 int ParkingFlag = 0;
 int CrossFlag = 0;
 
-//deklaracja zmiennych uzywanych do komunikacji z Aparaturka
-uint8_t a_syncbyte;
-uint8_t a_buffer[24];
-uint16_t a_channels[16];
-uint8_t synchroniseUARTAparatura = 0;
-
-////usb/gyro?
-uint8_t sem_init = 0;
-xSemaphoreHandle Tim7Semaphore = NULL;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -141,12 +133,10 @@ int main(void)
   MX_DMA_Init();
   MX_UART4_Init();
   MX_TIM2_Init();
-  MX_USART1_UART_Init();
   MX_TIM10_Init();
 
   /* USER CODE BEGIN 2 */
 	HAL_UART_Receive_DMA(&huart4, &j_syncByte, 1);
-	HAL_UART_Receive_DMA(&huart1, &a_syncbyte, 1);
 
 	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
 	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
@@ -269,7 +259,14 @@ void blinkThread(void const *argument)
 }
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
+	if (huart->Instance == USART1) //aparatura
+	{
+		FutabaRx_Irq();
+	}
 
+	if (huart->Instance == USART3) {
+		BluetoothRx_Irq();
+	}
     if (huart->Instance == UART4) //odroid
     {
 
@@ -315,52 +312,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
         }
     }
 
-    if(huart->Instance == USART1) //aparatura
-        {
-
-            if(a_syncbyte==0x0F && synchroniseUARTAparatura == 0)
-            {
-                synchroniseUARTAparatura = 1;
-                HAL_UART_Receive_DMA(&huart1,a_buffer,24);
-            }
-            else if(a_syncbyte != 0x0F && synchroniseUARTAparatura == 0)
-                HAL_UART_Receive_DMA(&huart4, &j_syncByte, 1);
-            else if(a_buffer[22]==0x00 && synchroniseUARTAparatura == 1)
-            {
-                //przetlumaczenie na uzytecze wartosci 11
-                a_channels[0]  = (int16_t) ((a_buffer[0]    |a_buffer[1]<<8)                          & 0x07FF);
-                a_channels[1]  = (int16_t) ((a_buffer[1]>>3 |a_buffer[2]<<5)                          & 0x07FF);
-                a_channels[2]  = (int16_t) ((a_buffer[2]>>6 |a_buffer[3]<<2 |a_buffer[4]<<10)       & 0x07FF);
-                a_channels[3]  = (int16_t) ((a_buffer[4]>>1 |a_buffer[5]<<7)                          & 0x07FF);
-                a_channels[4]  = (int16_t) ((a_buffer[5]>>4 |a_buffer[6]<<4)                          & 0x07FF);
-                a_channels[5]  = (int16_t) ((a_buffer[6]>>7 |a_buffer[7]<<1 |a_buffer[8]<<9)        & 0x07FF);
-                a_channels[6]  = (int16_t) ((a_buffer[8]>>2 |a_buffer[9]<<6)                          & 0x07FF);
-                a_channels[7]  = (int16_t) ((a_buffer[9]>>5 |a_buffer[5]<<3)                         & 0x07FF);
-                a_channels[8]  = (int16_t) ((a_buffer[11]   |a_buffer[12]<<8)                         & 0x07FF);
-                a_channels[9]  = (int16_t) ((a_buffer[12]>>3|a_buffer[13]<<5)                         & 0x07FF);
-                a_channels[10] = (int16_t) ((a_buffer[13]>>6|a_buffer[14]<<2|a_buffer[15]<<10)      & 0x07FF);
-                a_channels[11] = (int16_t) ((a_buffer[15]>>1|a_buffer[16]<<7)                         & 0x07FF);
-                a_channels[12] = (int16_t) ((a_buffer[16]>>4|a_buffer[17]<<4)                         & 0x07FF);
-                a_channels[13] = (int16_t) ((a_buffer[17]>>7|a_buffer[18]<<1|a_buffer[19]<<9)       & 0x07FF);
-                a_channels[14] = (int16_t) ((a_buffer[19]>>2|a_buffer[20]<<6)                         & 0x07FF);
-                a_channels[15] = (int16_t) ((a_buffer[20]>>5|a_buffer[21]<<3)                         & 0x07FF);
-
-                synchroniseUARTAparatura = 0;
-                HAL_UART_Receive_DMA(&huart1, &a_syncbyte, 1);
-                osSemaphoreRelease(DriveControlSemaphoreHandle);
-            }
-            else
-            {
-                synchroniseUARTAparatura = 0;
-                HAL_UART_Receive_DMA(&huart1, &a_syncbyte, 1);
-            }
-
-        }
-
-    if(huart->Instance == USART3){
-    	BluetoothRx_Irq();
-    }
-
 }
 void machine_bootloader(void) {
 	HAL_NVIC_DisableIRQ(TIM1_CC_IRQn);
@@ -402,12 +353,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         j_syncByte = 200;
     }
   if (htim->Instance == TIM7) {
-      static int licznik = 0;
-      if(++licznik>50 && sem_init)
-      {
-    	  licznik=0;
-//    	  osSemaphoreRelease(Tim7Semaphore);
-      }
+
     }
 /* USER CODE END Callback 1 */
 }

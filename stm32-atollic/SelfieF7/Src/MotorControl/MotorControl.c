@@ -7,15 +7,16 @@
 
 #include "MotorControl.h"
 #include "Lighting.h"
+#include "Futaba.h"
+#include "Czujniki.h"
+
 #include "tim.h"
 #include "cmsis_os.h"
-
 
 float set_spd = 0;
 float set_pos = 0;
 float set_angle = 0;
 uint16_t dutyServo = 0;
-extern uint16_t range;
 
 float pid_speed = 0;
 float pid_servo = 0;
@@ -24,6 +25,8 @@ extern float KpJetson;
 extern uint8_t parking_mode;
 extern float parking_angle;
 extern float parking_speed;
+
+uint16_t servo_middle = 943;
 
 uint16_t AngleToServo(float angle);
 
@@ -43,15 +46,16 @@ void StartMotorControlTask(void const * argument) {
 	while (1)
 	{
 		osSemaphoreWait(DriveControlSemaphoreHandle, osWaitForever);
-		if (a_channels[5] < 500) //gorna pozycja przelacznika - pelna kontrola
+		if (FutabaChannelData[5] < 500) //gorna pozycja przelacznika - pelna kontrola
 		{
-			if (abs(a_channels[1] - 1027) > 50)
-				set_spd = (1840 * (a_channels[1] - 1027) / (1680 - 368));
+			if (abs(FutabaChannelData[1] - 1027) > 50)
+				set_spd = (1840 * (FutabaChannelData[1] - 1027) / (1680 - 368));
 			else set_spd = 0;
 
-			dutyServo = (943 + 600 * (a_channels[3] - 1000) / (1921 - 80));
+
+			dutyServo = (servo_middle + 600 * (FutabaChannelData[3] - 1000) / (1921 - 80));
 		}
-		else if (a_channels[5] > 1500) //dolna pozycja prze31cznika, jazda autonomiczna
+		else if (FutabaChannelData[5] > 1500) //dolna pozycja prze31cznika, jazda autonomiczna
 		{
 			HAL_TIM_Base_Start_IT(&htim10); // timer od sprawdzania komunikacji
 											//jezeli jest komunikacja na linii Jetson <-> STM
@@ -65,16 +69,17 @@ void StartMotorControlTask(void const * argument) {
 				//pozostawiona furtka zeby z BT zadawac spd/pos. Wystawic transition na 1 i dopisac kod na zadawanie z bt
 				if (!(transition))
 				{
-//					if (range < 1000 && range > 800)
-//						set_spd = 800;
-//					else if (range < 800 && range > 600)
-//						set_spd = 600;
-//					else if (range < 600 && range > 400)
-//						set_spd = 400;
-//					else if (range < 400)
-//						set_spd = 0;
-//					else
-					set_spd = 600;
+
+					if (range[0] < 1000 && range[0] > 800)
+						set_spd = 800;
+					else if (range[0] < 800 && range[0] > 600)
+						set_spd = 600;
+					else if (range[0] < 600 && range[0] > 400)
+						set_spd = 400;
+					else if (range[0] < 400)
+						set_spd = 0;
+					else
+					set_spd = 920;
 					set_pos = 1000;
 					set_angle = 90;
 				}
@@ -86,13 +91,13 @@ void StartMotorControlTask(void const * argument) {
 		}
 		else //srodkowa pozycja prze³acznika, tryb polautonomiczny
 		{
-			if (abs(a_channels[1] - 1027) > 50)
-				set_spd = (1840 * (a_channels[1] - 1027) / (1680 - 368));
+			if (abs(FutabaChannelData[1] - 1027) > 50)
+				set_spd = (1840 * (FutabaChannelData[1] - 1027) / (1680 - 368));
 			else set_spd = 0;
 			set_pos = 1000;
 			set_angle = 90;
 		}
-		if (a_channels[5] > 50)
+		if (FutabaChannelData[5] > 50)
 			osSemaphoreRelease(EngineSemaphoreHandle);
 	}
 }
@@ -100,7 +105,7 @@ void StartDriveTask(void const * argument) {
 
 	while (1) {
 		osSemaphoreWait(EngineSemaphoreHandle, osWaitForever);
-		if (a_channels[5] < 500)
+		if (FutabaChannelData[5] < 500)
 			TIM2->CCR3 = dutyServo;
 		else {
 			if (parking_mode) {
@@ -125,7 +130,7 @@ void StartDriveTask(void const * argument) {
 //
 //	while (1) {
 //		osSemaphoreWait(EngineSemaphoreHandle, osWaitForever);
-//		if (a_channels[5] < 500)
+//		if (FutabaChannelData[5] < 500)
 //			TIM2->CCR3 = dutyServo;
 //		else
 //		{
@@ -140,7 +145,7 @@ void StartDriveTask(void const * argument) {
 //		}
 //		/* Dziala pid */
 //		pid_speed = pid_calculateEngine(set_spd, actualSpeed);
-//		TIM2->CCR4 = pid_speed; //(1500 + 1000 * (a_channels[1] - 1027) / (1680 - 368));
+//		TIM2->CCR4 = pid_speed; //(1500 + 1000 * (FutabaChannelData[1] - 1027) / (1680 - 368));
 //
 //	}
 //}
@@ -148,5 +153,5 @@ void StartDriveTask(void const * argument) {
 /* +/- 90^ */
 uint16_t AngleToServo(float angle)
 {
-	return (900 + (int16_t)(300.f * angle / 90.f));
+	return (servo_middle + (int16_t)(300.f * angle / 90.f));
 }

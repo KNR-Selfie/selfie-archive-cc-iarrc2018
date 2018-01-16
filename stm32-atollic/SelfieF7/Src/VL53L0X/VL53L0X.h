@@ -6,7 +6,8 @@
 
 bool VL53L0X_init(void);
 uint16_t readRangeSingleMillimeters(void);
-
+#define ADDRESS_DEFAULT 0x52
+extern uint16_t VLX_CURRENT_ADRESS;
 enum regAddr
     {
       SYSRANGE_START                              = 0x00,

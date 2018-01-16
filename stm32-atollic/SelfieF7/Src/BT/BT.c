@@ -30,6 +30,7 @@ extern float pid_speed;
 //informacja o flagach z przerwania odroida
 extern int ParkingFlag;
 extern int CrossFlag;
+
 uint8_t LastCrossFlag = 0;
 uint8_t LastParkingFlag = 0;
 
@@ -91,7 +92,7 @@ void StartBTTask(void const * argument) {
 				parking_angle = steering;
 				parking_speed = velocity;
 				osSemaphoreRelease(DriveControlSemaphoreHandle);
-				osDelay(20);
+				osDelay(100);
 			}
 			if (parking_move == 1) {
 				++parking_move;
@@ -99,7 +100,7 @@ void StartBTTask(void const * argument) {
 				parking_angle = steering;
 				parking_speed = velocity;
 				osSemaphoreRelease(DriveControlSemaphoreHandle);
-				osDelay(20);
+				osDelay(100);
 			}
 			if (parking_move == 2) {
 				steering = -90.f;
@@ -177,7 +178,11 @@ void BT_Commands(uint8_t* Buf, uint32_t length) {
 				vleft, vright, vfwd, leftRoad, rightRoad, fwdRoad);
 		HAL_UART_Transmit_DMA(&huart3, txdata, size);
 	} else if (Buf[0] == 'v') {
-		size = sprintf((char*) txdata, "vlx distance\t\t= %d\r\n\r\n", range);
+		size = 0;
+		for (int sensor = 0; sensor < VLX_SENSOR_COUNT; sensor++)
+			size += sprintf((char*) txdata + size, "vlx[%d] = %d\r\n",
+					sensor+1, range[sensor]);
+		size += sprintf((char*)txdata + size, "\r\n");
 		HAL_UART_Transmit_DMA(&huart3, txdata, size);
 	} else if (Buf[0] == 'p') {
 		if (parking_mode)
@@ -195,7 +200,16 @@ void BT_Commands(uint8_t* Buf, uint32_t length) {
 		KpJetson -= 20.f;
 		size = sprintf((char*) txdata,"Kp = %.1f \r\n\r\n", KpJetson);
 		HAL_UART_Transmit_DMA(&huart3, txdata, size);
-	} else if (Buf[0] == 'R')
+	} else if (Buf[0] == '1') {
+		servo_middle++;
+		size = sprintf((char*) txdata, "servo_middle = %d \r\n\r\n", servo_middle);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	} else if (Buf[0] == '2') {
+		servo_middle--;
+		size = sprintf((char*) txdata, "servo_middle = %d \r\n\r\n", servo_middle);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	}
+	else if (Buf[0] == 'R')
 		NVIC_SystemReset();
 }
 void BluetoothRx_Irq(void) {

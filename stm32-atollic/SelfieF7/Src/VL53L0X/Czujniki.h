@@ -10,7 +10,9 @@
 
 #include "stm32f7xx_hal.h"
 
-uint16_t range;
+#define VLX_SENSOR_COUNT 4
+
+uint16_t range[VLX_SENSOR_COUNT];
 
 void StartCzujnikiTask(void const * argument);
 

@@ -82,6 +82,7 @@ osThreadId CzujnikiTaskHandle;
 osThreadId BTTaskHandle;
 osThreadId MotorContrTaskHandle;
 osThreadId DriveTaskHandle;
+osThreadId FutabaTaskHandle;
 osSemaphoreId DriveControlSemaphoreHandle;
 osSemaphoreId EngineSemaphoreHandle;
 
@@ -103,6 +104,7 @@ extern void StartCzujnikiTask(void const * argument);
 extern void StartBTTask(void const * argument);
 extern void StartMotorControlTask(void const * argument);
 extern void StartDriveTask(void const * argument);
+extern void StartFutabaTask(void const * argument);
 
 extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -196,6 +198,10 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(DriveTask, StartDriveTask, osPriorityAboveNormal, 0, 128);
   DriveTaskHandle = osThreadCreate(osThread(DriveTask), NULL);
 
+  /* definition and creation of FutabaTask */
+  osThreadDef(FutabaTask, StartFutabaTask, osPriorityHigh, 0, 128);
+  FutabaTaskHandle = osThreadCreate(osThread(FutabaTask), NULL);
+
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
 //    osThreadDef(blink, blinkThread, osPriorityLow, 0, 128);
@@ -256,8 +262,12 @@ int8_t MAIN_USB_Receive(uint8_t* Buf, uint32_t *Len) {
 						vleft, vright, vfwd, leftRoad, rightRoad, fwdRoad);
 		CDC_Transmit_FS(usbTxBuffer, len);
 	} else if (Buf[0] == 'v') {
-		len = sprintf((char*) usbTxBuffer, "vlx distance\t\t= %d\r\n\r\n",
-				range);
+		len = 0;
+		for (int sensor = 0; sensor < VLX_SENSOR_COUNT; sensor++)
+			len += sprintf((char*) usbTxBuffer + len, "vlx[%d] = %d\r\n",
+					sensor+1, range[sensor]);
+		len += sprintf((char*)usbTxBuffer + len, "\r\n");
+
 		CDC_Transmit_FS(usbTxBuffer, len);
 	} else if (Buf[0] == 'R')
 		NVIC_SystemReset();
