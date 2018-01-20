@@ -25,7 +25,7 @@ uint8_t FutabaBuffer[25];
 uint8_t FutabaStatus = RX_FRAME_FAILSAFE;
 
 #define RX_OFFSET_T 192
-#define RX_OFFSET_AER 992
+#define RX_OFFSET_AER 1027
 
 #define SBUS_TIME_NEEDED_PER_FRAME 3000
 
