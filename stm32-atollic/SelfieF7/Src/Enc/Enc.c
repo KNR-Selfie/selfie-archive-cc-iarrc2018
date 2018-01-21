@@ -130,10 +130,10 @@ void StartEncTask(void const * argument) {
 	pid_paramsinitServoAng(kpServoAng, kiServoAng, kdServoAng);
 
 	while (1) {
-		static int16_t pid_value;
 		encodersRead();
 		actualSpeed = vfwd;
 
+		//static int16_t pid_value;
 		/* motor loop needs own separate tick
 		pid_value = wheel_pid(wheel_kp, wheel_ki, wheel_kd, set_spd);
 		TIM2->CCR4 = 1500 + pid_value;
@@ -176,7 +176,6 @@ void pid_paramsinitServoAng(float kp, float ki, float kd)
 
 
 //zamiana na static wewnatrz pid_calculateengine
-uint8_t kierunek = 0; //0 stoi, 1 przod, 2 tyl
 float pid_calculateEngine(float set_val, float read_val)
 {
 	read_val = read_val * 32.59485f;
@@ -204,16 +203,14 @@ float pid_calculateEngine(float set_val, float read_val)
 	if (u > 1800) u = 1800;
 	if (u< 1100) u = 1100;
 
-	if (kierunek == 1 && set_val < 0) {
+	if (set_val < 0 && actualSpeed == 0) {
 		TIM2->CCR4 = 1300;
 		osDelay(25);
 		TIM2->CCR4 = 1500;
 		osDelay(25);
+		TIM2->CCR4 = 1300;
+		osDelay(25);
 	}
-
-	if (set_val > 0) kierunek = 1;
-	else if (set_val < 0) kierunek = 2;
-	else kierunek = 0;
 
 
 	wyjscieRegulatoraE = u;
