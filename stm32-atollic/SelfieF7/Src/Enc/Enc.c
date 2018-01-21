@@ -6,6 +6,8 @@
 */
 
 #include "Enc.h"
+#include "MotorControl.h"
+
 #include "cmsis_os.h"
 #include "math.h"
 #include "tim.h"
@@ -19,10 +21,10 @@
 #define kpEng 35
 #define kiEng 0.2
 #define kdEng 0.1
-#define kpServoPos 3.5
+#define kpServoPos 3.2
 #define kiServoPos 0
 #define kdServoPos 0
-#define kpServoAng 0 //3
+#define kpServoAng 3
 #define kiServoAng 0
 #define kdServoAng 0
 
@@ -128,6 +130,7 @@ void StartEncTask(void const * argument) {
 	pid_paramsinitServoAng(kpServoAng, kiServoAng, kdServoAng);
 
 	while (1) {
+		static int16_t pid_value;
 		encodersRead();
 		actualSpeed = vfwd;
 
@@ -202,9 +205,9 @@ float pid_calculateEngine(float set_val, float read_val)
 	if (u< 1100) u = 1100;
 
 	if (kierunek == 1 && set_val < 0) {
-		TIM2->CCR4 = 1500;
-		osDelay(25);
 		TIM2->CCR4 = 1300;
+		osDelay(25);
+		TIM2->CCR4 = 1500;
 		osDelay(25);
 	}
 
@@ -259,8 +262,8 @@ float pid_calculateServo(float set_pos, float set_angle, float read_pos, float r
 		+ pid_paramsServoAng.kd * err_d);
 
 	//	uAng = servo_middle + uAng;
-	//	if(uAng > 1243) uAng = 1243;
-	//	if(uAng < 643) uAng = 643;
+	//	if(uAng > 1200) uAng = 1200;
+	//	if(uAng < 600) uAng = 600;
 
 
 	/////////////waga dwoch wartosci z pida
