@@ -17,7 +17,7 @@
 
 #define H_VAL 91
 #define L_VAL 47
-#define N_LEDS 22
+#define N_LEDS 23
 #define BITS_PER_LED 3*8
 #define BIT_BUF_SIZE N_LEDS*BITS_PER_LED+81
 #define NLED_SIZE N_LEDS*BITS_PER_LED
@@ -264,6 +264,22 @@ void StartLightingTask(void const * argument) {
 			}
 
 		}
+
+		// TOP LED
+		if (RX_SW < 500) //gorna pozycja przelacznika - pelna kontrola
+				{
+			static int cnt = 0;
+			++cnt;
+			if (cnt > 200) {
+				cnt = 0;
+			} else if (cnt > 100) {
+				ws2812_set_color(22, 0, 0, 255);
+			} else
+				ws2812_set_color(22, 0, 0, 0);
+		} else {
+			ws2812_set_color(22, 0, 0, 0);
+		}
+
 		osDelay(10);
 	}
 }

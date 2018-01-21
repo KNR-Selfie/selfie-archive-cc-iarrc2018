@@ -68,8 +68,13 @@ void StartMotorControlTask(void const * argument) {
 				//gdy brak wykrytej linii stop lub zbocze opadajace -> jedz.
 				//pozostawiona furtka zeby z BT zadawac spd/pos. Wystawic transition na 1 i dopisac kod na zadawanie z bt
 				if (!(transition))
+<<<<<<< HEAD
 				{
 
+=======
+				{
+					/*
+>>>>>>> 883f1a4d4b57d7015ab495495d4a67c963875ca9
 					if (range[0] < 1000 && range[0] > 800)
 						set_spd = 800;
 					else if (range[0] < 800 && range[0] > 600)
@@ -79,7 +84,12 @@ void StartMotorControlTask(void const * argument) {
 					else if (range[0] < 400)
 						set_spd = 0;
 					else
+<<<<<<< HEAD
 					set_spd = 920;
+=======
+					*/
+					set_spd = 920;
+>>>>>>> 883f1a4d4b57d7015ab495495d4a67c963875ca9
 					set_pos = 1000;
 					set_angle = 90;
 				}
