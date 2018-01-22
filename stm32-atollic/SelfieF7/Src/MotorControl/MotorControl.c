@@ -5,21 +5,18 @@
 *      Author: Michal
 */
 
-#include "MotorControl.h"
 #include "Lighting.h"
 #include "Futaba.h"
 #include "Czujniki.h"
-
+#include "MotorControl.h"
 #include "tim.h"
-#include "cmsis_os.h"
 
 float set_spd = 0;
 float set_pos = 0;
 float set_angle = 0;
 uint16_t dutyServo = 0;
 
-float pid_speed = 0;
-float pid_servo = 0;
+
 extern float KpJetson;
 
 extern uint8_t parking_mode;
@@ -41,14 +38,13 @@ void StartMotorControlTask(void const * argument) {
 	TIM2->CCR4 = 1520;
 	osDelay(50);
 
-	int transition = 0;
 
 	while (1)
 	{
 		osSemaphoreWait(DriveControlSemaphoreHandle, osWaitForever);
 		if (FutabaChannelData[5] < 500) //gorna pozycja przelacznika - pelna kontrola
 		{
-			if (abs(FutabaChannelData[1] - 1027) > 50)
+			if (((FutabaChannelData[1] - 1027) > 50) || ((FutabaChannelData[1] - 1027) < -50))
 				set_spd = (1840 * (FutabaChannelData[1] - 1027) / (1680 - 368));
 			else set_spd = 0;
 
@@ -64,25 +60,9 @@ void StartMotorControlTask(void const * argument) {
 			}
 			else if (j_syncByte == 255)
 			{
-				//gdy brak wykrytej linii stop lub zbocze opadajace -> jedz.
-				//pozostawiona furtka zeby z BT zadawac spd/pos. Wystawic transition na 1 i dopisac kod na zadawanie z bt
-				if (!(transition))
-				{
-					/*
-					if (range[0] < 1000 && range[0] > 800)
-						set_spd = 800;
-					else if (range[0] < 800 && range[0] > 600)
-						set_spd = 600;
-					else if (range[0] < 600 && range[0] > 400)
-						set_spd = 400;
-					else if (range[0] < 400)
-						set_spd = 0;
-					else
-					*/
 					set_spd = 920;
 					set_pos = 1000;
 					set_angle = 90;
-				}
 			}
 			else if (j_syncByte == 200) //je?eli nie istnieje Jetson <-> STM, wylacz naped (wartosc j_syncByte = 200 jest ustawiana przez TIMER10)
 			{
@@ -91,7 +71,7 @@ void StartMotorControlTask(void const * argument) {
 		}
 		else //srodkowa pozycja prze³acznika, tryb polautonomiczny
 		{
-			if (abs(FutabaChannelData[1] - 1027) > 50)
+			if (((FutabaChannelData[1] - 1027) > 50) || ((FutabaChannelData[1] - 1027) < -50))
 				set_spd = (1840 * (FutabaChannelData[1] - 1027) / (1680 - 368));
 			else set_spd = 0;
 			set_pos = 1000;
@@ -112,11 +92,10 @@ void StartDriveTask(void const * argument) {
 				TIM2->CCR3 = AngleToServo(parking_angle);
 			}
 			else {
-				pid_servo = pid_calculateServo(set_pos, set_angle, j_jetsonData[0], (j_jetsonData[1] + j_jetsonData[2])*0.5);
 				TIM2->CCR3 = pid_servo;
 			}
 		}
-		pid_speed = pid_calculateEngine(set_spd, actualSpeed);
+
 		TIM2->CCR4 = pid_speed;
 
 		if (pid_speed < 1500)

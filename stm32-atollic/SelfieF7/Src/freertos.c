@@ -83,8 +83,10 @@ osThreadId BTTaskHandle;
 osThreadId MotorContrTaskHandle;
 osThreadId DriveTaskHandle;
 osThreadId FutabaTaskHandle;
+osThreadId PIDTaskHandle;
 osSemaphoreId DriveControlSemaphoreHandle;
 osSemaphoreId EngineSemaphoreHandle;
+osSemaphoreId PIDSemaphoreHandle;
 
 /* USER CODE BEGIN Variables */
 osThreadId blinkTID;
@@ -105,6 +107,7 @@ extern void StartBTTask(void const * argument);
 extern void StartMotorControlTask(void const * argument);
 extern void StartDriveTask(void const * argument);
 extern void StartFutabaTask(void const * argument);
+extern void StartPIDTask(void const * argument);
 
 extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -152,6 +155,10 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of EngineSemaphore */
   osSemaphoreDef(EngineSemaphore);
   EngineSemaphoreHandle = osSemaphoreCreate(osSemaphore(EngineSemaphore), 1);
+
+  /* definition and creation of PIDSemaphore */
+  osSemaphoreDef(PIDSemaphore);
+  PIDSemaphoreHandle = osSemaphoreCreate(osSemaphore(PIDSemaphore), 1);
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
@@ -201,6 +208,10 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of FutabaTask */
   osThreadDef(FutabaTask, StartFutabaTask, osPriorityHigh, 0, 128);
   FutabaTaskHandle = osThreadCreate(osThread(FutabaTask), NULL);
+
+  /* definition and creation of PIDTask */
+  osThreadDef(PIDTask, StartPIDTask, osPriorityAboveNormal, 0, 128);
+  PIDTaskHandle = osThreadCreate(osThread(PIDTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
