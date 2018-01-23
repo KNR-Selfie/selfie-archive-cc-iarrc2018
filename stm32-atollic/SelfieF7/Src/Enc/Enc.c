@@ -14,56 +14,8 @@
 #include "gpio.h"
 #include "Filtering.h"
 
-#define ERR_SUM_MAX_ENGINE 300000
-#define ERR_SUM_MAX_SERVOPOS 1500
-#define ERR_SUM_MAX_SERVOANG 1500
 
-#define kpEng 35
-#define kiEng 0.2
-#define kdEng 0.1
-#define kpServoPos 3.2
-#define kiServoPos 0
-#define kdServoPos 0
-#define kpServoAng 3
-#define kiServoAng 0
-#define kdServoAng 0
-
-
-///////////////////////////////
-//podgladanie bledu regulatorow
-float errorE = 0;
-float wyjscieRegulatoraE = 0;
 float actualSpeed = 0;
-
-float errorS = 0;
-float errorSP = 0;
-float errorSA = 0;
-float wyjscieRegulatoraS = 0;
-float wyjscieRegulatoraSP = 0;
-float wyjscieRegulatoraSA = 0;
-//////////////////////////////
-
-struct pid_params
-{
-	float kp;
-	float ki;
-	float kd;
-	float err;
-	float err_sum;
-	float err_last;
-};
-
-static struct pid_params pid_paramsEngine;
-static struct pid_params pid_paramsServoPos;
-static struct pid_params pid_paramsServoAng;
-
-
-void pid_paramsinitEng(float kp, float ki, float kd);
-void pid_paramsinitServoPos(float kp, float ki, float kd);
-void pid_paramsinitServoAng(float kp, float ki, float kd);
-float pid_calculateEngine(float set_val, float read_val);
-float pid_calculateServo(float set_pos, float set_angle, float read_pos, float read_angle);
-
 /************ Testy matiego **************/
 #define M_PI_FLOAT  3.14159265358979323846f
 #define ENC_RESOLUTION 10240
@@ -110,8 +62,6 @@ float wheel_ki = 0.004f;
 float wheel_kd = 0.02f;
 
 pt1Filter_t DtermLPF;
-void encodersReset(void);
-void encodersRead(void);
 
 int16_t wheel_pid(float kp, float ki, float kd, int16_t setfwd);
 
@@ -125,15 +75,14 @@ void StartEncTask(void const * argument) {
 	encodersReset();
 	pt1FilterInit(&DtermLPF, 50, MOTOR_DT);
 
-	pid_paramsinitEng(kpEng, kiEng, kdEng);
-	pid_paramsinitServoPos(kpServoPos, kiServoPos, kdServoPos);
-	pid_paramsinitServoAng(kpServoAng, kiServoAng, kdServoAng);
+
 
 	while (1) {
-		static int16_t pid_value;
 		encodersRead();
 		actualSpeed = vfwd;
+		osSemaphoreRelease(PIDSemaphoreHandle);
 
+		//static int16_t pid_value;
 		/* motor loop needs own separate tick
 		pid_value = wheel_pid(wheel_kp, wheel_ki, wheel_kd, set_spd);
 		TIM2->CCR4 = 1500 + pid_value;
@@ -144,141 +93,6 @@ void StartEncTask(void const * argument) {
 }
 
 
-void pid_paramsinitEng(float kp, float ki, float kd)
-{
-	pid_paramsEngine.kp = kp;
-	pid_paramsEngine.ki = ki;
-	pid_paramsEngine.kd = kd;
-	pid_paramsEngine.err = 0;
-	pid_paramsEngine.err_sum = 0;
-	pid_paramsEngine.err_last = 0;
-}
-
-void pid_paramsinitServoPos(float kp, float ki, float kd)
-{
-	pid_paramsServoPos.kp = kp;
-	pid_paramsServoPos.ki = ki;
-	pid_paramsServoPos.kd = kd;
-	pid_paramsServoPos.err = 0;
-	pid_paramsServoPos.err_sum = 0;
-	pid_paramsServoPos.err_last = 0;
-}
-
-void pid_paramsinitServoAng(float kp, float ki, float kd)
-{
-	pid_paramsServoAng.kp = kp;
-	pid_paramsServoAng.ki = ki;
-	pid_paramsServoAng.kd = kd;
-	pid_paramsServoAng.err = 0;
-	pid_paramsServoAng.err_sum = 0;
-	pid_paramsServoAng.err_last = 0;
-}
-
-
-//zamiana na static wewnatrz pid_calculateengine
-uint8_t kierunek = 0; //0 stoi, 1 przod, 2 tyl
-float pid_calculateEngine(float set_val, float read_val)
-{
-	read_val = read_val * 32.59485f;
-	set_val = set_val * 32.59485f;
-
-	float err_d, u;
-
-	pid_paramsEngine.err = set_val - read_val;
-	pid_paramsEngine.err_sum += pid_paramsEngine.err;
-
-	if (pid_paramsEngine.err_sum > ERR_SUM_MAX_ENGINE) {
-		pid_paramsEngine.err_sum = ERR_SUM_MAX_ENGINE;
-	}
-	else if (pid_paramsEngine.err_sum < -ERR_SUM_MAX_ENGINE) {
-		pid_paramsEngine.err_sum = -ERR_SUM_MAX_ENGINE;
-	}
-
-	err_d = pid_paramsEngine.err - pid_paramsEngine.err_last;
-	u = (pid_paramsEngine.kp * pid_paramsEngine.err + pid_paramsEngine.ki * pid_paramsEngine.err_sum
-		+ pid_paramsEngine.kd * err_d);
-
-	u = 1500 + (u / 5000);
-	if (set_val < 0) u -= 140;
-	else if (set_val > 0) u += 60;
-	if (u > 1800) u = 1800;
-	if (u< 1100) u = 1100;
-
-	if (kierunek == 1 && set_val < 0) {
-		TIM2->CCR4 = 1300;
-		osDelay(25);
-		TIM2->CCR4 = 1500;
-		osDelay(25);
-	}
-
-	if (set_val > 0) kierunek = 1;
-	else if (set_val < 0) kierunek = 2;
-	else kierunek = 0;
-
-
-	wyjscieRegulatoraE = u;
-	errorE = pid_paramsEngine.err;
-	return u;
-}
-
-
-
-float pid_calculateServo(float set_pos, float set_angle, float read_pos, float read_angle)
-{
-	float err_d, u, uPos, uAng;
-
-	//////////////regulator od pozycji
-	pid_paramsServoPos.err = set_pos - read_pos;
-	pid_paramsServoPos.err_sum += pid_paramsServoPos.err;
-
-	if (pid_paramsServoPos.err_sum > ERR_SUM_MAX_SERVOPOS) {
-		pid_paramsServoPos.err_sum = ERR_SUM_MAX_SERVOPOS;
-	}
-	else if (pid_paramsServoPos.err_sum < -ERR_SUM_MAX_SERVOPOS) {
-		pid_paramsServoPos.err_sum = -ERR_SUM_MAX_SERVOPOS;
-	}
-
-	err_d = pid_paramsServoPos.err - pid_paramsServoPos.err_last;
-	uPos = (pid_paramsServoPos.kp * pid_paramsServoPos.err + pid_paramsServoPos.ki * pid_paramsServoPos.err_sum
-		+ pid_paramsServoPos.kd * err_d);
-
-	uPos = servo_middle + uPos;
-	if (uPos > (servo_middle+300)) uPos = servo_middle+300;
-	if (uPos < (servo_middle-300)) uPos = servo_middle-300;
-
-	///////////////regulator od kata
-	pid_paramsServoAng.err = set_angle - read_angle;
-	pid_paramsServoAng.err_sum += pid_paramsServoAng.err;
-
-	if (pid_paramsServoAng.err_sum > ERR_SUM_MAX_SERVOANG) {
-		pid_paramsServoAng.err_sum = ERR_SUM_MAX_SERVOANG;
-	}
-	else if (pid_paramsServoAng.err_sum < -ERR_SUM_MAX_SERVOANG) {
-		pid_paramsServoAng.err_sum = -ERR_SUM_MAX_SERVOANG;
-	}
-
-	err_d = pid_paramsServoAng.err - pid_paramsServoAng.err_last;
-	uAng = (pid_paramsServoAng.kp * pid_paramsServoAng.err + pid_paramsServoAng.ki * pid_paramsServoAng.err_sum
-		+ pid_paramsServoAng.kd * err_d);
-
-	//	uAng = servo_middle + uAng;
-	//	if(uAng > 1200) uAng = 1200;
-	//	if(uAng < 600) uAng = 600;
-
-
-	/////////////waga dwoch wartosci z pida
-	//u = (uPos*2+uAng)/3;
-	u = uPos;
-
-	////////dane do debuggowania
-	errorS = pid_paramsServoPos.err + pid_paramsServoAng.err;
-	errorSP = pid_paramsServoPos.err;
-	errorSA = pid_paramsServoAng.err;
-	wyjscieRegulatoraSP = uPos;
-	wyjscieRegulatoraSA = uAng;
-	wyjscieRegulatoraS = u;
-	return u;
-}
 
 
 void encodersRead(void) {
@@ -325,40 +139,4 @@ void encodersReset(void) {
 	encodersRead();
 	__enable_irq();
 }
-int16_t wheel_pid(float kp, float ki, float kd, int16_t setfwd) {
-	int16_t pid;
-	float pterm, iterm, dterm;
-	int32_t error, delta;
-	static int32_t error_sum;
-	static int32_t error_last;
 
-
-	encodersRead();
-	error = setfwd - vfwd;
-	error_sum += error;
-	if (error_sum > 10000)
-		error_sum = 10000;
-	else if (error_sum < -10000)
-		error_sum = -10000;
-
-
-	delta = pt1FilterApply(&DtermLPF, (float)(error_last - error));
-	error_last = error;
-
-	pterm = kp * error;
-	iterm = ki * error_sum;
-	if (iterm > 125)
-		iterm = 125;
-	else if (iterm < -125)
-		iterm = -125;
-
-	dterm = kd * delta;
-
-	pid = (int16_t)(pterm + iterm + dterm);
-	if (pid > 500)
-		pid = 500;
-	else if (pid < -500)
-		pid = -500;
-
-	return pid;
-}

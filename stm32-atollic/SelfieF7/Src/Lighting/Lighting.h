@@ -9,8 +9,7 @@
 #define APPLICATION_USER_LIGHTING_LIGHTING_H_
 
 #include "math.h"
-
-
+#include "cmsis_os.h"
 
 void StartLightingTask(void const * argument);
 void ws2812_init(void);
