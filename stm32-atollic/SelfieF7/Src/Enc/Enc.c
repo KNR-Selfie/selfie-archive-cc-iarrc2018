@@ -16,6 +16,7 @@
 
 
 float actualSpeed = 0;
+
 /************ Testy matiego **************/
 #define M_PI_FLOAT  3.14159265358979323846f
 #define ENC_RESOLUTION 10240
@@ -63,7 +64,6 @@ float wheel_kd = 0.02f;
 
 pt1Filter_t DtermLPF;
 
-int16_t wheel_pid(float kp, float ki, float kd, int16_t setfwd);
 
 /************ Testy matiego **************/
 
@@ -139,4 +139,3 @@ void encodersReset(void) {
 	encodersRead();
 	__enable_irq();
 }
-

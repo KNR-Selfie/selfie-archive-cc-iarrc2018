@@ -39,9 +39,11 @@ typedef struct pid_params
 int16_t wheel_pid(float kp, float ki, float kd, int16_t setfwd);
 void pid_paramsinit(pid_params *pid_param, float kp, float ki, float kd);
 float pid_calculateEngine(pid_params *pid_param, float set_val, float read_val);
-float pid_calculateServo(pid_params *pid_paramPos, pid_params *pid_paramAng, float set_pos, float set_angle, float read_pos, float read_angle);
+float pid_calculateServoPos(pid_params *pid_paramPos,float set_pos, float read_pos);
+float pid_calculateServoAng(pid_params *pid_paramAng, float set_angle, float read_angle);
 PidControllerState GetPidState(pid_params *pid_param);
 void SetPidState(pid_params *pid_param, PidControllerState stat);
+void ResetPidError(pid_params *pid_param);
 
 void StartPIDTask(void const * argument);
 
