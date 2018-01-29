@@ -59,6 +59,9 @@ class LineDetector
 	
 	// 0 - left lane, 1 - right lane
 	bool current_lane;
+	int offset_counter_1;
+	int offset_counter_2;
+	int emergency_counter;
 
 public:
 	LineDetector()
@@ -71,13 +74,23 @@ public:
 
 		new_slope_left = 999; 
 		new_slope_right = 999; 
-		new_pos_left = 570; 
-		new_pos_right = 70; 
+		new_pos_left = 70; 
+		new_pos_right = 570; 
 	 	new_middle = 320;
 	 	width = 500;
 
 		current_lane = 1;
+		offset_counter_1 = 0;
+		offset_counter_2 = 0;
+		emergency_counter = 0;
 	}
+
+//OFFSET
+
+	bool first_step = false;
+	bool second_step = false;
+
+//OFFSET
 
 	//Dane do wysylki
 	int srodek = 320;
@@ -110,7 +123,8 @@ public:
 	void restart_lane_detection();
 	
 	//
-	void change_lane();
+	void cancel_offset(int &UART_offset, bool &check_for_offset);
+	void change_lane(int &UART_offset, bool &check_for_offset);
 	void display_last_middle();
 
 	//

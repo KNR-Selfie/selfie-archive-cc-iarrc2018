@@ -560,28 +560,199 @@ void LineDetector::restart_lane_detection()
 	current_lane = 1;
 }
 
+void LineDetector::cancel_offset(int &UART_offset, bool &check_for_offset) 
+{
+/*
+	if(current_lane)
+	{
+		if(first_step)
+		{
+			if(!BL_sector)
+			{
+				first_step = false;
+				second_step = true;
+			}
+		}
+
+		if(second_step)
+		{
+			if(BR_sector && new_pos_right > 440)
+			{
+				first_step = false;
+				second_step = false;
+				check_for_offset = false;
+				UART_offset = 0;
+			}
+		}
+	}
+	else
+	{
+		if(first_step)
+		{
+			if(!BR_sector)
+			{
+				first_step = false;
+				second_step = true;
+			}
+		}
+
+		if(second_step)
+		{
+			if(BL_sector && new_pos_left < 200)
+			{
+				first_step = false;
+				second_step = false;
+				check_for_offset = false;
+				UART_offset = 0;
+			}
+		}
+	}
+*/
+
+	if(current_lane)
+	{
+		if(first_step)
+		{
+			if(emergency_counter > 15)
+			{
+				first_step = false;
+				second_step = false;
+				check_for_offset = false;
+				UART_offset = 0;
+			}
+			else
+			{
+				emergency_counter++;			
+			}
+			
+			if(!BL_sector)
+			{
+				if(offset_counter_1 >= 2)
+				{
+					first_step = false;
+					second_step = true;
+					offset_counter_2 = 0;
+				}
+				else
+				{
+					offset_counter_1++;
+				}			
+			}
+			else
+			{
+				offset_counter_1--;
+			}
+		}
+
+		if(second_step)
+		{
+			if(BL_sector)
+			{
+				if(offset_counter_2 >= 4)
+				{
+					first_step = false;
+					second_step = false;
+					check_for_offset = false;
+					UART_offset = 0;
+				}
+				else
+				{
+					offset_counter_2++;
+				}			
+			}
+			else
+			{
+				offset_counter_2--;
+			}
+		}
+	}
+	else
+	{
+		if(first_step)
+		{
+			if(emergency_counter > 15)
+			{
+				first_step = false;
+				second_step = false;
+				check_for_offset = false;
+				UART_offset = 0;
+			}
+			else
+			{
+				emergency_counter++;			
+			}
+
+			if(!BR_sector)
+			{
+				if(offset_counter_1 >= 2)
+				{
+					first_step = false;
+					second_step = true;
+					offset_counter_2 = 0;
+				}
+				else
+				{
+					offset_counter_1++;
+				}			
+			}
+			else
+			{
+				offset_counter_1 = 0;
+			}
+		}
+
+		if(second_step)
+		{
+			if(BR_sector)
+			{
+				if(offset_counter_2 >= 4)
+				{
+					first_step = false;
+					second_step = false;
+					check_for_offset = false;
+					UART_offset = 0;
+				}
+				else
+				{
+					offset_counter_2++;
+				}			
+			}
+			else
+			{
+				offset_counter_2 = 0;
+			}
+		}
+	}
+
+}
+
+
 //
-void LineDetector::change_lane()
+void LineDetector::change_lane(int &UART_offset, bool &check_for_offset)
 {
 	if(current_lane)
 	{
 		current_lane = 0;
-		last_top_middle_point.coordinates.x -= width;
-		last_bottom_middle_point.coordinates.x -= width;
-		new_middle -= 2 * width;
-		width *= 2;
+		check_for_offset = true;
+		first_step = true;
+		UART_offset -= (0.8 * width);
+		offset_counter_1 = 0;
+		offset_counter_2 = 0;
+		emergency_counter = 0;
 	}
 	else
 	{
 		current_lane = 1;
-		last_top_middle_point.coordinates.x += width;
-		last_bottom_middle_point.coordinates.x += width;
-		new_middle += width;
-		width *= 1.8;
+		check_for_offset = true;
+		first_step = true;
+		UART_offset += (0.8 * width);
+		offset_counter_1 = 0;
+		offset_counter_2 = 0;
+		emergency_counter = 0;
 	}
 }
 
-void LineDetector::parking_line (cv:: Mat frame)
+void LineDetector::parking_line (cv::Mat frame)
 {
     int number_of_pixels = 10;
 
@@ -602,7 +773,7 @@ void LineDetector::parking_line (cv:: Mat frame)
 	cv::Scalar left_white_pix;
 
     cv::namedWindow("roi",1);
-
+std::cout << "OK" << std::endl;
 	//Parking_line = false;
 	
 	if(BL_sector == true && BR_sector == true && Detect_parking_line == false)
@@ -627,6 +798,7 @@ void LineDetector::parking_line (cv:: Mat frame)
 		cv::Point(roi.cols, roi.rows),
         cv::Point(roi.cols - 50, 0)
     };
+std::cout << "OK" << std::endl;
 	cv::fillConvexPoly(mask, points, 4, cv::Scalar(255, 0, 0));
 	cv::bitwise_and(roi, mask, masked_roi);
 

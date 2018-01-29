@@ -36,6 +36,10 @@ int right_lane_angle_st = 90;
 int right_lane_angle_rad = 3.1415/2;
 char flags_to_UART = 0b00000000;
 
+//For lane change
+int UART_offset = 0;
+bool check_for_offset = false;
+
 LineDetector lineDetector;
 Watchdog watchdog;
 UART uart_1;
@@ -230,6 +234,9 @@ int main()
 
 		lineDetector.send_data_to_main(detected_middle_pos_near, left_lane_angle_st, right_lane_angle_st, flags_to_UART);
 
+		if(check_for_offset)
+			lineDetector.cancel_offset(UART_offset, check_for_offset);
+
         push_new_data_to_UART();
 
 		uart_1.send_data();
@@ -258,7 +265,7 @@ int main()
 		{
 			if(!GPIO_handled[1])
 			{
-				lineDetector.change_lane();
+				lineDetector.change_lane(UART_offset, check_for_offset);
 				GPIO_handled[1] = true;
 			}
 		}	
@@ -272,9 +279,16 @@ int main()
 			cv::fillConvexPoly(frame_gray, points, 6, cv::Scalar(255, 0, 0));
 		}
 
+		line(frame_data,
+         cv::Point(uart_1.unia_danych.dane.data_0 - 680,30),
+         cv::Point(uart_1.unia_danych.dane.data_0 - 680,70),
+         cv::Scalar(255, 0, 255),
+         3,
+         8);
+
         //cv::imshow("Vision", frame);
         cv::imshow("Vision GRAY", frame_gray);
-        //cv::imshow("Thresh", frame_thresh);
+        cv::imshow("Thresh", frame_thresh);
         //cv::imshow("Edges", frame_edges);
         cv::imshow("Masked", frame_edges_masked);
         //cv::imshow("Lines", frame_lines);
@@ -345,7 +359,7 @@ int main()
 
         //Force lane change
         case 'c':
-            lineDetector.change_lane();
+            lineDetector.change_lane(UART_offset, check_for_offset);
             break;
 
         //Manual restart of vision variables
@@ -389,7 +403,7 @@ void U_thread(UART &uart)
 
 void push_new_data_to_UART()
 {
-    uart_1.unia_danych.dane.data_0 = detected_middle_pos_near;
+    uart_1.unia_danych.dane.data_0 = detected_middle_pos_near + UART_offset;
     uart_1.unia_danych.dane.data_1 = left_lane_angle_st;
     uart_1.unia_danych.dane.data_2 = right_lane_angle_st;
     //uart_1.unia_danych.dane.data_3 = 0;
