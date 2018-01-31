@@ -10,6 +10,7 @@
 #include "Czujniki.h"
 #include "MotorControl.h"
 #include "tim.h"
+#include "Parking.h"
 
 float set_spd = 0;
 float set_pos = 0;
@@ -22,6 +23,8 @@ extern float KpJetson;
 extern uint8_t parking_mode;
 extern float parking_angle;
 extern float parking_speed;
+
+extern uint8_t parking_status;
 
 uint16_t servo_middle = 943;
 
@@ -66,7 +69,7 @@ void StartMotorControlTask(void const * argument) {
 			}
 			else if (j_syncByte == 200) //je?eli nie istnieje Jetson <-> STM, wylacz naped (wartosc j_syncByte = 200 jest ustawiana przez TIMER10)
 			{
-				set_spd = 0;
+				//set_spd = 0;  //<wykomentowane tylko na czas testów bez odroida
 			}
 		}
 		else //srodkowa pozycja przeÂ³acznika, tryb polautonomiczny
@@ -91,6 +94,14 @@ void StartDriveTask(void const * argument) {
 			if (parking_mode) {
 				TIM2->CCR3 = AngleToServo(parking_angle);
 			}
+			//tymcasowy else if prostowanie serwa
+			            else if (parking_status == 0 || parking_status == 1 || parking_status == 2 || parking_status ==3){
+			                TIM2-> CCR3 = 943;
+			            }
+			            else if(parking_status==6){
+			            	TIM2-> CCR3 = 943;
+			            	set_spd=0;
+			            }
 			else {
 				TIM2->CCR3 = pid_servo;
 			}
