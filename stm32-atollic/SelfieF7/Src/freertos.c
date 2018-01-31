@@ -84,6 +84,7 @@ osThreadId MotorContrTaskHandle;
 osThreadId DriveTaskHandle;
 osThreadId FutabaTaskHandle;
 osThreadId PIDTaskHandle;
+osThreadId ParkingTaskHandle;
 osSemaphoreId DriveControlSemaphoreHandle;
 osSemaphoreId EngineSemaphoreHandle;
 osSemaphoreId PIDSemaphoreHandle;
@@ -108,6 +109,7 @@ extern void StartMotorControlTask(void const * argument);
 extern void StartDriveTask(void const * argument);
 extern void StartFutabaTask(void const * argument);
 extern void StartPIDTask(void const * argument);
+extern void StartParkingTask(void const * argument);
 
 extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -212,6 +214,10 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of PIDTask */
   osThreadDef(PIDTask, StartPIDTask, osPriorityAboveNormal, 0, 128);
   PIDTaskHandle = osThreadCreate(osThread(PIDTask), NULL);
+
+  /* definition and creation of ParkingTask */
+  osThreadDef(ParkingTask, StartParkingTask, osPriorityIdle, 0, 128);
+  ParkingTaskHandle = osThreadCreate(osThread(ParkingTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */

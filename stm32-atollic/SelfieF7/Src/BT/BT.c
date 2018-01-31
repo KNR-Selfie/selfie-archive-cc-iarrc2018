@@ -22,6 +22,7 @@
 #include "Czujniki.h"
 #include "MotorControl.h"
 #include "Battery.h"
+#include "Parking.h"
 /* oraz silnika*/
 extern float set_spd;
 extern float actualSpeed;
@@ -33,6 +34,7 @@ extern int CrossFlag;
 
 uint8_t LastCrossFlag = 0;
 uint8_t LastParkingFlag = 0;
+extern uint8_t parking_mode;
 
 float KpJetson = 3000.f;
 
@@ -64,12 +66,6 @@ uint8_t table[4];
 char tab[6];
 ///////////KONIEC TESTY BT
 
-uint8_t parking_mode = 0;
-uint8_t parking_move = 0;
-float parking_angle = 0;
-float parking_speed = 0;
-float start_angle = 0;
-float start_distance = 0;
 
 void BT_Commands(uint8_t* Buf, uint32_t length);
 
@@ -80,65 +76,10 @@ void StartBTTask(void const * argument) {
 	MX_USART3_UART_Init();
 	HAL_UART_Receive_DMA(&huart3, rxdata, 1);
 	while (1) {
+
 //		osSemaphoreWait(BTSemaphore, osWaitForever);
 //		osSignalWait(0x01, osWaitForever);
-		if (parking_mode) {
-			sidesignals = SIDETURN_RIGHT;
-			float steering = 0, velocity = 0;
-			if (parking_move == 0) {
-				start_angle = CumulativeYaw;
-				++parking_move;
-				velocity = -100;
-				parking_angle = steering;
-				parking_speed = velocity;
-				osSemaphoreRelease(DriveControlSemaphoreHandle);
-				osDelay(100);
-			}
-			if (parking_move == 1) {
-				++parking_move;
-				velocity = 0;
-				parking_angle = steering;
-				parking_speed = velocity;
-				osSemaphoreRelease(DriveControlSemaphoreHandle);
-				osDelay(100);
-			}
-			if (parking_move == 2) {
-				steering = -90.f;
-				velocity = -500;
-				if ((CumulativeYaw - start_angle) > 35
-						|| (CumulativeYaw - start_angle) < -35){
-					++parking_move;
-					start_distance = fwdRoad;
-					start_angle = CumulativeYaw;
-				}
-			}
-			if (parking_move == 3) {
 
-				steering = -(CumulativeYaw - start_angle);
-				velocity = -500;
-				if ((fwdRoad - start_distance) < -50)
-				{
-					++parking_move;
-					start_angle = CumulativeYaw;
-				}
-			}
-			if (parking_move == 4) {
-				steering = 90.f;
-				velocity = -500;
-				if ((CumulativeYaw - start_angle) > 35
-						|| (CumulativeYaw - start_angle) < -35) {
-					steering = 0.f;
-					velocity = 0.f;
-					parking_move = 0;
-					parking_mode = 0;
-				}
-			}
-			parking_angle = steering;
-			parking_speed = velocity;
-			osSemaphoreRelease(DriveControlSemaphoreHandle);
-		}
-		else
-			sidesignals = SIDETURN_NONE;
 
 		if (ParkingFlag && LastParkingFlag == 0) {
 			size = sprintf((char*) txdata, "Strefa parkowania\r\n\r\n");
