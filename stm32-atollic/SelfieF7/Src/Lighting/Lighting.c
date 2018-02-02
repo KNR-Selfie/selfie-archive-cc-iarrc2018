@@ -270,9 +270,9 @@ void StartLightingTask(void const * argument) {
 				{
 			static int cnt = 0;
 			++cnt;
-			if (cnt > 200) {
+			if (cnt > 100) {
 				cnt = 0;
-			} else if (cnt > 100) {
+			} else if (cnt > 50) {
 				ws2812_set_color(22, 0, 0, 255);
 			} else
 				ws2812_set_color(22, 0, 0, 0);
