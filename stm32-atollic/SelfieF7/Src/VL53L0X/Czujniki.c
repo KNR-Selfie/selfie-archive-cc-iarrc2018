@@ -28,13 +28,14 @@ void StartCzujnikiTask(void const * argument) {
 		VLX_CURRENT_ADRESS = ADDRESS_DEFAULT + sensor*2 + 10;
 		osDelay(5);
 		VL53L0X_init();
-		osDelay(5);
-
+		osDelay(50);
+		VL53L0X_startContinuous(0);
+		osDelay(50);
 	}
 	while (1) {
 		for (int sensor = 0; sensor < VLX_SENSOR_COUNT; sensor++) {
 			VLX_CURRENT_ADRESS = ADDRESS_DEFAULT + sensor*2 + 10;
-			range[sensor] = readRangeSingleMillimeters();
+			range[sensor] = readRangeContinuousMillimeters();
 			osDelay(33 / VLX_SENSOR_COUNT);
 		}
 	}
