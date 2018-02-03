@@ -8,6 +8,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "Governor.h"
 #include "Lighting.h"
 #include "Futaba.h"
 
@@ -32,7 +33,7 @@ uint16_t RX_POT;
 int rgb[22][3];
 float brightness;
 
-SideTurnSignalType_e sidesignals = SIDETURN_NONE;
+SideTurnSignalType_e sidesignals = SIDETURN_EMERGENCY;
 BrakeSignalType_e brakesignals = BRAKE_NONE;
 
 void StartLightingTask(void const * argument) {
@@ -64,7 +65,58 @@ void StartLightingTask(void const * argument) {
 			ws2812_set_color(15, 0, 0, 0);
 			ws2812_set_color(16, 0, 0, 0);
 			ws2812_set_color(17, 0, 0, 0);
-			if (RX_AETR[3] > 1250 || sidesignals == SIDETURN_LEFT) {
+			if ( sidesignals == SIDETURN_EMERGENCY) {
+				static int cnt_ind0 = 0;
+				++cnt_ind0;
+				if (cnt_ind0 > 50) {
+					cnt_ind0 = 0;
+				} else if (cnt_ind0> 20) {
+
+					ws2812_set_color(20, 255, 120, 0);
+					ws2812_set_color(21, 255, 120, 0);
+					ws2812_set_color(1, 255, 120, 0);
+					ws2812_set_color(0, 255, 120, 0);
+
+					ws2812_set_color(9, 255, 120, 0);
+					ws2812_set_color(10, 255, 120, 0);
+					ws2812_set_color(12, 255, 120, 0);
+					ws2812_set_color(11, 255, 120, 0);
+
+				} else if (cnt_ind0> 10) {
+					ws2812_set_color(18, 255, 120, 0);
+					ws2812_set_color(19, 255, 120, 0);
+					ws2812_set_color(3, 255, 120, 0);
+					ws2812_set_color(2, 255, 120, 0);
+
+					ws2812_set_color(7, 255, 120, 0);
+					ws2812_set_color(8, 255, 120, 0);
+					ws2812_set_color(14, 255, 120, 0);
+					ws2812_set_color(13, 255, 120, 0);
+
+
+				} else {
+					ws2812_set_color(3, 0, 0, 0);
+					ws2812_set_color(2, 0, 0, 0);
+					ws2812_set_color(1, 0, 0, 0);
+					ws2812_set_color(0, 0, 0, 0);
+
+					ws2812_set_color(18, 0, 0, 0);
+					ws2812_set_color(19, 0, 0, 0);
+					ws2812_set_color(20, 0, 0, 0);
+					ws2812_set_color(21, 0, 0, 0);
+
+					ws2812_set_color(7, 0, 0, 0);
+					ws2812_set_color(8, 0, 0, 0);
+					ws2812_set_color(9, 0, 0, 0);
+					ws2812_set_color(10, 0, 0, 0);
+
+					ws2812_set_color(14, 0, 0, 0);
+					ws2812_set_color(13, 0, 0, 0);
+					ws2812_set_color(12, 0, 0, 0);
+					ws2812_set_color(11, 0, 0, 0);
+				}
+			}
+			else if (RX_AETR[3] > 1250 || sidesignals == SIDETURN_LEFT) {
 				static int cnt_ind1 = 0;
 				++cnt_ind1;
 				if (cnt_ind1 > 100) {
@@ -279,7 +331,11 @@ void StartLightingTask(void const * argument) {
 		} else {
 			ws2812_set_color(22, 0, 0, 0);
 		}
-
+		if (FutabaStatus == RX_FRAME_FAILSAFE)
+			sidesignals = SIDETURN_EMERGENCY;
+		else if (autonomous_task != parking && sidesignals == SIDETURN_EMERGENCY) {
+			sidesignals = SIDETURN_NONE;
+		}
 		osDelay(10);
 	}
 }
