@@ -40,7 +40,7 @@ typedef enum rc_alias {
 extern const char rcChannelLetters[];
 void sbusDataReceive(uint16_t c);
 uint8_t sbusFrameStatus(void);
-
+void FutabaRx_Irq(void);
 int16_t GetMicroTick(void);
 void MicroDelay(uint16_t Delay);
 #endif /* FUTABA_FUTABA_H_ */

@@ -23,6 +23,7 @@ typedef enum {
 	SIDETURN_NONE = 0,
     SIDETURN_LEFT,
 	SIDETURN_RIGHT,
+	SIDETURN_EMERGENCY
 } SideTurnSignalType_e;
 typedef enum {
 	BRAKE_NONE = 0,

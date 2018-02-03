@@ -12,16 +12,14 @@
 #include "task.h"
 #include "cmsis_os.h"
 
-#include "Driving.h"
-
 #include "usart.h"
 #include "tim.h"
 
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include "Governor.h"
 
-extern osSemaphoreId DriveControlSemaphoreHandle;
 
 uint8_t FutabaBuffer[25];
 uint8_t FutabaStatus = RX_FRAME_FAILSAFE;
@@ -98,7 +96,7 @@ void FutabaRx_Irq(void) {
 	FutabaStatus = sbusFrameStatus();
 	HAL_UART_Receive_DMA(&huart1, FutabaBuffer, 1);
 	if (FutabaStatus == RX_FRAME_COMPLETE)
-		osSemaphoreRelease(DriveControlSemaphoreHandle);
+		FutabaToState_f();
 	else if(FutabaStatus == RX_FRAME_FAILSAFE)
 		driving_state = disarmed;
 }

@@ -243,7 +243,7 @@ void gyro_data_conv(uint8_t * data)  {
 
     gyro_raw[0] = data[8] << 8 | data[9];
     gyro_raw[1] = data[10] << 8 | data[11];
-    gyro_raw[2] = data[12] << 8 | data[13];
+    gyro_raw[2] = -(data[12] << 8 | data[13]);
 
 	temp_raw = data[6] << 8 | data[7];
 

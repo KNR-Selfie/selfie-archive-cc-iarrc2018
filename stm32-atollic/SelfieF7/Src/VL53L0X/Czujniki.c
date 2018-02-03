@@ -16,6 +16,8 @@
 void StartCzujnikiTask(void const * argument) {
 	MX_I2C2_Init();
 
+	lane_change_treshold = 600;
+
 	static uint8_t expander_bits[5];
 	expander_bits[0] = 0x00;
 	HAL_I2C_Master_Transmit(&hi2c2, EXPANDER_ADRESS, expander_bits, 1, 5);
@@ -28,16 +30,21 @@ void StartCzujnikiTask(void const * argument) {
 		VLX_CURRENT_ADRESS = ADDRESS_DEFAULT + sensor*2 + 10;
 		osDelay(5);
 		VL53L0X_init();
-		osDelay(50);
+		osDelay(100);
 		VL53L0X_startContinuous(0);
-		osDelay(50);
+		osDelay(100);
 	}
 	while (1) {
 		for (int sensor = 0; sensor < VLX_SENSOR_COUNT; sensor++) {
 			VLX_CURRENT_ADRESS = ADDRESS_DEFAULT + sensor*2 + 10;
 			range[sensor] = readRangeContinuousMillimeters();
-			osDelay(33 / VLX_SENSOR_COUNT);
+//			osDelay(33 / VLX_SENSOR_COUNT);
+			osDelay(20);
 		}
+		if(range[7] < (lane_change_treshold + 100))
+			HAL_GPIO_WritePin(Change_Lane_GPIO_Port,Change_Lane_Pin, GPIO_PIN_SET);
+		else
+			HAL_GPIO_WritePin(Change_Lane_GPIO_Port,Change_Lane_Pin, GPIO_PIN_RESET);
 	}
 
 }

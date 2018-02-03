@@ -592,6 +592,7 @@ uint16_t readRangeContinuousMillimeters(void) {
 //	else
 //		range = 8192;
 	range = readReg16Bit(VLX_CURRENT_ADRESS, RESULT_RANGE_STATUS + 10);
+
 	writeReg_IT(VLX_CURRENT_ADRESS, SYSTEM_INTERRUPT_CLEAR, 0x01);
 
 	return range;
@@ -669,12 +670,13 @@ uint8_t readReg(uint16_t adress, uint8_t reg) {
 uint16_t readReg16Bit(uint16_t adress, uint8_t reg) {
 	uint16_t value;
 
-	HAL_I2C_Mem_Read(&hi2c2, adress, reg, I2C_MEMADD_SIZE_8BIT, i2cRxBuffer, 2,
-			5);
-	value = (uint16_t) i2cRxBuffer[0] << 8;
-	value |= i2cRxBuffer[1];
-
-	return value;
+	if (HAL_I2C_Mem_Read(&hi2c2, adress, reg, I2C_MEMADD_SIZE_8BIT, i2cRxBuffer,
+			2, 5) == HAL_OK) {
+		value = (uint16_t) i2cRxBuffer[0] << 8;
+		value |= i2cRxBuffer[1];
+		return value;
+	} else
+		return 8192;
 }
 uint16_t readReg16Bit_IT(uint16_t adress, uint8_t reg) {
 	uint16_t value = 0;

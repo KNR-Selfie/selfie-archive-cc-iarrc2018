@@ -5,8 +5,11 @@
 *      Author: Michal
 */
 
-#include "Enc.h"
-#include "MotorControl.h"
+#include "Steering.h"
+
+#include "Governor.h"
+#include "PID.h"
+#include "Lighting.h"
 
 #include "cmsis_os.h"
 #include "math.h"
@@ -24,8 +27,6 @@ float actualSpeed = 0;
 #define MOTOR_DT 0.02f
 #define WHEEL_DIAMETER 64.f
 
-//speeds
-extern float set_spd;
 
 volatile int16_t vleft; //(mm/s)
 volatile int16_t vright; //(mm/s)
@@ -64,24 +65,66 @@ float wheel_kd = 0.02f;
 
 pt1Filter_t DtermLPF;
 
+float set_spd = 0;
+float set_pos = 0;
+float set_angle = 0;
+uint16_t dutyServo = 0;
+
+
+extern float KpJetson;
+
+uint8_t parking_mode;
+float parking_angle;
+float parking_speed;
+
+uint16_t servo_middle = 943;
+
+uint16_t AngleToServo(float angle);
 
 /************ Testy matiego **************/
 
-void StartEncTask(void const * argument) {
+void StartSteeringTask(void const * argument) {
 	MX_TIM5_Init();
 	MX_TIM3_Init();
+	TIM2->CCR4 = 5000;
+	osDelay(100);
+	TIM2->CCR4 = 1500;
+	osDelay(500);
+	//zabezpieczenie przed jazd¹ do ty³u
+	TIM2->CCR4 = 1520;
+	osDelay(50);
+
 	HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
 	HAL_TIM_Encoder_Start(&htim5, TIM_CHANNEL_ALL);
 	encodersReset();
 	pt1FilterInit(&DtermLPF, 50, MOTOR_DT);
 
+	StartPID();
 
 
 	while (1) {
 		encodersRead();
-		actualSpeed = vfwd;
-		osSemaphoreRelease(PIDSemaphoreHandle);
+		vfwd;
 
+		pid_speed = pid_calculateEngine(&pid_paramsEngine, set_spd, vfwd);
+		TIM2->CCR4 = pid_speed;
+
+		pid_servo = pid_servo_f();
+		if(driving_state == fullcontrol)
+			TIM2->CCR3 = dutyServo;
+		else {
+			if (autonomous_task == parking) {
+				TIM2->CCR3 = AngleToServo(parking_angle);
+			} else {
+				TIM2->CCR3 = pid_servo;
+			}
+		}
+
+
+		if (pid_speed < 1500)
+					brakesignals = BRAKE_NORMAL;
+				else
+					brakesignals = BRAKE_NONE;
 		//static int16_t pid_value;
 		/* motor loop needs own separate tick
 		pid_value = wheel_pid(wheel_kp, wheel_ki, wheel_kd, set_spd);
@@ -138,4 +181,9 @@ void encodersReset(void) {
 	TIM5->CNT = 0;
 	encodersRead();
 	__enable_irq();
+}
+/* +/- 90^ */
+uint16_t AngleToServo(float angle)
+{
+	return (servo_middle - (int16_t)(300.f * angle / 90.f));
 }

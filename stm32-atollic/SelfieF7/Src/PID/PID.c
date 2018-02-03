@@ -9,10 +9,11 @@
 #include "PID.h"
 #include "cmsis_os.h"
 
-#include "MotorControl.h"
+#include "Governor.h"
 #include "tim.h"
-#include "Enc.h"
 #include "Filtering.h"
+
+#include "Steering.h"
 
 #define ERR_SUM_MAX_ENGINE 300000
 #define ERR_SUM_MAX_SERVOPOS 1500
@@ -27,29 +28,6 @@
 #define kpServoAng 3
 #define kiServoAng 0
 #define kdServoAng 0
-
-
-
-static pid_params pid_paramsEngine;
-static pid_params pid_paramsServoPos;
-static pid_params pid_paramsServoAng;
-
-
-float pid_speed = 0;
-float pid_servo = 0;
-
-
-///////////////////////////////
-//podgladanie bledu regulatorow
-float errorE = 0;
-float wyjscieRegulatoraE = 0;
-
-float errorSP = 0;
-float errorSA = 0;
-float wyjscieRegulatoraSP = 0;
-float wyjscieRegulatoraSA = 0;
-//////////////////////////////
-
 
 
 void pid_paramsinit(pid_params *pid_param, float kp, float ki, float kd){
@@ -95,20 +73,29 @@ float pid_calculateEngine(pid_params *pid_param, float set_val, float read_val)
 	//ponizej jazda do tylu od razu po zadaniu ujemnej predkosci - bez koniecznosci "wracania" palcem na futabie
 	//wyglada kretynsko, ale dziala
 	static int transition = 0;
-	if(u>1490)
+	if (u > 1490)
 		transition = 0;
 
-		if(set_val < 0 && actualSpeed == 0)
+	if (set_val < 0) {
+		if (transition < 10) {
+			transition++;
+			u = 1300;
+		} else if (transition > 9 && transition < 30) {
+			transition++;
+			u = 1488;
+		} else if (transition >= 30)
 		{
-			if(transition < 20){
-				transition++;
-				u = 1488;}
-			else if(transition > 19 && transition < 40){
-				u = 1300;
-				transition++;}
-			else if(transition == 40)
-				transition = 0;
+			u = (pid_param->kp * pid_param->err + pid_param->ki * pid_param->err_sum
+					+ pid_param->kd * err_d);
+
+				u = 1500 + (u / 5000);
+				if (set_val < 0) u -= 140;
+				else if (set_val > 0) u += 60;
+				if (u > 1800) u = 1800;
+				if (u< 1100) u = 1100;
 		}
+	}
+	else transition = 0;
 
 	if(pid_param->state != PID_RUNNING) u = u_last;
 	if(pid_param->state == PID_RESET) pid_param->err_sum = 0;
@@ -247,32 +234,42 @@ int16_t wheel_pid(float kp, float ki, float kd, int16_t setfwd) {
 	return pid;
 }
 
-void StartPIDTask(void const * argument){
+void StartPID(void){
+
+	pid_speed = 0;
+	pid_servo = 0;
+	errorE = 0;
+	wyjscieRegulatoraE = 0;
+	errorSP = 0;
+	errorSA = 0;
+	wyjscieRegulatoraSP = 0;
+	wyjscieRegulatoraSA = 0;
 
 	pid_paramsinit(&pid_paramsEngine, kpEng, kiEng, kdEng);
 	pid_paramsinit(&pid_paramsServoPos, kpServoPos, kiServoPos, kdServoPos);
 	pid_paramsinit(&pid_paramsServoAng, kpServoAng, kiServoAng, kdServoAng);
 
-	float pid_servoPos;
-	float pid_servoAng;
-
 	SetPidState(&pid_paramsEngine, PID_RUNNING);
 	SetPidState(&pid_paramsServoPos, PID_RUNNING);
 	SetPidState(&pid_paramsServoAng, PID_STOPPED);
-	while(1){
-		osSemaphoreWait(PIDSemaphoreHandle, osWaitForever);
-		pid_servoPos = pid_calculateServoPos(&pid_paramsServoPos, set_pos, j_jetsonData[0]);
-		pid_servoAng = pid_calculateServoAng(&pid_paramsServoAng, set_angle, (j_jetsonData[1] + j_jetsonData[2])*0.5);
+}
+float pid_servo_f(void)
+{
+	float pid_servoPos;
+	float pid_servoAng;
 
+	pid_servoPos = pid_calculateServoPos(&pid_paramsServoPos, set_pos,
+			j_jetsonData[0]);
+	pid_servoAng = pid_calculateServoAng(&pid_paramsServoAng, set_angle,
+			(j_jetsonData[1] + j_jetsonData[2]) * 0.5);
 
-		if((GetPidState(&pid_paramsServoAng) == PID_RUNNING) && (GetPidState(&pid_paramsServoPos) == PID_RUNNING))
-			pid_servo = (pid_servoPos*2 + pid_servoAng) / 3;
+	if ((GetPidState(&pid_paramsServoAng) == PID_RUNNING)
+			&& (GetPidState(&pid_paramsServoPos) == PID_RUNNING))
+		return (pid_servoPos * 2 + pid_servoAng) / 3;
 
-		else if((GetPidState(&pid_paramsServoAng) == PID_STOPPED) && (GetPidState(&pid_paramsServoPos) == PID_RUNNING))
-			pid_servo = pid_servoPos;
-		else
-			pid_servo = pid_servoPos;
-
-		pid_speed = pid_calculateEngine(&pid_paramsEngine, set_spd, actualSpeed);
-	}
+	else if ((GetPidState(&pid_paramsServoAng) == PID_STOPPED)
+			&& (GetPidState(&pid_paramsServoPos) == PID_RUNNING))
+		return pid_servoPos;
+	else
+		return pid_servoPos;
 }

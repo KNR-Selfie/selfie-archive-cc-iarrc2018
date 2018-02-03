@@ -1,12 +1,12 @@
 /*
- * Driving.h
+ * Governor.h
  *
  *  Created on: 14.01.2018
  *      Author: mice
  */
 
-#ifndef DRIVING_DRIVING_H_
-#define DRIVING_DRIVING_H_
+#ifndef GOVERNOR_GOVERNOR_H_
+#define GOVERNOR_GOVERNOR_H_
 
 enum driving_state_e
 {
@@ -28,4 +28,4 @@ enum autonomous_task_e
 }autonomous_task;
 
 
-#endif /* DRIVING_DRIVING_H_ */
+#endif /* GOVERNOR_GOVERNOR_H_ */
