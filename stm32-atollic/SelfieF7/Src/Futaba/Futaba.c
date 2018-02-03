@@ -12,6 +12,8 @@
 #include "task.h"
 #include "cmsis_os.h"
 
+#include "Driving.h"
+
 #include "usart.h"
 #include "tim.h"
 
@@ -78,7 +80,7 @@ typedef union {
 } sbusFrame_t;
 
 static sbusFrame_t sbusFrame;
-
+void FutabaToState_f(void);
 void StartFutabaTask(void const * argument)
 {
 	MX_USART1_UART_Init();
@@ -97,6 +99,21 @@ void FutabaRx_Irq(void) {
 	HAL_UART_Receive_DMA(&huart1, FutabaBuffer, 1);
 	if (FutabaStatus == RX_FRAME_COMPLETE)
 		osSemaphoreRelease(DriveControlSemaphoreHandle);
+	else if(FutabaStatus == RX_FRAME_FAILSAFE)
+		driving_state = disarmed;
+}
+void FutabaToState_f(void)
+{
+	if (FutabaChannelData[5] < 500) //gorna pozycja przelacznika - pelna kontrola
+			{
+		driving_state = fullcontrol;
+	} else if (FutabaChannelData[5] > 1500) //dolna pozycja prze31cznika, jazda autonomiczna
+			{
+		driving_state = autonomous;
+	} else //srodkowa pozycja prze³acznika, tryb polautonomiczny
+	{
+		driving_state = semi;
+	}
 }
 void sbusDataReceive(uint16_t c)
 {

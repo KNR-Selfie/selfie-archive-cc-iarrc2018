@@ -6,6 +6,8 @@
 
 bool VL53L0X_init(void);
 uint16_t readRangeSingleMillimeters(void);
+uint16_t readRangeContinuousMillimeters(void);
+void VL53L0X_startContinuous(uint32_t period_ms);
 #define ADDRESS_DEFAULT 0x52
 extern uint16_t VLX_CURRENT_ADRESS;
 enum regAddr

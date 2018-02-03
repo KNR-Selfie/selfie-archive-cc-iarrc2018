@@ -4,6 +4,10 @@
 #include "cmsis_os.h"
 #include "i2c.h"
 
+extern osThreadId CzujnikiTaskHandle;
+uint8_t vlxy_odczytywanie = 0;
+uint16_t vlx_value = 0;
+
 uint16_t VLX_CURRENT_ADRESS = ADDRESS_DEFAULT + 10;
 // Decode VCSEL (vertical cavity surface emitting laser) pulse period in PCLKs
 // from register value
@@ -50,8 +54,10 @@ uint32_t timeoutMicrosecondsToMclks(uint32_t timeout_period_us,
 		uint8_t vcsel_period_pclks);
 uint8_t readReg(uint16_t adress, uint8_t reg);
 uint16_t readReg16Bit(uint16_t adress, uint8_t reg);
+uint16_t readReg16Bit_IT(uint16_t adress, uint8_t reg);
 uint32_t readReg32Bit(uint16_t adress, uint8_t reg);
 int writeReg(uint16_t adress, uint8_t reg, uint8_t value);
+int writeReg_IT(uint16_t adress, uint8_t reg, uint8_t value);
 void writeReg16Bit(uint16_t adress, uint8_t reg, uint16_t value);
 void writeReg32Bit(uint16_t adress, uint8_t reg, uint32_t value);
 
@@ -572,14 +578,21 @@ uint32_t timeoutMicrosecondsToMclks(uint32_t timeout_period_us,
 			/ macro_period_ns);
 }
 uint16_t readRangeContinuousMillimeters(void) {
-	while ((readReg(VLX_CURRENT_ADRESS, RESULT_INTERRUPT_STATUS) & 0x07) == 0) {
-	}
 
 	// assumptions: Linearity Corrective Gain is 1000 (default);
 	// fractional ranging is not enabled
-	uint16_t range = readReg16Bit(VLX_CURRENT_ADRESS, RESULT_RANGE_STATUS + 10);
-
-	writeReg(VLX_CURRENT_ADRESS, SYSTEM_INTERRUPT_CLEAR, 0x01);
+	uint16_t range;
+//	osSignalSet(CzujnikiTaskHandle, 0x00);
+//	if (readReg16Bit_IT(VLX_CURRENT_ADRESS, RESULT_RANGE_STATUS + 10) == HAL_OK)
+//	{
+//		osSignalWait(0x08,5);
+//		range = vlx_value;
+//		osSignalSet(CzujnikiTaskHandle, 0x05);
+//	}
+//	else
+//		range = 8192;
+	range = readReg16Bit(VLX_CURRENT_ADRESS, RESULT_RANGE_STATUS + 10);
+	writeReg_IT(VLX_CURRENT_ADRESS, SYSTEM_INTERRUPT_CLEAR, 0x01);
 
 	return range;
 }
@@ -587,6 +600,7 @@ uint16_t readRangeContinuousMillimeters(void) {
 // Performs a single-shot range measurement and returns the reading in
 // millimeters
 // based on VL53L0X_PerformSingleRangingMeasurement()
+
 uint16_t readRangeSingleMillimeters(void) {
 
 	if(writeReg(VLX_CURRENT_ADRESS, 0x80, 0x01) != HAL_OK)
@@ -605,6 +619,41 @@ uint16_t readRangeSingleMillimeters(void) {
 	}
 
 	return readRangeContinuousMillimeters();
+}
+void VL53L0X_startContinuous(uint32_t period_ms)
+{
+  writeReg(VLX_CURRENT_ADRESS, 0x80, 0x01);
+  writeReg(VLX_CURRENT_ADRESS, 0xFF, 0x01);
+  writeReg(VLX_CURRENT_ADRESS, 0x00, 0x00);
+  writeReg(VLX_CURRENT_ADRESS, 0x91, stop_variable);
+  writeReg(VLX_CURRENT_ADRESS, 0x00, 0x01);
+  writeReg(VLX_CURRENT_ADRESS, 0xFF, 0x00);
+  writeReg(VLX_CURRENT_ADRESS, 0x80, 0x00);
+
+  if (period_ms != 0)
+  {
+    // continuous timed mode
+
+    // VL53L0X_SetInterMeasurementPeriodMilliSeconds() begin
+
+    uint16_t osc_calibrate_val = readReg16Bit(VLX_CURRENT_ADRESS, OSC_CALIBRATE_VAL);
+
+    if (osc_calibrate_val != 0)
+    {
+      period_ms *= osc_calibrate_val;
+    }
+
+    writeReg32Bit(VLX_CURRENT_ADRESS, SYSTEM_INTERMEASUREMENT_PERIOD, period_ms);
+
+    // VL53L0X_SetInterMeasurementPeriodMilliSeconds() end
+
+    writeReg(VLX_CURRENT_ADRESS, SYSRANGE_START, 0x04); // VL53L0X_REG_SYSRANGE_MODE_TIMED
+  }
+  else
+  {
+    // continuous back-to-back mode
+    writeReg(VLX_CURRENT_ADRESS, SYSRANGE_START, 0x02); // VL53L0X_REG_SYSRANGE_MODE_BACKTOBACK
+  }
 }
 uint8_t readReg(uint16_t adress, uint8_t reg) {
 	uint8_t value;
@@ -627,7 +676,22 @@ uint16_t readReg16Bit(uint16_t adress, uint8_t reg) {
 
 	return value;
 }
-
+uint16_t readReg16Bit_IT(uint16_t adress, uint8_t reg) {
+	uint16_t value = 0;
+	vlxy_odczytywanie = 1;
+	value = HAL_I2C_Mem_Read_IT(&hi2c2, adress, reg, I2C_MEMADD_SIZE_8BIT, i2cRxBuffer, 2);
+	return value;
+}
+void HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef *hi2c) {
+	if (hi2c->Instance == hi2c2.Instance) {
+		if (vlxy_odczytywanie) {
+			vlx_value = (uint16_t) i2cRxBuffer[0] << 8;
+			vlx_value |= i2cRxBuffer[1];
+			osSignalSet(CzujnikiTaskHandle, 0x08);
+			vlxy_odczytywanie = 0;
+		}
+	}
+}
 // Read a 32-bit register
 uint32_t readReg32Bit(uint16_t adress, uint8_t reg) {
 	uint32_t value;
@@ -646,6 +710,12 @@ int writeReg(uint16_t adress, uint8_t reg, uint8_t value) {
 	i2cTxBuffer[0] = value;
 	status = HAL_I2C_Mem_Write(&hi2c2, adress, reg, I2C_MEMADD_SIZE_8BIT, i2cTxBuffer, 1,
 			5);
+	return status;
+}
+int writeReg_IT(uint16_t adress, uint8_t reg, uint8_t value) {
+	int status = 1;
+	i2cTxBuffer[0] = value;
+	status = HAL_I2C_Mem_Write_IT(&hi2c2, adress, reg, I2C_MEMADD_SIZE_8BIT, i2cTxBuffer, 1);
 	return status;
 }
 void writeReg16Bit(uint16_t adress, uint8_t reg, uint16_t value) {
