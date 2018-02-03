@@ -24,10 +24,12 @@
 #include "tim.h"
 #include "Steering.h"
 
+uint8_t lane_switching_move = 0;
 uint8_t parking_move = 0;
 float start_angle = 0;
 float start_distance = 0;
 
+void lane_switch_f(void);
 void autonomous_task_f(void);
 void semi_task_f(void);
 void radio_to_actuators_f(void);
@@ -63,7 +65,7 @@ void autonomous_task_f(void) {
 
 	HAL_TIM_Base_Start_IT(&htim10); // timer od sprawdzania komunikacji
 	if (j_syncByte == 255) {
-		set_spd = 920;
+		set_spd = 700;
 		set_pos = 1000;
 		set_angle = 90;
 	} else if (j_syncByte == 200) //je?eli nie istnieje Jetson <-> STM, wylacz naped (wartosc j_syncByte = 200 jest ustawiana przez TIMER10)
@@ -78,6 +80,7 @@ void autonomous_task_f(void) {
 	case lanefollower:
 		break;
 	case laneswitch:
+		lane_switch_f();
 		break;
 	case crossing:
 		break;
@@ -195,3 +198,27 @@ void parking_f(void) {
 	set_spd = velocity;
 }
 
+void lane_switch_f(void){
+	static int count_vl_objects = 0;
+
+if(lane_switching_move == 0){
+	if(range[7] < (lane_change_treshold + 100))
+		HAL_GPIO_WritePin(Change_Lane_GPIO_Port,Change_Lane_Pin, GPIO_PIN_SET);
+	else{
+		HAL_GPIO_WritePin(Change_Lane_GPIO_Port,Change_Lane_Pin, GPIO_PIN_RESET);
+		lane_switching_move = 1;
+	}
+//}
+//else if(lane_switching_move == 1){
+//	if(range[1] < 200 && count_vl_objects == 0)
+//		count_vl_objects = 1;
+//	else if(range[1] > 200 && count_vl_objects == 1)
+//		lane_switching_move = 2;
+//}
+//else if(lane_switching_move == 2){
+//	count_vl_objects = 0;
+//	HAL_GPIO_WritePin(Change_Lane_GPIO_Port,Change_Lane_Pin, GPIO_PIN_SET);
+//	HAL_TIM_Base_Start_IT(&htim11);
+}
+
+}

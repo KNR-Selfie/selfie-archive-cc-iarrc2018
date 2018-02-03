@@ -1,7 +1,7 @@
 [PreviousGenFiles]
-HeaderPath=C:/Users/mice/git/Selfie-autonomous-car/stm32-atollic/SelfieF7/Inc
+HeaderPath=C:/Users/Michal/Selfie-autonomous-car/stm32-atollic/SelfieF7/Inc
 HeaderFiles=gpio.h;adc.h;can.h;dma.h;FreeRTOSConfig.h;i2c.h;spi.h;tim.h;usart.h;usb_device.h;usbd_conf.h;usbd_desc.h;usbd_cdc_if.h;stm32f7xx_it.h;stm32f7xx_hal_conf.h;main.h;stm32_assert.h;usbd_dfu_if.h;
-SourcePath=C:/Users/mice/git/Selfie-autonomous-car/stm32-atollic/SelfieF7/Src
+SourcePath=C:/Users/Michal/Selfie-autonomous-car/stm32-atollic/SelfieF7/Src
 SourceFiles=gpio.c;adc.c;can.c;dma.c;freertos.c;i2c.c;spi.c;tim.c;usart.c;usb_device.c;usbd_conf.c;usbd_desc.c;usbd_cdc_if.c;stm32f7xx_it.c;stm32f7xx_hal_msp.c;stm32f7xx_hal_timebase_TIM.c;main.c;usbd_dfu_if.c;
 
 [PreviousLibFiles]

@@ -10,6 +10,7 @@
 #include "tim.h"
 #include "i2c.h"
 #include "gpio.h"
+#include "Governor.h"
 
 #define EXPANDER_ADRESS 0x40
 
@@ -41,10 +42,9 @@ void StartCzujnikiTask(void const * argument) {
 //			osDelay(33 / VLX_SENSOR_COUNT);
 			osDelay(20);
 		}
-		if(range[7] < (lane_change_treshold + 100))
-			HAL_GPIO_WritePin(Change_Lane_GPIO_Port,Change_Lane_Pin, GPIO_PIN_SET);
-		else
-			HAL_GPIO_WritePin(Change_Lane_GPIO_Port,Change_Lane_Pin, GPIO_PIN_RESET);
+
+		if(driving_state == autonomous && range[7] < (lane_change_treshold + 100))
+			autonomous_task = laneswitch;
 	}
 
 }

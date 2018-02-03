@@ -75,7 +75,7 @@
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-
+extern uint8_t lane_switching_move;
 
 
 //deklaracja zmiennych uzywanych do komunikacji z Odroidem
@@ -133,6 +133,7 @@ int main(void)
   MX_UART4_Init();
   MX_TIM2_Init();
   MX_TIM10_Init();
+  MX_TIM11_Init();
 
   /* USER CODE BEGIN 2 */
 	HAL_UART_Receive_DMA(&huart4, &j_syncByte, 1);
@@ -350,6 +351,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     }
   if (htim->Instance == TIM7) {
 
+    }
+  if (htim->Instance == TIM11) {
+	  autonomous_task = 0;
+	  lane_switching_move = 0;
+		HAL_TIM_Base_Stop_IT(&htim11);
     }
 /* USER CODE END Callback 1 */
 }
