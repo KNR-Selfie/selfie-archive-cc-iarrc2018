@@ -3,10 +3,10 @@
 #include "stdint.h"
 #include "cmsis_os.h"
 #include "i2c.h"
-
+#include "Czujniki.h"
 extern osThreadId CzujnikiTaskHandle;
 uint8_t vlxy_odczytywanie = 0;
-uint16_t vlx_value = 0;
+
 
 uint16_t VLX_CURRENT_ADRESS = ADDRESS_DEFAULT + 10;
 // Decode VCSEL (vertical cavity surface emitting laser) pulse period in PCLKs
@@ -582,22 +582,24 @@ uint16_t readRangeContinuousMillimeters(void) {
 	// assumptions: Linearity Corrective Gain is 1000 (default);
 	// fractional ranging is not enabled
 	uint16_t range;
-//	osSignalSet(CzujnikiTaskHandle, 0x00);
-//	if (readReg16Bit_IT(VLX_CURRENT_ADRESS, RESULT_RANGE_STATUS + 10) == HAL_OK)
-//	{
-//		osSignalWait(0x08,5);
-//		range = vlx_value;
-//		osSignalSet(CzujnikiTaskHandle, 0x05);
-//	}
-//	else
-//		range = 8192;
-	range = readReg16Bit(VLX_CURRENT_ADRESS, RESULT_RANGE_STATUS + 10);
+	range = readReg16Bit_IT(VLX_CURRENT_ADRESS, RESULT_RANGE_STATUS + 10);
 
 	writeReg_IT(VLX_CURRENT_ADRESS, SYSTEM_INTERRUPT_CLEAR, 0x01);
+//	range = readReg16Bit(VLX_CURRENT_ADRESS, RESULT_RANGE_STATUS + 10);
+	return range;
+}
+uint16_t readRangeSemiCont(void) {
+
+	uint16_t range;
+	writeReg(VLX_CURRENT_ADRESS, SYSRANGE_START, 0x01);
+	while (readReg(VLX_CURRENT_ADRESS, SYSRANGE_START) & 0x01) {
+		}
+	range = readReg16Bit(VLX_CURRENT_ADRESS, RESULT_RANGE_STATUS + 10);
+
+	writeReg(VLX_CURRENT_ADRESS, SYSTEM_INTERRUPT_CLEAR, 0x01);
 
 	return range;
 }
-
 // Performs a single-shot range measurement and returns the reading in
 // millimeters
 // based on VL53L0X_PerformSingleRangingMeasurement()
@@ -659,8 +661,7 @@ void VL53L0X_startContinuous(uint32_t period_ms)
 uint8_t readReg(uint16_t adress, uint8_t reg) {
 	uint8_t value;
 
-	HAL_I2C_Mem_Read(&hi2c2, adress, reg, I2C_MEMADD_SIZE_8BIT, i2cRxBuffer, 1,
-			5);
+	HAL_I2C_Mem_Read(&hi2c2, adress, reg, I2C_MEMADD_SIZE_8BIT, i2cRxBuffer, 1, 2);
 	value = i2cRxBuffer[0];
 
 	return value;
@@ -671,7 +672,7 @@ uint16_t readReg16Bit(uint16_t adress, uint8_t reg) {
 	uint16_t value;
 
 	if (HAL_I2C_Mem_Read(&hi2c2, adress, reg, I2C_MEMADD_SIZE_8BIT, i2cRxBuffer,
-			2, 5) == HAL_OK) {
+			2, 2) == HAL_OK) {
 		value = (uint16_t) i2cRxBuffer[0] << 8;
 		value |= i2cRxBuffer[1];
 		return value;
@@ -679,19 +680,19 @@ uint16_t readReg16Bit(uint16_t adress, uint8_t reg) {
 		return 8192;
 }
 uint16_t readReg16Bit_IT(uint16_t adress, uint8_t reg) {
-	uint16_t value = 0;
-	vlxy_odczytywanie = 1;
-	value = HAL_I2C_Mem_Read_IT(&hi2c2, adress, reg, I2C_MEMADD_SIZE_8BIT, i2cRxBuffer, 2);
-	return value;
+	uint16_t value;
+	if (HAL_I2C_Mem_Read_IT(&hi2c2, adress, reg, I2C_MEMADD_SIZE_8BIT,
+			i2cRxBuffer, 2) == HAL_OK) {
+		osSemaphoreWait(i2c2_semaphore, osWaitForever);
+		value = (uint16_t) i2cRxBuffer[0] << 8;
+		value |= i2cRxBuffer[1];
+		return value;
+	} else
+		return 8192;
 }
 void HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef *hi2c) {
 	if (hi2c->Instance == hi2c2.Instance) {
-		if (vlxy_odczytywanie) {
-			vlx_value = (uint16_t) i2cRxBuffer[0] << 8;
-			vlx_value |= i2cRxBuffer[1];
-			osSignalSet(CzujnikiTaskHandle, 0x08);
-			vlxy_odczytywanie = 0;
-		}
+		osSemaphoreRelease(i2c2_semaphore);
 	}
 }
 // Read a 32-bit register
@@ -699,7 +700,7 @@ uint32_t readReg32Bit(uint16_t adress, uint8_t reg) {
 	uint32_t value;
 
 	HAL_I2C_Mem_Read(&hi2c2, adress, reg, I2C_MEMADD_SIZE_8BIT, i2cRxBuffer, 4,
-			5);
+			2);
 	value = (uint32_t) i2cRxBuffer[0] << 24;
 	value |= (uint32_t) i2cRxBuffer[1] << 16;
 	value |= (uint16_t) i2cRxBuffer[2] << 8;
@@ -711,7 +712,7 @@ int writeReg(uint16_t adress, uint8_t reg, uint8_t value) {
 	int status = 1;
 	i2cTxBuffer[0] = value;
 	status = HAL_I2C_Mem_Write(&hi2c2, adress, reg, I2C_MEMADD_SIZE_8BIT, i2cTxBuffer, 1,
-			5);
+			2);
 	return status;
 }
 int writeReg_IT(uint16_t adress, uint8_t reg, uint8_t value) {
@@ -724,7 +725,7 @@ void writeReg16Bit(uint16_t adress, uint8_t reg, uint16_t value) {
 	i2cTxBuffer[0] = (value >> 8) & 0xFF;
 	i2cTxBuffer[1] = value & 0xFF;
 	HAL_I2C_Mem_Write(&hi2c2, adress, reg, I2C_MEMADD_SIZE_8BIT, i2cTxBuffer, 2,
-			5);
+			2);
 }
 void writeReg32Bit(uint16_t adress, uint8_t reg, uint32_t value) {
 	i2cTxBuffer[0] = (value >> 24) & 0xFF;
@@ -732,5 +733,5 @@ void writeReg32Bit(uint16_t adress, uint8_t reg, uint32_t value) {
 	i2cTxBuffer[2] = (value >> 8) & 0xFF;
 	i2cTxBuffer[3] = value & 0xFF;
 	HAL_I2C_Mem_Write(&hi2c2, adress, reg, I2C_MEMADD_SIZE_8BIT, i2cTxBuffer, 4,
-			5);
+			2);
 }
