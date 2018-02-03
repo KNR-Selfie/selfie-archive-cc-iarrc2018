@@ -70,7 +70,7 @@ void StartLightingTask(void const * argument) {
 				++cnt_ind0;
 				if (cnt_ind0 > 50) {
 					cnt_ind0 = 0;
-				} else if (cnt_ind0> 20) {
+				} else if (cnt_ind0> 30) {
 
 					ws2812_set_color(20, 255, 120, 0);
 					ws2812_set_color(21, 255, 120, 0);
@@ -82,7 +82,7 @@ void StartLightingTask(void const * argument) {
 					ws2812_set_color(12, 255, 120, 0);
 					ws2812_set_color(11, 255, 120, 0);
 
-				} else if (cnt_ind0> 10) {
+				} else if (cnt_ind0> 25) {
 					ws2812_set_color(18, 255, 120, 0);
 					ws2812_set_color(19, 255, 120, 0);
 					ws2812_set_color(3, 255, 120, 0);

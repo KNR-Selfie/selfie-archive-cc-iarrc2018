@@ -108,9 +108,9 @@ void radio_to_actuators_f(void)
 	dutyServo = (servo_middle + 600 * (FutabaChannelData[3] - 1000) / (1921 - 80));
 }
 void parking_f(void) {
-	sidesignals = SIDETURN_RIGHT;
 	float steering = 0, velocity = 0;
 	if (parking_move == 0) {
+		sidesignals = SIDETURN_RIGHT;
 		start_angle = CumulativeYaw;
 		++parking_move;
 		velocity = -0;
@@ -119,6 +119,7 @@ void parking_f(void) {
 		osDelay(100);
 	}
 	if (parking_move == 1) {
+		sidesignals = SIDETURN_RIGHT;
 		++parking_move;
 		velocity = 0;
 		parking_angle = steering;
@@ -126,6 +127,7 @@ void parking_f(void) {
 		osDelay(100);
 	}
 	if (parking_move == 2) {
+		sidesignals = SIDETURN_RIGHT;
 		steering = 90.f;
 		velocity = -500;
 		if ((CumulativeYaw - start_angle) > 35
@@ -136,7 +138,7 @@ void parking_f(void) {
 		}
 	}
 	if (parking_move == 3) {
-
+		sidesignals = SIDETURN_RIGHT;
 		steering = (CumulativeYaw - start_angle);
 		velocity = -500;
 		if ((fwdRoad - start_distance) < -50) {
@@ -145,6 +147,7 @@ void parking_f(void) {
 		}
 	}
 	if (parking_move == 4) {
+		sidesignals = SIDETURN_RIGHT;
 		steering = -90.f;
 		velocity = -500;
 		if ((CumulativeYaw - start_angle) > 35
@@ -154,46 +157,47 @@ void parking_f(void) {
 			set_spd = 0.0f;
 			sidesignals = SIDETURN_EMERGENCY;
 			osDelay(1200);
-			sidesignals = SIDETURN_LEFT;
-			start_angle = CumulativeYaw - start_angle - 35;
+			start_angle = CumulativeYaw;
 			++parking_move;
 		}
 	}
 	if (parking_move == 5) {
-			steering = -90.f;
-			velocity = 500;
-			if ((CumulativeYaw - start_angle) > 35
-					|| (CumulativeYaw - start_angle) < -35) {
-				++parking_move;
-				start_distance = fwdRoad;
-				start_angle = CumulativeYaw;
-			}
+		sidesignals = SIDETURN_LEFT;
+		steering = -90.f;
+		velocity = 500;
+		if ((CumulativeYaw - start_angle) > 35
+				|| (CumulativeYaw - start_angle) < -35) {
+			++parking_move;
+			start_distance = fwdRoad;
+			start_angle = CumulativeYaw;
 		}
-		if (parking_move == 6) {
+	}
+	if (parking_move == 6) {
+		sidesignals = SIDETURN_LEFT;
+		steering = -(CumulativeYaw - start_angle);
+		velocity = 500;
+		if ((fwdRoad - start_distance) < 50) {
+			++parking_move;
+			start_angle = CumulativeYaw;
+		}
+	}
+	if (parking_move == 7) {
+		sidesignals = SIDETURN_LEFT;
+		steering = 90.f;
+		velocity = 500;
+		if ((CumulativeYaw - start_angle) > 35
+				|| (CumulativeYaw - start_angle) < -35) {
 
-			steering = (CumulativeYaw - start_angle);
-			velocity = 500;
-			if ((fwdRoad - start_distance) < -50) {
-				++parking_move;
-				start_angle = CumulativeYaw;
-			}
+			parking_angle = 0.0f;
+			set_spd = 0.0f;
+			sidesignals = SIDETURN_NONE;
+			parking_move = 0;
+			HAL_GPIO_TogglePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin);
+			osDelay(70);
+			HAL_GPIO_TogglePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin);
+			autonomous_task = lanefollower;
 		}
-		if (parking_move == 7) {
-			steering = 90.f;
-			velocity = 500;
-			if ((CumulativeYaw - start_angle) > 35
-					|| (CumulativeYaw - start_angle) < -35 || range[0] < 50) {
-
-				parking_angle = 0.0f;
-				set_spd = 0.0f;
-				sidesignals = SIDETURN_NONE;
-				parking_move = 0;
-				HAL_GPIO_TogglePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin);
-				osDelay(70);
-				HAL_GPIO_TogglePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin);
-				autonomous_task = lanefollower;
-			}
-		}
+	}
 	parking_angle = steering;
 	set_spd = velocity;
 }

@@ -110,6 +110,7 @@ void StartSteeringTask(void const * argument) {
 		TIM2->CCR4 = pid_speed;
 
 		pid_servo = pid_servo_f();
+
 		if(driving_state == fullcontrol)
 			TIM2->CCR3 = dutyServo;
 		else {
