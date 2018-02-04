@@ -134,6 +134,7 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM10_Init();
   MX_TIM11_Init();
+  MX_UART8_Init();
 
   /* USER CODE BEGIN 2 */
 	HAL_UART_Receive_DMA(&huart4, &j_syncByte, 1);
@@ -308,6 +309,9 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
             HAL_UART_Receive_DMA(&huart4, &j_syncByte, 1);
         }
     }
+    if(huart->Instance == UART8){
+
+    }
 
 }
 void machine_bootloader(void) {
@@ -353,7 +357,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
     }
   if (htim->Instance == TIM11) {
-	  autonomous_task = 0;
+	  autonomous_task = lanefollower;
 	  lane_switching_move = 0;
 		HAL_TIM_Base_Stop_IT(&htim11);
     }
