@@ -98,6 +98,7 @@ void semi_task_f(void)
 		set_spd = 0;
 	set_pos = 1000;
 	set_angle = 90;
+
 	//testy na semi!!!
 	if(autonomous_task == laneswitch)
 		lane_switch_f();
@@ -205,21 +206,26 @@ void parking_f(void) {
 	set_spd = velocity;
 }
 
+//funkcja od wyprzedzania. Wywolywana w trybach autonomous i semi. Rozpatrywana po przebiciu przez prog w Czujniki.c
 void lane_switch_f(void){
 	static int count_vl_objects = 0;
 
+	//po zmianie pasa - gdy analog przestanie wykrywac zdejmujemy flage.
 if(lane_switching_move == 0){
-	if(range[7] > 900){
+	if(flags[2] <30){
 		HAL_GPIO_WritePin(Change_Lane_GPIO_Port,Change_Lane_Pin, GPIO_PIN_RESET);
 		lane_switching_move = 1;
 	}
 }
+//szukamy przeszkody po prawej stronie
 else if(lane_switching_move == 1){
-	if(range[1] < 200 && count_vl_objects == 0)
+	if(flags[1] && count_vl_objects == 0)
 		count_vl_objects = 1;
-	else if(range[1] > 200 && count_vl_objects == 1)
+	//szukamy konca przeszkody
+	else if(!(flags[1]) && count_vl_objects == 1)
 		lane_switching_move = 2;
 }
+//moze nastapic ponowne wystawienie flagi do odroida. Flaga gaszona po 0.5s z timera. Timer powraca stan autonomous_task do tradycyjnego lanefollowera.
 else if(lane_switching_move == 2){
 	count_vl_objects = 0;
 	HAL_GPIO_WritePin(Change_Lane_GPIO_Port,Change_Lane_Pin, GPIO_PIN_SET);

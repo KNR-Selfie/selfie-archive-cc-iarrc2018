@@ -17,6 +17,8 @@ extern xSemaphoreHandle i2c2_semaphore;
 uint16_t range[VLX_SENSOR_COUNT];
 uint16_t lane_change_treshold;
 
+uint8_t flags[3];
+
 void StartCzujnikiTask(void const * argument);
 
 #endif /* VL53L0X_CZUJNIKI_H_ */
