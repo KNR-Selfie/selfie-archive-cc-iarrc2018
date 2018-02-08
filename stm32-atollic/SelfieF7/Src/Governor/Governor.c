@@ -24,14 +24,23 @@
 #include "tim.h"
 #include "Steering.h"
 
+uint8_t lane_switching_move = 0;
 uint8_t parking_move = 0;
+uint8_t parking_search_move =0;
+float place_lenght = 0;;
+float start_place =0;
+
+
 float start_angle = 0;
 float start_distance = 0;
 
+
+void lane_switch_f(void);
 void autonomous_task_f(void);
 void semi_task_f(void);
 void radio_to_actuators_f(void);
 void parking_f(void);
+void parking_search_f(void);
 
 void StartGovernorTask(void const * argument) {
 
@@ -63,7 +72,7 @@ void autonomous_task_f(void) {
 
 	HAL_TIM_Base_Start_IT(&htim10); // timer od sprawdzania komunikacji
 	if (j_syncByte == 255) {
-		set_spd = 920;
+		set_spd = 700;
 		set_pos = 1000;
 		set_angle = 90;
 	} else if (j_syncByte == 200) //je?eli nie istnieje Jetson <-> STM, wylacz naped (wartosc j_syncByte = 200 jest ustawiana przez TIMER10)
@@ -72,14 +81,19 @@ void autonomous_task_f(void) {
 	}
 	switch (autonomous_task) {
 	case await:
+
 		break;
 	case stopped:
 		break;
 	case lanefollower:
 		break;
 	case laneswitch:
+		lane_switch_f();
 		break;
 	case crossing:
+		break;
+	case parkingsearch:
+		parking_search_f();
 		break;
 	case parking:
 		parking_f();
@@ -95,6 +109,10 @@ void semi_task_f(void)
 		set_spd = 0;
 	set_pos = 1000;
 	set_angle = 90;
+
+	//testy na semi!!!
+	if(autonomous_task == laneswitch)
+		lane_switch_f();
 }
 void radio_to_actuators_f(void)
 {
@@ -148,7 +166,7 @@ void parking_f(void) {
 		steering = -90.f;
 		velocity = -500;
 		if ((CumulativeYaw - start_angle) > 35
-				|| (CumulativeYaw - start_angle) < -35 || range[0] < 50) {
+				|| (CumulativeYaw - start_angle) < -35 || flags[1] ==1) {
 
 			parking_angle = 0.0f;
 			set_spd = 0.0f;
@@ -198,4 +216,67 @@ void parking_f(void) {
 	parking_angle = steering;
 	set_spd = velocity;
 }
+
+//funkcja od wyprzedzania. Wywolywana w trybach autonomous i semi. Rozpatrywana po przebiciu przez prog w Czujniki.c
+void lane_switch_f(void){
+	if(flags[0] && lane_switching_move == 1){
+	HAL_GPIO_WritePin(Change_Lane_GPIO_Port,Change_Lane_Pin, GPIO_PIN_RESET);
+	lane_switching_move = 2;
+	}
+	//szukamy konca przeszkody
+	else if(!(flags[0]) && lane_switching_move == 2){
+		HAL_GPIO_WritePin(Change_Lane_GPIO_Port,Change_Lane_Pin, GPIO_PIN_SET);
+		HAL_TIM_Base_Start_IT(&htim11);
+	}
+}
+//moze nastapic ponowne wystawienie flagi do odroida. Flaga gaszona po 0.5s z timera. Timer powraca stan autonomous_task do tradycyjnego lanefollowera.
+
+
+//
+////funkcja od wyprzedzania. Wywolywana w trybach autonomous i semi. Rozpatrywana po przebiciu przez prog w Czujniki.c
+//void lane_switch_f(void){
+//	static int count_vl_objects = 0;
+//
+// if(lane_switching_move == 1){
+//	if(flags[0] && count_vl_objects == 0){
+//		count_vl_objects = 1;
+//	HAL_GPIO_WritePin(Change_Lane_GPIO_Port,Change_Lane_Pin, GPIO_PIN_RESET);
+//	}
+//	//szukamy konca przeszkody
+//	else if(!(flags[0]) && count_vl_objects == 1)
+//		lane_switching_move = 2;
+//}
+////moze nastapic ponowne wystawienie flagi do odroida. Flaga gaszona po 0.5s z timera. Timer powraca stan autonomous_task do tradycyjnego lanefollowera.
+//else if(lane_switching_move == 2){
+//	count_vl_objects = 0;
+//	HAL_GPIO_WritePin(Change_Lane_GPIO_Port,Change_Lane_Pin, GPIO_PIN_SET);
+//	HAL_TIM_Base_Start_IT(&htim11);
+//}
+//
+//}
+
+void parking_search_f(void) {
+
+	//wykrycie poczatku pudelka
+	if (parking_search_move == 0 && flags[0] == 1) {
+		++parking_search_move;
+	}
+	//wykrycie konca pudelka - rozpoczecie mierzenia miejsca
+	if (parking_search_move == 1 && flags[0] == 0) {
+		start_place = fwdRoad;
+		++parking_search_move;
+	}
+	//wykrycie kolejnego pudelka
+	if (parking_search_move == 2 && flags[0] == 1) {
+		++parking_search_move;
+		place_lenght = fwdRoad - start_place;
+		if (place_lenght > 200) {
+			autonomous_task = parking;
+		} else
+			parking_search_move = 0;
+	}
+}
+
+
+
 

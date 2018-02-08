@@ -64,8 +64,8 @@ void machine_bootloader(void);
 #define VBAT_GPIO_Port GPIOC
 #define CURRENT_Pin GPIO_PIN_1
 #define CURRENT_GPIO_Port GPIOC
-#define RSSI_Pin GPIO_PIN_2
-#define RSSI_GPIO_Port GPIOC
+#define SharpAnal_Pin GPIO_PIN_2
+#define SharpAnal_GPIO_Port GPIOC
 #define ENC2_A_Pin GPIO_PIN_0
 #define ENC2_A_GPIO_Port GPIOA
 #define ENC2_B_Pin GPIO_PIN_1
@@ -109,6 +109,10 @@ void machine_bootloader(void);
 #define O10_GPIO_Port GPIOB
 #define O5_Pin GPIO_PIN_9
 #define O5_GPIO_Port GPIOB
+#define CzujnikPrawy_Pin GPIO_PIN_0
+#define CzujnikPrawy_GPIO_Port GPIOE
+#define CzujnikLewy_Pin GPIO_PIN_1
+#define CzujnikLewy_GPIO_Port GPIOE
 
 /* ########################## Assert Selection ############################## */
 /**

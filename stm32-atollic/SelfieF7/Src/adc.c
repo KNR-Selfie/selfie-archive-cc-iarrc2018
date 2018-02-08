@@ -107,6 +107,7 @@ void MX_ADC1_Init(void)
     */
   sConfig.Channel = ADC_CHANNEL_12;
   sConfig.Rank = 3;
+  sConfig.SamplingTime = ADC_SAMPLETIME_84CYCLES;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -131,7 +132,7 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* adcHandle)
     PC1     ------> ADC1_IN11
     PC2     ------> ADC1_IN12 
     */
-    GPIO_InitStruct.Pin = VBAT_Pin|CURRENT_Pin|RSSI_Pin;
+    GPIO_InitStruct.Pin = VBAT_Pin|CURRENT_Pin|SharpAnal_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
@@ -180,7 +181,7 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
     PC1     ------> ADC1_IN11
     PC2     ------> ADC1_IN12 
     */
-    HAL_GPIO_DeInit(GPIOC, VBAT_Pin|CURRENT_Pin|RSSI_Pin);
+    HAL_GPIO_DeInit(GPIOC, VBAT_Pin|CURRENT_Pin|SharpAnal_Pin);
 
     /* ADC1 DMA DeInit */
     HAL_DMA_DeInit(adcHandle->DMA_Handle);
