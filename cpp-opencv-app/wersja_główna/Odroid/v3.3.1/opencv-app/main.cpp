@@ -134,12 +134,12 @@ int main()
     cv::Mat mask = cv::Mat::zeros(cv::Size(640, 360), CV_8UC1);
     cv::Point points[6] =
     {
-        cv::Point(0, 320),
-		cv::Point(0, 240),
-        cv::Point(60, 140),
-        cv::Point(530, 170),
+        cv::Point(0, 360),
+		cv::Point(0, 300),
+        cv::Point(130, 190),
+        cv::Point(510, 190),
 		cv::Point(639, 240),
-        cv::Point(639, 320)
+        cv::Point(639, 360)
     };
     cv::fillConvexPoly(mask, points, 6, cv::Scalar(255, 0, 0));
 
@@ -227,8 +227,9 @@ int main()
 		lineDetector.sort_lines();
 		lineDetector.save_for_next_step();	
 
-		lineDetector.parking_line(frame_thresh);
+		//lineDetector.parking_line(frame_thresh);
 		//lineDetector.cross_line(frame_thresh);
+		lineDetector.horizontal_line(frame_thresh);
 
 		lineDetector.draw_data(frame_data);
 
@@ -243,16 +244,18 @@ int main()
 
 		//GPIO
 		GPIO_input[0] = digitalRead(4);	
-		GPIO_input[1] = digitalRead(6);
+		GPIO_input[1] = digitalRead(5);
+		GPIO_input[2] = digitalRead(27);
 		
 		std::cout << "PIN 18: " << GPIO_input[0] << std::endl;
-		std::cout << "PIN 26: " << GPIO_input[1] << std::endl;
+		std::cout << "PIN 25: " << GPIO_input[1] << std::endl;
+		std::cout << "PIN 27: " << GPIO_input[1] << std::endl;
 		
 		if(GPIO_input[0])
 		{
 			if(!GPIO_handled[0])
 			{
-				lineDetector.restart_lane_detection();
+				lineDetector.restart_lane_detection(UART_offset, check_for_offset);
 				GPIO_handled[0] = true;
 			}
 		}
@@ -261,7 +264,7 @@ int main()
 			GPIO_handled[0] = false;
 		}
 		
-		if(GPIO_input[1] & !GPIO_handled[1])
+		if(GPIO_input[1])
 		{
 			if(!GPIO_handled[1])
 			{
@@ -364,7 +367,7 @@ int main()
 
         //Manual restart of vision variables
         case 'r':
-            lineDetector.restart_lane_detection();
+            lineDetector.restart_lane_detection(UART_offset, check_for_offset);
             break;
         }
 
