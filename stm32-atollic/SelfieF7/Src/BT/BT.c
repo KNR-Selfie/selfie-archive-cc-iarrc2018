@@ -115,7 +115,7 @@ void BT_Commands(uint8_t* Buf, uint32_t length) {
 		if (autonomous_task == parking)
 			autonomous_task = lanefollower;
 		else {
-			autonomous_task = parking;
+			autonomous_task = parkingsearch;
 			size = sprintf((char*) txdata, "bede parkowal \r\n\r\n");
 			HAL_UART_Transmit_DMA(&huart3, txdata, size);
 		}

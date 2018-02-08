@@ -295,7 +295,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
                 j_jetsonData[6]  = (int16_t) ((j_buffer[8]>>2 |j_buffer[9]<<6)                          & 0x07FF);
                 j_jetsonData[7]  = (int16_t) ((j_buffer[9]>>5 |j_buffer[10]<<3)                         & 0x07FF);
 				if ((j_jetsonFlags[0] & 0x30) == 0x20) {
-					ParkingFlag = 1; //wykrycie strefy parkowania
+					//ParkingFlag = 1; //wykrycie strefy parkowania
+					autonomous_task = parkingsearch;
 				}
 				else ParkingFlag = 0;
 				if ((j_jetsonFlags[0] & 0x30) == 0x10) {
@@ -354,6 +355,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   if (htim->Instance == TIM11) {
 	  autonomous_task = lanefollower;
 	  lane_switching_move = 0;
+		HAL_GPIO_WritePin(Change_Lane_GPIO_Port,Change_Lane_Pin, GPIO_PIN_RESET);
 		HAL_TIM_Base_Stop_IT(&htim11);
     }
 /* USER CODE END Callback 1 */

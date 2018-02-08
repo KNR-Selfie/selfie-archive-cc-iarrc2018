@@ -15,9 +15,10 @@
 
 //xSemaphoreHandle i2c2_semaphore = NULL;
 //#define EXPANDER_ADRESS 0x40
-uint16_t thresholdPrzod;
-uint16_t filtr;
-
+uint16_t thresholdPrzod = 30;
+uint8_t filter_counter;
+float filtr;
+extern uint8_t lane_switching_move;
 
 
 
@@ -41,17 +42,26 @@ void StartCzujnikiTask(void const * argument) {
 
 
 		///filtr do zrobienia!
-		filtr = 0.945 * filtr + 0.0549 * adc_raw[2];
-		flags[2] = filtr;
+		filtr = 0.891 * filtr + 0.109*adc_raw[2];
+
+		if(filtr > 500)
+			filter_counter++;
+		else
+			filter_counter=0;
+
+		if(filter_counter > 250)
+			filter_counter = 10;
 
 
-			if(flags[2] > (thresholdPrzod))
-				{
+			if(filter_counter > 10 && lane_switching_move == 0){
+				flags[2]=1;
 				autonomous_task = laneswitch;
-				HAL_GPIO_WritePin(Change_Lane_GPIO_Port,Change_Lane_Pin, GPIO_PIN_SET);
-				}
+				lane_switching_move = 1;
+				HAL_GPIO_WritePin(Change_Lane_GPIO_Port,Change_Lane_Pin, GPIO_PIN_SET);}
+			else{
+				flags[2]=0;}
 
-	osDelay(50);
+	osDelay(10);
 }
 }
 

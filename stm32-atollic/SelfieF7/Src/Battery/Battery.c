@@ -49,7 +49,6 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
 
 		mAhs_drawn += Amps_raw *41.f / 375.f / 3600.f;
 
-		//Volts_f = (float)adc_raw[2] * 3.05f / 4095.f *5.7f;
-		Volts_f = (float)adc_raw[0] * 3.05f / 4095.f *5.7f * 11;
+		Volts_f = (float)adc_raw[0] * 3.05f / 4095.f * 11;
 	}
 }

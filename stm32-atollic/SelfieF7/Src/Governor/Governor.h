@@ -24,6 +24,7 @@ enum autonomous_task_e
 	lanefollower,
 	laneswitch,
 	crossing,
+	parkingsearch,
 	parking,
 }autonomous_task;
 
