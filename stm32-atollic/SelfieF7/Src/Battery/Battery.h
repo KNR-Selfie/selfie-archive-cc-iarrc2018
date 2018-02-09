@@ -13,3 +13,5 @@ float Volts_f;
 float mAhs_drawn;
 void StartBatteryManager(void const * argument);
 #endif /* BATTERY_BATTERY_H_ */
+
+uint16_t adc_raw[3];

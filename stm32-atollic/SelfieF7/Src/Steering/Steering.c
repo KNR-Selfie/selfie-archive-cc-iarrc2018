@@ -116,7 +116,9 @@ void StartSteeringTask(void const * argument) {
 		else {
 			if (autonomous_task == parking) {
 				TIM2->CCR3 = AngleToServo(parking_angle);
-			} else {
+			}
+
+			else {
 				TIM2->CCR3 = pid_servo;
 			}
 		}

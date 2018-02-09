@@ -104,11 +104,18 @@ void BT_Commands(uint8_t* Buf, uint32_t length) {
 					sensor+1, range[sensor]);
 		size += sprintf((char*)txdata + size, "\r\n");
 		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	}else if (Buf[0] == 's') {
+		size = 0;
+		for (int sensor = 0; sensor < 3; sensor++)
+			size += sprintf((char*) txdata + size, "flags[%d] = %d\r\n",
+					sensor+1, flags[sensor]);
+		size += sprintf((char*)txdata + size, "\r\n");
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
 	} else if (Buf[0] == 'p') {
 		if (autonomous_task == parking)
 			autonomous_task = lanefollower;
 		else {
-			autonomous_task = parking;
+			autonomous_task = parkingsearch;
 			size = sprintf((char*) txdata, "bede parkowal \r\n\r\n");
 			HAL_UART_Transmit_DMA(&huart3, txdata, size);
 		}

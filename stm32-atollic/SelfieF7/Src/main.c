@@ -75,7 +75,7 @@
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-
+extern uint8_t lane_switching_move;
 
 
 //deklaracja zmiennych uzywanych do komunikacji z Odroidem
@@ -133,6 +133,7 @@ int main(void)
   MX_UART4_Init();
   MX_TIM2_Init();
   MX_TIM10_Init();
+  MX_TIM11_Init();
 
   /* USER CODE BEGIN 2 */
 	HAL_UART_Receive_DMA(&huart4, &j_syncByte, 1);
@@ -217,15 +218,14 @@ void SystemClock_Config(void)
   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART1|RCC_PERIPHCLK_USART2
                               |RCC_PERIPHCLK_USART3|RCC_PERIPHCLK_UART4
                               |RCC_PERIPHCLK_UART5|RCC_PERIPHCLK_UART7
-                              |RCC_PERIPHCLK_UART8|RCC_PERIPHCLK_I2C2
-                              |RCC_PERIPHCLK_I2C4|RCC_PERIPHCLK_CLK48;
+                              |RCC_PERIPHCLK_I2C2|RCC_PERIPHCLK_I2C4
+                              |RCC_PERIPHCLK_CLK48;
   PeriphClkInitStruct.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
   PeriphClkInitStruct.Usart2ClockSelection = RCC_USART2CLKSOURCE_PCLK1;
   PeriphClkInitStruct.Usart3ClockSelection = RCC_USART3CLKSOURCE_PCLK1;
   PeriphClkInitStruct.Uart4ClockSelection = RCC_UART4CLKSOURCE_PCLK1;
   PeriphClkInitStruct.Uart5ClockSelection = RCC_UART5CLKSOURCE_PCLK1;
   PeriphClkInitStruct.Uart7ClockSelection = RCC_UART7CLKSOURCE_PCLK1;
-  PeriphClkInitStruct.Uart8ClockSelection = RCC_UART8CLKSOURCE_PCLK1;
   PeriphClkInitStruct.I2c2ClockSelection = RCC_I2C2CLKSOURCE_PCLK1;
   PeriphClkInitStruct.I2c4ClockSelection = RCC_I2C4CLKSOURCE_PCLK1;
   PeriphClkInitStruct.Clk48ClockSelection = RCC_CLK48SOURCE_PLL;
@@ -295,7 +295,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
                 j_jetsonData[6]  = (int16_t) ((j_buffer[8]>>2 |j_buffer[9]<<6)                          & 0x07FF);
                 j_jetsonData[7]  = (int16_t) ((j_buffer[9]>>5 |j_buffer[10]<<3)                         & 0x07FF);
 				if ((j_jetsonFlags[0] & 0x30) == 0x20) {
-					ParkingFlag = 1; //wykrycie strefy parkowania
+					//ParkingFlag = 1; //wykrycie strefy parkowania
+					autonomous_task = parkingsearch;
 				}
 				else ParkingFlag = 0;
 				if ((j_jetsonFlags[0] & 0x30) == 0x10) {
@@ -350,6 +351,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     }
   if (htim->Instance == TIM7) {
 
+    }
+  if (htim->Instance == TIM11) {
+	  autonomous_task = lanefollower;
+	  lane_switching_move = 0;
+		HAL_GPIO_WritePin(Change_Lane_GPIO_Port,Change_Lane_Pin, GPIO_PIN_RESET);
+		HAL_TIM_Base_Stop_IT(&htim11);
     }
 /* USER CODE END Callback 1 */
 }
