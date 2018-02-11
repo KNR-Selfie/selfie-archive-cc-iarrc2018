@@ -21,7 +21,15 @@
 #include "Czujniki.h"
 #include "Governor.h"
 #include "Battery.h"
+<<<<<<< HEAD
 #include "Steering.h"
+=======
+#include "Parking.h"
+/* oraz silnika*/
+extern float set_spd;
+extern float actualSpeed;
+extern float pid_speed;
+>>>>>>> branch 'master' of https://github.com/IwoKor/Selfie-autonomous-car.git
 
 //informacja o flagach z przerwania odroida
 extern int ParkingFlag;
@@ -29,6 +37,7 @@ extern int CrossFlag;
 
 uint8_t LastCrossFlag = 0;
 uint8_t LastParkingFlag = 0;
+extern uint8_t parking_mode;
 
 float KpJetson = 3000.f;
 
@@ -70,9 +79,32 @@ void StartBTTask(void const * argument) {
 	MX_USART3_UART_Init();
 	HAL_UART_Receive_DMA(&huart3, rxdata, 1);
 	while (1) {
+<<<<<<< HEAD
 		osSemaphoreWait(BTSemaphore, osWaitForever);
+=======
+
+//		osSemaphoreWait(BTSemaphore, osWaitForever);
+>>>>>>> branch 'master' of https://github.com/IwoKor/Selfie-autonomous-car.git
 //		osSignalWait(0x01, osWaitForever);
+<<<<<<< HEAD
 //		osDelay(20);
+=======
+
+
+		if (ParkingFlag && LastParkingFlag == 0) {
+			size = sprintf((char*) txdata, "Strefa parkowania\r\n\r\n");
+			HAL_UART_Transmit_DMA(&huart3, txdata, size);
+		}
+		if (CrossFlag && LastCrossFlag == 0) {
+			size = sprintf((char*) txdata, "Skrzy¿owanie\r\n\r\n");
+			HAL_UART_Transmit_DMA(&huart3, txdata, size);
+			CrossFlag = 0;
+		}
+		LastCrossFlag = CrossFlag;
+		LastParkingFlag = ParkingFlag;
+
+		osDelay(20);
+>>>>>>> branch 'master' of https://github.com/IwoKor/Selfie-autonomous-car.git
 	}
 }
 void BT_Commands(uint8_t* Buf, uint32_t length) {

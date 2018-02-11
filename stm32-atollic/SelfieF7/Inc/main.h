@@ -87,10 +87,15 @@ void machine_bootloader(void);
 #define Obstacle_Button_GPIO_Port GPIOB
 #define Vision_Reset_Pin GPIO_PIN_6
 #define Vision_Reset_GPIO_Port GPIOC
+<<<<<<< HEAD
 #define Change_Lane_Pin GPIO_PIN_8
 #define Change_Lane_GPIO_Port GPIOC
 #define Cross_Obstacles_Pin GPIO_PIN_9
 #define Cross_Obstacles_GPIO_Port GPIOC
+=======
+#define Change_Line_Pin GPIO_PIN_8
+#define Change_Line_GPIO_Port GPIOC
+>>>>>>> branch 'master' of https://github.com/IwoKor/Selfie-autonomous-car.git
 #define VBUS_SENS_Pin GPIO_PIN_8
 #define VBUS_SENS_GPIO_Port GPIOA
 #define SD_DETECT_Pin GPIO_PIN_3

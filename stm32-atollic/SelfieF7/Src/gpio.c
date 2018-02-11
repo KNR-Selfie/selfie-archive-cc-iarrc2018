@@ -80,7 +80,11 @@ void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(MPU_CS_GPIO_Port, MPU_CS_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
+<<<<<<< HEAD
   HAL_GPIO_WritePin(GPIOC, Vision_Reset_Pin|Change_Lane_Pin|Cross_Obstacles_Pin, GPIO_PIN_RESET);
+=======
+  HAL_GPIO_WritePin(GPIOC, Vision_Reset_Pin|Change_Line_Pin, GPIO_PIN_RESET);
+>>>>>>> branch 'master' of https://github.com/IwoKor/Selfie-autonomous-car.git
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, LED_RED_Pin|LED_BLUE_Pin, GPIO_PIN_SET);
@@ -115,8 +119,13 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+<<<<<<< HEAD
   /*Configure GPIO pins : PCPin PCPin PCPin */
   GPIO_InitStruct.Pin = Vision_Reset_Pin|Change_Lane_Pin|Cross_Obstacles_Pin;
+=======
+  /*Configure GPIO pins : PCPin PCPin */
+  GPIO_InitStruct.Pin = Vision_Reset_Pin|Change_Line_Pin;
+>>>>>>> branch 'master' of https://github.com/IwoKor/Selfie-autonomous-car.git
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -141,12 +150,15 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+<<<<<<< HEAD
   /*Configure GPIO pins : PEPin PEPin */
   GPIO_InitStruct.Pin = CzujnikPrawy_Pin|CzujnikLewy_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
+=======
+>>>>>>> branch 'master' of https://github.com/IwoKor/Selfie-autonomous-car.git
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI4_IRQn, 5, 0);
   HAL_NVIC_EnableIRQ(EXTI4_IRQn);

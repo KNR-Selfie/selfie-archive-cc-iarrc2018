@@ -66,9 +66,14 @@
 #include "Futaba.h"
 #include "BT.h"
 #include "Czujniki.h"
+<<<<<<< HEAD
 #include "Governor.h"
 
 #include "Steering.h"
+=======
+#include "MotorControl.h"
+#include "Parking.h"
+>>>>>>> branch 'master' of https://github.com/IwoKor/Selfie-autonomous-car.git
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -219,8 +224,13 @@ void SystemClock_Config(void)
   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART1|RCC_PERIPHCLK_USART2
                               |RCC_PERIPHCLK_USART3|RCC_PERIPHCLK_UART4
                               |RCC_PERIPHCLK_UART5|RCC_PERIPHCLK_UART7
+<<<<<<< HEAD
                               |RCC_PERIPHCLK_I2C2|RCC_PERIPHCLK_I2C4
                               |RCC_PERIPHCLK_CLK48;
+=======
+                              |RCC_PERIPHCLK_UART8|RCC_PERIPHCLK_I2C2
+                              |RCC_PERIPHCLK_I2C4|RCC_PERIPHCLK_CLK48;
+>>>>>>> branch 'master' of https://github.com/IwoKor/Selfie-autonomous-car.git
   PeriphClkInitStruct.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
   PeriphClkInitStruct.Usart2ClockSelection = RCC_USART2CLKSOURCE_PCLK1;
   PeriphClkInitStruct.Usart3ClockSelection = RCC_USART3CLKSOURCE_PCLK1;

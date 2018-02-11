@@ -82,7 +82,15 @@ osThreadId SteeringTaskHandle;
 osThreadId CzujnikiTaskHandle;
 osThreadId BTTaskHandle;
 osThreadId FutabaTaskHandle;
+<<<<<<< HEAD
 osThreadId GovernorTaskHandle;
+=======
+osThreadId PIDTaskHandle;
+osThreadId ParkingTaskHandle;
+osSemaphoreId DriveControlSemaphoreHandle;
+osSemaphoreId EngineSemaphoreHandle;
+osSemaphoreId PIDSemaphoreHandle;
+>>>>>>> branch 'master' of https://github.com/IwoKor/Selfie-autonomous-car.git
 
 /* USER CODE BEGIN Variables */
 osThreadId blinkTID;
@@ -101,7 +109,12 @@ extern void StartSteeringTask(void const * argument);
 extern void StartCzujnikiTask(void const * argument);
 extern void StartBTTask(void const * argument);
 extern void StartFutabaTask(void const * argument);
+<<<<<<< HEAD
 extern void StartGovernorTask(void const * argument);
+=======
+extern void StartPIDTask(void const * argument);
+extern void StartParkingTask(void const * argument);
+>>>>>>> branch 'master' of https://github.com/IwoKor/Selfie-autonomous-car.git
 
 extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -185,6 +198,10 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of GovernorTask */
   osThreadDef(GovernorTask, StartGovernorTask, osPriorityHigh, 0, 256);
   GovernorTaskHandle = osThreadCreate(osThread(GovernorTask), NULL);
+
+  /* definition and creation of ParkingTask */
+  osThreadDef(ParkingTask, StartParkingTask, osPriorityIdle, 0, 128);
+  ParkingTaskHandle = osThreadCreate(osThread(ParkingTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
