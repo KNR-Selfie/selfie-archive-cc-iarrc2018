@@ -24,15 +24,16 @@
 #include "tim.h"
 #include "Steering.h"
 
-float parking_depth = 10.f; // [mm]
+float parking_depth = 30.f; // [mm]
 float parking_turn_sharpness = 40.f; // [degree]
-float parking_dead_fwd = 35.f; // [mm]
+float parking_dead_fwd = 120.f; // [mm]
 
 uint8_t lane_switching_move = 0;
 uint8_t parking_move = 0;
 uint8_t parking_search_move =0;
 uint8_t challenge_select = 0;
 uint8_t crossing_move = 0;
+uint8_t parking_counter = 0;
 float place_lenght = 0;
 float start_place =0;
 float crossing_dist = 0;
@@ -184,6 +185,7 @@ void parking_f(void) {
 			parking_angle = 0.0f;
 			set_spd = 0.0f;
 			sidesignals = SIDETURN_EMERGENCY;
+			parking_counter++;
 			osDelay(1200);
 			if ((CumulativeYaw - start_angle) > 0)
 				unfinished_angle = parking_turn_sharpness - (CumulativeYaw - start_angle);
@@ -240,10 +242,12 @@ void lane_switch_f(void){
 	if(flags[0] && lane_switching_move == 1){
 	HAL_GPIO_WritePin(Change_Lane_GPIO_Port,Change_Lane_Pin, GPIO_PIN_RESET);
 	lane_switching_move = 2;
+	sidesignals = SIDETURN_NONE;
 	}
 	//szukamy konca przeszkody
 	else if(!(flags[0]) && lane_switching_move == 2){
 		HAL_GPIO_WritePin(Change_Lane_GPIO_Port,Change_Lane_Pin, GPIO_PIN_SET);
+		sidesignals = SIDETURN_RIGHT;
 		HAL_TIM_Base_Start_IT(&htim11);
 	}
 }
@@ -287,14 +291,18 @@ void parking_search_f(void) {
 	//wykrycie kolejnego pudelka
 	if (parking_search_move == 2 && flags[0] == 1) {
 		place_lenght = fwdRoad - start_place;
-		if (place_lenght > 400) {
+		if (place_lenght > 600) {
+			start_place = fwdRoad;//poczatek podjazdu
 			++parking_search_move;
-		} else
-			parking_search_move = 0;
+		} else{
+			parking_search_move = 1;
+		}
+
 	}
-	if(parking_search_move ==3){
+	if(parking_search_move ==3){//podjazd
 		if(fwdRoad - start_place > parking_dead_fwd){
 			autonomous_task = parking;
+			parking_search_move=0;
 		}
 
 	}
@@ -306,13 +314,14 @@ void await_f(void)
 	if (HAL_GPIO_ReadPin(Parking_Button_GPIO_Port, Parking_Button_Pin) == GPIO_PIN_SET) {
 		//ruszenie z boxu
 		challenge_select = 1;
-
+/*
 		set_spd = 500;
 		TIM2->CCR3 = 943;
 		osDelay(2000);
 		HAL_GPIO_TogglePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin);
 		osDelay(70);
 		HAL_GPIO_TogglePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin);
+		*/
 		autonomous_task = lanefollower;
 
     }

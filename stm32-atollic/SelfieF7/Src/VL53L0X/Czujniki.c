@@ -12,6 +12,7 @@
 #include "gpio.h"
 #include "Governor.h"
 #include "Battery.h"
+#include "Lighting.h"
 
 //xSemaphoreHandle i2c2_semaphore = NULL;
 //#define EXPANDER_ADRESS 0x40
@@ -53,8 +54,9 @@ void StartCzujnikiTask(void const * argument) {
 			filter_counter = 10;
 
 
-			if(filter_counter > 10 && lane_switching_move == 0){
+			if(filter_counter > 10 && lane_switching_move == 0 && autonomous_task != parking){
 				flags[2]=1;
+				sidesignals=SIDETURN_LEFT;
 				autonomous_task = laneswitch;
 				lane_switching_move = 1;
 				HAL_GPIO_WritePin(Change_Lane_GPIO_Port,Change_Lane_Pin, GPIO_PIN_SET);}
