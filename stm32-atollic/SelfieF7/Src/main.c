@@ -77,6 +77,7 @@
 /* Private variables ---------------------------------------------------------*/
 extern uint8_t lane_switching_move;
 extern uint8_t challenge_select;
+extern uint8_t parking_counter;
 
 
 //deklaracja zmiennych uzywanych do komunikacji z Odroidem
@@ -294,12 +295,12 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
                 j_jetsonData[5]  = (int16_t) ((j_buffer[6]>>7 |j_buffer[7]<<1 |j_buffer[8]<<9)            & 0x07FF);
                 j_jetsonData[6]  = (int16_t) ((j_buffer[8]>>2 |j_buffer[9]<<6)                          & 0x07FF);
                 j_jetsonData[7]  = (int16_t) ((j_buffer[9]>>5 |j_buffer[10]<<3)                         & 0x07FF);
-				if (((j_jetsonFlags[0] & 0x30) == 0x20 ) && (challenge_select = 1) ){
+				if (((j_jetsonFlags[0] & 0x20) == 0x20 ) && (challenge_select == 1) && (parking_counter<4)){
 					 //wykrycie strefy parkowania
 					autonomous_task = parkingsearch;
 				}
 
-				if ((j_jetsonFlags[0] & 0x30) == 0x10) {
+				if (((j_jetsonFlags[0] & 0x10) == 0x10) && (challenge_select ==0)) {
 					 //wykrycie skrzy¿owania
 					autonomous_task = crossing;
 				}
@@ -357,6 +358,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	  autonomous_task = lanefollower;
 	  lane_switching_move = 0;
 		HAL_GPIO_WritePin(Change_Lane_GPIO_Port,Change_Lane_Pin, GPIO_PIN_RESET);
+		sidesignals = SIDETURN_NONE;
 		HAL_TIM_Base_Stop_IT(&htim11);
     }
 /* USER CODE END Callback 1 */

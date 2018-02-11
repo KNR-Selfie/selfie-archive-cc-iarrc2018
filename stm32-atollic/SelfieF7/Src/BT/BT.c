@@ -26,6 +26,7 @@
 //informacja o flagach z przerwania odroida
 extern int ParkingFlag;
 extern int CrossFlag;
+extern uint8_t challenge_select;
 
 uint8_t LastCrossFlag = 0;
 uint8_t LastParkingFlag = 0;
@@ -116,6 +117,7 @@ void BT_Commands(uint8_t* Buf, uint32_t length) {
 			autonomous_task = lanefollower;
 		else {
 			autonomous_task = parkingsearch;
+			challenge_select = 1;
 			size = sprintf((char*) txdata, "bede parkowal \r\n\r\n");
 			HAL_UART_Transmit_DMA(&huart3, txdata, size);
 		}
@@ -168,12 +170,12 @@ void BT_Commands(uint8_t* Buf, uint32_t length) {
 	} else if (Buf[0] == '%') {
 		parking_depth += 5.f;
 		size = sprintf((char*) txdata,
-				"Glebokosc parkowania = %.1f mm \r\n\r\n", parking_dead_fwd);
+				"Glebokosc parkowania = %.1f mm \r\n\r\n", parking_depth);
 		HAL_UART_Transmit_DMA(&huart3, txdata, size);
 	} else if (Buf[0] == '^') {
 		parking_depth -= 5.f;
 		size = sprintf((char*) txdata,
-				"Glebokosc parkowania = %.1f mm \r\n\r\n", parking_dead_fwd);
+				"Glebokosc parkowania = %.1f mm \r\n\r\n", parking_depth);
 		HAL_UART_Transmit_DMA(&huart3, txdata, size);
 	}
 
