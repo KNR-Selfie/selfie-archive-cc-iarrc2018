@@ -24,6 +24,10 @@
 #include "tim.h"
 #include "Steering.h"
 
+float parking_depth = 10.f; // [mm]
+float parking_turn_sharpness = 40.f; // [degree]
+float parking_dead_fwd = 30.f; // [mm]
+
 uint8_t lane_switching_move = 0;
 uint8_t parking_move = 0;
 uint8_t parking_search_move =0;
