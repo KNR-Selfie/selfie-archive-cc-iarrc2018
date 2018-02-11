@@ -113,10 +113,10 @@ float pid_calculateServoPos(pid_params *pid_paramPos, float set_pos, float read_
 	static float uPos_last = 0;
 
 	//////////////regulator od pozycji
-	if(((j_jetsonData[1] + j_jetsonData[2]) * 0.5) < 90)
-		read_pos = read_pos + (90 - (j_jetsonData[1] + j_jetsonData[2] * 0.5));
-	else if(((j_jetsonData[1] + j_jetsonData[2]) * 0.5) > 90)
-		read_pos = read_pos - ((j_jetsonData[1] + j_jetsonData[2] * 0.5) - 90);
+	//if(((j_jetsonData[1] + j_jetsonData[2]) * 0.5) < 90)
+		//read_pos = read_pos + (80 - (j_jetsonData[1] + j_jetsonData[2] * 0.5));
+	//else if(((j_jetsonData[1] + j_jetsonData[2]) * 0.5) > 90)
+		//read_pos = read_pos - ((j_jetsonData[1] + j_jetsonData[2] * 0.5) - 90);
 
 	pid_paramPos->err = set_pos - read_pos;
 	pid_paramPos->err_sum += pid_paramPos->err;
