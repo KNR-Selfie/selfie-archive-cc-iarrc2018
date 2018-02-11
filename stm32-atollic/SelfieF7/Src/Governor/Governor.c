@@ -29,6 +29,7 @@ uint8_t parking_move = 0;
 uint8_t parking_search_move =0;
 float place_lenght = 0;;
 float start_place =0;
+uint8_t challenge_select = 0; //parkowanie czy omijanie przeszkód (zapamiêtuje, który przycisk zostanie wciœniêty)
 
 
 float start_angle = 0;
@@ -37,6 +38,7 @@ float start_distance = 0;
 
 void lane_switch_f(void);
 void autonomous_task_f(void);
+
 void semi_task_f(void);
 void radio_to_actuators_f(void);
 void parking_f(void);
@@ -81,7 +83,7 @@ void autonomous_task_f(void) {
 	}
 	switch (autonomous_task) {
 	case await:
-
+		await_f();
 		break;
 	case stopped:
 		break;
@@ -277,6 +279,18 @@ void parking_search_f(void) {
 	}
 }
 
+void await_f(void)
+{
+	set_spd =0;
+	if (HAL_GPIO_ReadPin(Parking_Button_GPIO_Port, Parking_Button_Pin) == GPIO_PIN_SET)
+	{
+		autonomous_task=lanefollower;
+		challenge_select = 1;
+	}
+	else if(HAL_GPIO_ReadPin(Obstacle_Button_GPIO_Port,Obstacle_Button_Pin) == GPIO_PIN_SET){
 
+		autonomous_task=lanefollower;
+	}
+}
 
 
