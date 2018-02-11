@@ -143,7 +143,42 @@ void BT_Commands(uint8_t* Buf, uint32_t length) {
 		lane_change_treshold -= 10;
 		size = sprintf((char*) txdata, "lane treshold = %dmm \r\n\r\n", lane_change_treshold);
 		HAL_UART_Transmit_DMA(&huart3, txdata, size);
-	} else if (Buf[0] == 'R')
+	}
+	// PARKOWANIE
+	else if (Buf[0] == '!') {
+		parking_turn_sharpness += 1.f;
+		size = sprintf((char*) txdata, "Kat parkowania = %.1f deg \r\n\r\n",
+				parking_turn_sharpness);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	} else if (Buf[0] == '@') {
+		parking_turn_sharpness -= 1.f;
+		size = sprintf((char*) txdata, "Kat parkowania = %.1f deg \r\n\r\n",
+				parking_turn_sharpness);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	} else if (Buf[0] == '#') {
+		parking_dead_fwd += 5.f;
+		size = sprintf((char*) txdata, "Start parkowania po = %.1f mm \r\n\r\n",
+				parking_dead_fwd);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	} else if (Buf[0] == '$') {
+		parking_dead_fwd -= 5.f;
+		size = sprintf((char*) txdata, "Start parkowania po = %.1f mm \r\n\r\n",
+				parking_dead_fwd);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	} else if (Buf[0] == '%') {
+		parking_depth += 5.f;
+		size = sprintf((char*) txdata,
+				"Glebokosc parkowania = %.1f mm \r\n\r\n", parking_dead_fwd);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	} else if (Buf[0] == '^') {
+		parking_depth -= 5.f;
+		size = sprintf((char*) txdata,
+				"Glebokosc parkowania = %.1f mm \r\n\r\n", parking_dead_fwd);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	}
+
+	//RESET
+	else if (Buf[0] == 'R')
 		NVIC_SystemReset();
 }
 void BluetoothRx_Irq(void) {

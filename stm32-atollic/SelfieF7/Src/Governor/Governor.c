@@ -24,6 +24,10 @@
 #include "tim.h"
 #include "Steering.h"
 
+float parking_depth = 10.f; // [mm]
+float parking_turn_sharpness = 40.f; // [degree]
+float parking_dead_fwd = 35.f; // [mm]
+
 uint8_t lane_switching_move = 0;
 uint8_t parking_move = 0;
 uint8_t parking_search_move =0;
@@ -36,6 +40,7 @@ float crossing_dist = 0;
 
 float start_angle = 0;
 float start_distance = 0;
+float unfinished_angle = 0;
 
 
 void lane_switch_f(void);
@@ -44,6 +49,8 @@ void semi_task_f(void);
 void radio_to_actuators_f(void);
 void parking_f(void);
 void parking_search_f(void);
+void crossing_f(void);
+void await_f(void);
 
 void StartGovernorTask(void const * argument) {
 
@@ -149,8 +156,8 @@ void parking_f(void) {
 		sidesignals = SIDETURN_RIGHT;
 		steering = 90.f;
 		velocity = -500;
-		if ((CumulativeYaw - start_angle) > 35
-				|| (CumulativeYaw - start_angle) < -35) {
+		if ((CumulativeYaw - start_angle) > parking_turn_sharpness
+				|| (CumulativeYaw - start_angle) < -parking_turn_sharpness) {
 			++parking_move;
 			start_distance = fwdRoad;
 			start_angle = CumulativeYaw;
@@ -160,7 +167,7 @@ void parking_f(void) {
 		sidesignals = SIDETURN_RIGHT;
 		steering = (CumulativeYaw - start_angle);
 		velocity = -500;
-		if ((fwdRoad - start_distance) < -50) {
+		if ((fwdRoad - start_distance) < -parking_depth) {
 			++parking_move;
 			start_angle = CumulativeYaw;
 		}
@@ -169,13 +176,18 @@ void parking_f(void) {
 		sidesignals = SIDETURN_RIGHT;
 		steering = -90.f;
 		velocity = -500;
-		if ((CumulativeYaw - start_angle) > 35
-				|| (CumulativeYaw - start_angle) < -35 || flags[1] ==1) {
+		if ((CumulativeYaw - start_angle) > parking_turn_sharpness
+				|| (CumulativeYaw - start_angle) < - parking_turn_sharpness || flags[1] ==1) {
 
 			parking_angle = 0.0f;
 			set_spd = 0.0f;
 			sidesignals = SIDETURN_EMERGENCY;
 			osDelay(1200);
+			if ((CumulativeYaw - start_angle) > 0)
+				unfinished_angle = parking_turn_sharpness - (CumulativeYaw - start_angle);
+			else
+				unfinished_angle = parking_turn_sharpness + (CumulativeYaw - start_angle);
+
 			start_angle = CumulativeYaw;
 			++parking_move;
 		}
@@ -184,8 +196,8 @@ void parking_f(void) {
 		sidesignals = SIDETURN_LEFT;
 		steering = -90.f;
 		velocity = 500;
-		if ((CumulativeYaw - start_angle) > 35
-				|| (CumulativeYaw - start_angle) < -35) {
+		if ((CumulativeYaw - start_angle) > (parking_turn_sharpness - unfinished_angle)
+				|| (CumulativeYaw - start_angle) < -(parking_turn_sharpness - unfinished_angle)) {
 			++parking_move;
 			start_distance = fwdRoad;
 			start_angle = CumulativeYaw;
@@ -195,7 +207,7 @@ void parking_f(void) {
 		sidesignals = SIDETURN_LEFT;
 		steering = -(CumulativeYaw - start_angle);
 		velocity = 500;
-		if ((fwdRoad - start_distance) < 50) {
+		if ((fwdRoad - start_distance) < parking_depth) {
 			++parking_move;
 			start_angle = CumulativeYaw;
 		}
@@ -204,8 +216,8 @@ void parking_f(void) {
 		sidesignals = SIDETURN_LEFT;
 		steering = 90.f;
 		velocity = 500;
-		if ((CumulativeYaw - start_angle) > 35
-				|| (CumulativeYaw - start_angle) < -35) {
+		if ((CumulativeYaw - start_angle) > parking_turn_sharpness
+				|| (CumulativeYaw - start_angle) < -parking_turn_sharpness) {
 
 			parking_angle = 0.0f;
 			set_spd = 0.0f;
