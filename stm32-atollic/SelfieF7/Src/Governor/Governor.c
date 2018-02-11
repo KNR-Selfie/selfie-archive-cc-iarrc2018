@@ -124,6 +124,8 @@ void semi_task_f(void)
 	//testy na semi!!!
 	if(autonomous_task == laneswitch)
 		lane_switch_f();
+	if(autonomous_task == crossing)
+		crossing_f();
 }
 void radio_to_actuators_f(void)
 {
@@ -284,44 +286,80 @@ void parking_search_f(void) {
 	}
 	//wykrycie kolejnego pudelka
 	if (parking_search_move == 2 && flags[0] == 1) {
-		++parking_search_move;
 		place_lenght = fwdRoad - start_place;
-		if (place_lenght > 200) {
-			autonomous_task = parking;
+		if (place_lenght > 400) {
+			++parking_search_move;
 		} else
 			parking_search_move = 0;
+	}
+	if(parking_search_move ==3){
+		if(fwdRoad - start_place > parking_dead_fwd){
+			autonomous_task = parking;
+		}
+
 	}
 }
 
 void await_f(void)
-{
-    set_spd =0;
-    if (HAL_GPIO_ReadPin(Parking_Button_GPIO_Port, Parking_Button_Pin) == GPIO_PIN_SET)
-    {
-        autonomous_task=lanefollower;
-        challenge_select = 1;
+ {
+	set_spd = 0;
+	if (HAL_GPIO_ReadPin(Parking_Button_GPIO_Port, Parking_Button_Pin) == GPIO_PIN_SET) {
+		//ruszenie z boxu
+		challenge_select = 1;
+
+		set_spd = 500;
+		TIM2->CCR3 = 943;
+		osDelay(2000);
+		HAL_GPIO_TogglePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin);
+		osDelay(70);
+		HAL_GPIO_TogglePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin);
+		autonomous_task = lanefollower;
+
     }
     else if(HAL_GPIO_ReadPin(Obstacle_Button_GPIO_Port,Obstacle_Button_Pin) == GPIO_PIN_SET){
+		//ruszenie z boxu
+    	challenge_select = 0;
 
-        autonomous_task=lanefollower;
+		set_spd = 500;
+		TIM2->CCR3 = 943;
+		osDelay(2000);
+		HAL_GPIO_TogglePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin);
+		osDelay(70);
+		HAL_GPIO_TogglePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin);
+
+		autonomous_task = lanefollower;
     }
 }
 
 
 void crossing_f(void) {
 	//zatrzymanie
-	if (crossing_move == 0) {
+
+	if(crossing_move ==0){
+		crossing_dist = fwdRoad;
+		++crossing_move;
+	}
+	if (crossing_move == 1) {
+		set_spd = 500;
+		if (fwdRoad - crossing_dist > 150) {
+			++crossing_move;
+		}
+	}
+	if (crossing_move == 2) {
 		set_spd = 0;
 		osDelay(3000);
 		++crossing_move;
 	}
-	//podjechanie metr do przodu
-	if (crossing_move == 1) {
+	if(crossing_move ==3){
 		crossing_dist = fwdRoad;
-		set_spd = 500;
-		set_pos = 1000;
-		if (fwdRoad - crossing_dist > 1000) {
-			crossing_move=0;
+		++crossing_move;
+	}
+	//podjechanie metr do przodu
+	if (crossing_move == 4) {
+		set_spd = 700;
+		TIM2->CCR3=943;
+		if (fwdRoad - crossing_dist > 700) {
+			crossing_move = 0;
 			HAL_GPIO_TogglePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin);
 			osDelay(70);
 			HAL_GPIO_TogglePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin);
@@ -331,4 +369,6 @@ void crossing_f(void) {
 	}
 
 }
+
+
 
