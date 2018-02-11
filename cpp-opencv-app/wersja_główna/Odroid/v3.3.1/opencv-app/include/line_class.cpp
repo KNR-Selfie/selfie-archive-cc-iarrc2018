@@ -2,7 +2,7 @@
 #define HEIGHT 380
 #define WIDTH 640
 #define BORDER 140
-#define PARAMETER 2
+#define MULTIPLICATION 1
 
 void dec_to_bin(char liczba)
 {
@@ -151,18 +151,21 @@ void LineDetector::drawLines(cv::Mat &output)
 }
 */
 
-void LineDetector::draw_data(cv::Mat &output)
+void LineDetector::draw_data(cv::Mat &output, cv::Point points[])
 {
 	//Clear frame
 	output = cv::Mat::zeros(360, 640, CV_8UC3);
 	
-std::cout << "X: " << last_bottom_middle_point.coordinates.x << std::endl;
+	std::cout << "X: " << last_bottom_middle_point.coordinates.x << std::endl;
 	
 	int y1 = 230;
 	int y2 = 270; 
 		
 	int x1 = (y1 - (last_bottom_middle_point.coordinates.y - (last_bottom_middle_point.slope * last_bottom_middle_point.coordinates.x))) / last_bottom_middle_point.slope;
 	int x2 = (y2 - (last_bottom_middle_point.coordinates.y - (last_bottom_middle_point.slope * last_bottom_middle_point.coordinates.x))) / last_bottom_middle_point.slope;
+
+	//Draw dynamic mask	
+	cv::fillConvexPoly(output, points, 6, cv::Scalar(100, 100, 100));
 
 	//Detected middle point
 	line(output,
@@ -313,22 +316,22 @@ void LineDetector::sort_lines()
         //}
     }
 
-	if(TL_points.size() > 2)
+	if(TL_points.size() > 3)
 		TL_sector = true;
 	else
 		TL_sector = false;
 
-	if(TR_points.size() > 2)
+	if(TR_points.size() > 3)
 		TR_sector = true;
 	else
 		TR_sector = false;
 
-	if(BL_points.size() > 2)
+	if(BL_points.size() > 3)
 		BL_sector = true;
 	else
 		BL_sector = false;
 
-	if(BR_points.size() > 2)
+	if(BR_points.size() > 3)
 		BR_sector = true;
 	else
 		BR_sector = false;
@@ -471,7 +474,7 @@ void LineDetector::save_for_next_step()
 	//if(!BL_sector || !BR_sector)
 	average_middle_slope = tan((average_middle_angle / 180) * CV_PI);
 
-	last_bottom_middle_point.coordinates = cv::Point(new_middle, 250);
+	last_bottom_middle_point.coordinates = cv::Point(new_middle, 300);
 	last_bottom_middle_point.slope = average_middle_slope;
 
 	std::cout << "Left st:  " << left_ang_st << std::endl;
@@ -487,6 +490,11 @@ void LineDetector::save_for_next_step()
 	if(BL_sector && BR_sector)
 	{
 		width = new_pos_right - new_pos_left;
+		
+		if(width < 450)
+			width = 450;
+		else if(width > 600)
+			width = 600;
 	}
 	
 	std::cout << "Width: " << width << std::endl;
@@ -507,22 +515,26 @@ void LineDetector::send_data_to_main(int &detected_middle_pos_near, int &left_la
 	if(BL_sector)
 		flags_to_UART |= (1<<7);
 	else
-		flags_to_UART &= (0<<7);
+		flags_to_UART &= ~(1<<7);
+		//flags_to_UART &= 0b01111111;
 
 	if(BR_sector)
 		flags_to_UART |= (1<<6);
 	else
-		flags_to_UART &= (0<<6);
+		flags_to_UART &= ~(1<<6);
+		//flags_to_UART &= 0b10111111;
 
 	if(Parking_line)
 		flags_to_UART |= (1<<5);
 	else
-		flags_to_UART &= (0<<5);
+		flags_to_UART &= ~(1<<5);
+		//flags_to_UART &= 0b11011111;
 
 	if(Cross_line)
 		flags_to_UART |= (1<<4);
 	else
-		flags_to_UART &= (0<<4);
+		flags_to_UART &= ~(1<<4);
+		//flags_to_UART &= 0b11101111;
 
 
 	std::cout << flags_to_UART << std::endl;
@@ -531,20 +543,6 @@ void LineDetector::send_data_to_main(int &detected_middle_pos_near, int &left_la
 	std::cout << "Prawa linia:" << BR_sector << std::endl;
 	std::cout << "Parking:" << Parking_line << std::endl;
 	std::cout << "Skrzyzowanie:"<< Cross_line << std::endl;
-
-	std::cout << "==========UART==========" << std::endl;
-
-	std::cout << "Srodek:    " << detected_middle_pos_near << std::endl;
-	std::cout << "Kat lewo:  " << left_lane_angle_st << std::endl;
-	std::cout << "Kat prawo: " << right_lane_angle_st << std::endl;
-
-	dec_to_bin(flags_to_UART);
-/*
-	std::cout.setf( std::ios::bin, std::ios::basefield );
-	std::cout << "Flagi:     " << flags_to_UART << std::endl;
-	std::cout.setf( std::ios::dec, std::ios::basefield );
-*/
-	std::cout << "==========UART==========" << std::endl;
 }
 
 void LineDetector::restart_lane_detection(int &UART_offset, bool &check_for_offset)
@@ -766,9 +764,9 @@ void LineDetector::change_lane(int &UART_offset, bool &check_for_offset)
 void LineDetector::horizontal_line(cv::Mat frame)
 {
     int number_of_pixels = 10;
-    int x = new_pos_left + 40;
+    int x = new_pos_left + 70;
     int y = 220;
-    int width = (new_pos_right - new_pos_left) - 40;
+    int width = (new_pos_right - new_pos_left) - 140;
     int height = 120;
     cv::Scalar white_pix;
 
@@ -779,10 +777,10 @@ void LineDetector::horizontal_line(cv::Mat frame)
 
         if(new_pos_left > 95)
         {
-              int number_of_left_pixels = 5;
+              int number_of_left_pixels = 3;
               int left_x = new_pos_left - 95;
-              int left_y = 220;
-              int left_width = 90;
+              int left_y = 180;
+              int left_width = 100;
               int left_height = 120;
               cv::Scalar left_white_pix;
 
@@ -796,8 +794,8 @@ void LineDetector::horizontal_line(cv::Mat frame)
               {
                   cv::Point(0, 0),
                   cv::Point(0, left_roi.rows),
-                  cv::Point(left_roi.cols - 70, left_roi.rows),
-                  cv::Point(left_roi.cols - 45, 0)
+                  cv::Point(left_roi.cols - 40, left_roi.rows),
+                  cv::Point(left_roi.cols - 30, 0)
               };
 
               cv::fillConvexPoly(left_mask, left_points, 4, cv::Scalar(255, 0, 0));
@@ -866,6 +864,32 @@ void LineDetector::horizontal_line(cv::Mat frame)
 
         imshow("masked roi", masked_roi);
     }
+}
+
+void LineDetector::dynamic_mask (int &left_x, int &right_x)
+{
+    int y = 190;
+    int mask_middle_x;
+	float slope = last_bottom_middle_point.slope;
+	int middle_x = last_bottom_middle_point.coordinates.x;
+	int middle_y = last_bottom_middle_point.coordinates.y;
+
+	mask_middle_x = ((y - (middle_y - slope * middle_x)) / slope) * MULTIPLICATION;
+	if (mask_middle_x < 190) 
+	{
+		left_x = 1;
+		right_x = mask_middle_x + 190;
+	}
+	else if (mask_middle_x > 480) 
+	{
+		right_x = 639;
+		left_x = mask_middle_x - 190;
+	}
+	else
+	{
+		left_x = mask_middle_x - 190;
+		right_x = mask_middle_x + 190; 
+	}
 }
 
 void LineDetector::display_last_middle()

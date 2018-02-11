@@ -36,6 +36,10 @@ int right_lane_angle_st = 90;
 int right_lane_angle_rad = 3.1415/2;
 char flags_to_UART = 0b00000000;
 
+//dynamic mask
+int left_x = 60;
+int right_x = 530;
+
 //For lane change
 int UART_offset = 0;
 bool check_for_offset = false;
@@ -110,8 +114,9 @@ int main()
 
 	//GPIO
 	wiringPiSetup();
-	pinMode(23, INPUT);
-	pinMode(4, INPUT);
+	pinMode(4, INPUT);  // PIN 18
+	pinMode(21, INPUT); // PIN 20
+	pinMode(27, INPUT); // PIN 27
 
 	bool GPIO_input[2] = {0,0};
 	bool GPIO_handled[2] = {0,0};
@@ -131,18 +136,20 @@ int main()
 
     //===========Data Acquisition Sector==========
 
+	
+
     cv::Mat mask = cv::Mat::zeros(cv::Size(640, 360), CV_8UC1);
     cv::Point points[6] =
     {
         cv::Point(0, 360),
 		cv::Point(0, 300),
-        cv::Point(130, 190),
-        cv::Point(510, 190),
+        cv::Point(left_x, 200),
+        cv::Point(right_x, 200),
 		cv::Point(639, 240),
         cv::Point(639, 360)
     };
     cv::fillConvexPoly(mask, points, 6, cv::Scalar(255, 0, 0));
-
+	
     std::vector<cv::Mat> frame_split_vec(4);
 
     cv::Mat frame_thresh(CAM_RES_Y, CAM_RES_X, CV_8UC1);
@@ -167,9 +174,9 @@ int main()
  
 
     int thresh_value = 210;
-	int P_min_votes = 10;
-	int P_max_gap = 2;
-	int P_min_len = 15;
+	int P_min_votes = 20;
+	int P_max_gap = 20;
+	int P_min_len = 20;
     
 	cv::createTrackbar("Thresh", "Vision GRAY", &thresh_value, 255);
 	cv::createTrackbar("P_min_votes", "Masked", &P_min_votes, 60);
@@ -215,11 +222,28 @@ int main()
         //Odkomentować na początku main()
 
         //===========Data Acquisition Sector==========
-
+		
         lineDetector.applyBlur(frame_gray, frame_gray);
 		//lineDetector.applyBirdEye(frame_gray, frame_gray_bird);
 		//frame_gray = frame_gray_bird;
         lineDetector.edgeDetect(frame_gray, frame_thresh, frame_edges, thresh_value);
+
+		lineDetector.dynamic_mask(left_x, right_x);
+		cv::Mat dynamic_mask = cv::Mat::zeros(cv::Size(640, 360), CV_8UC1);
+		cv::Point points[6] =
+		{
+		    cv::Point(0, 360),
+			cv::Point(0, 320),
+		    cv::Point(left_x, 200),
+		    cv::Point(right_x, 200),
+			cv::Point(639, 320),
+		    cv::Point(639, 360)
+		};
+
+		mask = cv::Mat::zeros(cv::Size(640, 360), CV_8UC1);
+		cv::fillConvexPoly(mask, points, 6, cv::Scalar(255, 0, 0));
+		cv::imshow("Mask", mask);
+
         lineDetector.applyMask(frame_edges, mask, frame_edges_masked);
         lineDetector.detectLines(frame_edges_masked, P_min_votes, P_max_gap, P_min_len);
         
@@ -231,25 +255,29 @@ int main()
 		//lineDetector.cross_line(frame_thresh);
 		lineDetector.horizontal_line(frame_thresh);
 
-		lineDetector.draw_data(frame_data);
-
 		lineDetector.send_data_to_main(detected_middle_pos_near, left_lane_angle_st, right_lane_angle_st, flags_to_UART);
+
+		push_new_data_to_UART();
 
 		if(check_for_offset)
 			lineDetector.cancel_offset(UART_offset, check_for_offset);
 
-        push_new_data_to_UART();
+		std::cout << "==========UART==========" << std::endl;
+		std::cout << "Srodek:    " << uart_1.unia_danych.dane.data_0 << std::endl;
+		std::cout << "Kat lewo:  " << uart_1.unia_danych.dane.data_1 << std::endl;
+		std::cout << "Kat prawo: " << uart_1.unia_danych.dane.data_2 << std::endl;
+		std::cout << "==========UART==========" << std::endl;
 
 		uart_1.send_data();
 
 		//GPIO
 		GPIO_input[0] = digitalRead(4);	
-		GPIO_input[1] = digitalRead(5);
+        GPIO_input[1] = digitalRead(21);
 		GPIO_input[2] = digitalRead(27);
 		
-		std::cout << "PIN 18: " << GPIO_input[0] << std::endl;
-		std::cout << "PIN 25: " << GPIO_input[1] << std::endl;
-		std::cout << "PIN 27: " << GPIO_input[1] << std::endl;
+		std::cout << "PIN 18 #04: " << GPIO_input[0] << std::endl;
+		std::cout << "PIN 20 #21: " << GPIO_input[1] << std::endl;
+		std::cout << "PIN 27 #27: " << GPIO_input[2] << std::endl;
 		
 		if(GPIO_input[0])
 		{
@@ -281,13 +309,15 @@ int main()
 		{
 			cv::fillConvexPoly(frame_gray, points, 6, cv::Scalar(255, 0, 0));
 		}
+		
+		lineDetector.draw_data(frame_data, points);
 
 		line(frame_data,
-         cv::Point(uart_1.unia_danych.dane.data_0 - 680,30),
-         cv::Point(uart_1.unia_danych.dane.data_0 - 680,70),
-         cv::Scalar(255, 0, 255),
-         3,
-         8);
+		     cv::Point(uart_1.unia_danych.dane.data_0 - 680,30),
+		     cv::Point(uart_1.unia_danych.dane.data_0 - 680,70),
+		     cv::Scalar(255, 0, 255),
+		     3,
+		     8);
 
         //cv::imshow("Vision", frame);
         cv::imshow("Vision GRAY", frame_gray);
@@ -296,6 +326,7 @@ int main()
         cv::imshow("Masked", frame_edges_masked);
         //cv::imshow("Lines", frame_lines);
 		cv::imshow("Data", frame_data);
+		cv::imshow("Mask", mask);
 
 		lineDetector.display_last_middle();
 
@@ -406,6 +437,9 @@ void U_thread(UART &uart)
 
 void push_new_data_to_UART()
 {
+	std::cout << "OFFSET: " << UART_offset << std::endl;
+	std::cout << "MID:    " << detected_middle_pos_near << std::endl;
+
     uart_1.unia_danych.dane.data_0 = detected_middle_pos_near + UART_offset;
     uart_1.unia_danych.dane.data_1 = left_lane_angle_st;
     uart_1.unia_danych.dane.data_2 = right_lane_angle_st;
@@ -415,6 +449,8 @@ void push_new_data_to_UART()
     //uart_1.unia_danych.dane.data_6 = 0;
     //uart_1.unia_danych.dane.data_7 = 0;
     uart_1.unia_danych.dane.flags = flags_to_UART;
+
+std::cout << "UART_1: " << uart_1.unia_danych.dane.data_0 << std::endl;
 }
 
 

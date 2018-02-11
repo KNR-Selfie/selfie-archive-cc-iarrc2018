@@ -67,7 +67,7 @@ public:
 	LineDetector()
 	{
 		last_top_middle_point.coordinates = cv::Point(320,150);
-		last_bottom_middle_point.coordinates = cv::Point(320,250);
+		last_bottom_middle_point.coordinates = cv::Point(320,300);
 		
 		last_top_middle_point.slope = 999;
 		last_bottom_middle_point.slope = 999;
@@ -105,7 +105,7 @@ public:
     void detectLines(cv::Mat &input, int &P_min_votes, int &P_max_gap, int &P_min_len);
 
 	//
-	void draw_data(cv::Mat &output);
+	void draw_data(cv::Mat &output, cv::Point points[]);
 
 	//	
 	void calculate_all_slopes();
@@ -129,6 +129,7 @@ public:
 
 	//
 	void horizontal_line (cv::Mat frame);
+	void dynamic_mask (int &left_x, int &right_x);
 
 	//Sortowanie wektorow:
 	//void quick_sort (vector<Punkt> points);
