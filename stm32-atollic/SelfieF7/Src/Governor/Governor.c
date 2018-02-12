@@ -24,9 +24,9 @@
 #include "tim.h"
 #include "Steering.h"
 
-float parking_depth = 30.f; // [mm]
-float parking_turn_sharpness = 40.f; // [degree]
-float parking_dead_fwd = 120.f; // [mm]
+float parking_depth = 40.f; // [mm]
+float parking_turn_sharpness = 42.f; // [degree]
+float parking_dead_fwd = 170.f; // [mm]
 
 uint8_t lane_switching_move = 0;
 uint8_t parking_move = 0;
@@ -43,6 +43,10 @@ float start_angle = 0;
 float start_distance = 0;
 float unfinished_angle = 0;
 
+uint8_t oldflags_1 = 0;
+float podjedz_pan = 0;
+float podjedz_pan_start = 0;
+float podjedz_pan_distance = -80.f;
 
 void lane_switch_f(void);
 void autonomous_task_f(void);
@@ -176,26 +180,36 @@ void parking_f(void) {
 		}
 	}
 	if (parking_move == 4) {
-		sidesignals = SIDETURN_RIGHT;
-		steering = -90.f;
-		velocity = -500;
-		if ((CumulativeYaw - start_angle) > parking_turn_sharpness
-				|| (CumulativeYaw - start_angle) < - parking_turn_sharpness || flags[1] ==1) {
+			sidesignals = SIDETURN_RIGHT;
+			steering = -90.f;
+			velocity = -500;
+			if ((CumulativeYaw - start_angle) > parking_turn_sharpness
+					|| (CumulativeYaw - start_angle) < - parking_turn_sharpness || podjedz_pan < podjedz_pan_distance ) {
 
-			parking_angle = 0.0f;
-			set_spd = 0.0f;
-			sidesignals = SIDETURN_EMERGENCY;
-			parking_counter++;
-			osDelay(1200);
-			if ((CumulativeYaw - start_angle) > 0)
-				unfinished_angle = parking_turn_sharpness - (CumulativeYaw - start_angle);
-			else
-				unfinished_angle = parking_turn_sharpness + (CumulativeYaw - start_angle);
+				parking_angle = 0.0f;
+				set_spd = 0.0f;
+				sidesignals = SIDETURN_EMERGENCY;
+				parking_counter++;
+				osDelay(1200);
+				if ((CumulativeYaw - start_angle) > 0)
+					unfinished_angle = parking_turn_sharpness - (CumulativeYaw - start_angle);
+				else
+					unfinished_angle = parking_turn_sharpness + (CumulativeYaw - start_angle);
 
-			start_angle = CumulativeYaw;
-			++parking_move;
+				start_angle = CumulativeYaw;
+				podjedz_pan_start = 0;
+				podjedz_pan = 0;
+				++parking_move;
+			}
+			else if (flags[1] && !oldflags_1){
+				oldflags_1 = 1;
+				podjedz_pan_start = fwdRoad;
+			}
+			else if(flags[1])
+			{
+				podjedz_pan = fwdRoad - podjedz_pan_start;
+			}
 		}
-	}
 	if (parking_move == 5) {
 		sidesignals = SIDETURN_LEFT;
 		steering = -90.f;
@@ -313,6 +327,7 @@ void await_f(void)
 	set_spd = 0;
 	if (HAL_GPIO_ReadPin(Parking_Button_GPIO_Port, Parking_Button_Pin) == GPIO_PIN_SET) {
 		//ruszenie z boxu
+	osDelay(500);
 		challenge_select = 1;
 /*
 		set_spd = 500;
@@ -327,15 +342,16 @@ void await_f(void)
     }
     else if(HAL_GPIO_ReadPin(Obstacle_Button_GPIO_Port,Obstacle_Button_Pin) == GPIO_PIN_SET){
 		//ruszenie z boxu
-    	challenge_select = 0;
-
+    	osDelay(500);
+    	challenge_select = 2;
+/*
 		set_spd = 500;
 		TIM2->CCR3 = 943;
 		osDelay(2000);
 		HAL_GPIO_TogglePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin);
 		osDelay(70);
 		HAL_GPIO_TogglePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin);
-
+*/
 		autonomous_task = lanefollower;
     }
 }
@@ -356,6 +372,9 @@ void crossing_f(void) {
 	}
 	if (crossing_move == 2) {
 		set_spd = 0;
+		HAL_GPIO_TogglePin(Cross_Obstacles_GPIO_Port,Cross_Obstacles_Pin);
+		osDelay(70);
+		HAL_GPIO_TogglePin(Cross_Obstacles_GPIO_Port,Cross_Obstacles_Pin);
 		osDelay(3000);
 		++crossing_move;
 	}
@@ -367,7 +386,7 @@ void crossing_f(void) {
 	if (crossing_move == 4) {
 		set_spd = 700;
 		TIM2->CCR3=943;
-		if (fwdRoad - crossing_dist > 700) {
+		if (fwdRoad - crossing_dist > 600) {
 			crossing_move = 0;
 			HAL_GPIO_TogglePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin);
 			osDelay(70);

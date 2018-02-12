@@ -31,5 +31,6 @@ enum autonomous_task_e
 float parking_depth;
 float parking_turn_sharpness;
 float parking_dead_fwd;
+float podjedz_pan_distance;
 
 #endif /* GOVERNOR_GOVERNOR_H_ */

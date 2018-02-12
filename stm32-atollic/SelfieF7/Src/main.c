@@ -300,7 +300,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 					autonomous_task = parkingsearch;
 				}
 
-				if (((j_jetsonFlags[0] & 0x10) == 0x10) && (challenge_select ==0)) {
+				if (((j_jetsonFlags[0] & 0x10) == 0x10) && (challenge_select ==2)) {
 					 //wykrycie skrzy¿owania
 					autonomous_task = crossing;
 				}
