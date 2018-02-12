@@ -178,6 +178,18 @@ void BT_Commands(uint8_t* Buf, uint32_t length) {
 				"Glebokosc parkowania = %.1f mm \r\n\r\n", parking_depth);
 		HAL_UART_Transmit_DMA(&huart3, txdata, size);
 	}
+	else if (Buf[0] == '&') {
+		podjedz_pan_distance += 5.f;
+			size = sprintf((char*) txdata,
+					"Podjedz Pan = %.1f mm \r\n\r\n", podjedz_pan_distance);
+			HAL_UART_Transmit_DMA(&huart3, txdata, size);
+		}
+	else if (Buf[0] == '*') {
+		podjedz_pan_distance -= 5.f;
+			size = sprintf((char*) txdata,
+					"Podjedz Pan = %.1f mm \r\n\r\n", podjedz_pan_distance);
+			HAL_UART_Transmit_DMA(&huart3, txdata, size);
+		}
 
 	//RESET
 	else if (Buf[0] == 'R')
