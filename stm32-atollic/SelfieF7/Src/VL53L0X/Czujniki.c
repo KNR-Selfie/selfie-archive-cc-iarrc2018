@@ -28,7 +28,6 @@ void StartCzujnikiTask(void const * argument) {
 
 	while (1) {
 
-
 		if (HAL_GPIO_ReadPin(CzujnikLewy_GPIO_Port, CzujnikLewy_Pin)
 				== GPIO_PIN_RESET) {
 			flags[0] = 1;
@@ -39,7 +38,7 @@ void StartCzujnikiTask(void const * argument) {
 		if (HAL_GPIO_ReadPin(CzujnikPrawy_GPIO_Port, CzujnikPrawy_Pin)
 				== GPIO_PIN_RESET) {
 			flags[1] = 1;
-		} else{
+		} else {
 			flags[1] = 0;
 		}
 
@@ -55,9 +54,9 @@ void StartCzujnikiTask(void const * argument) {
 			} else {
 				flags[2] = 0;
 			}
-}
-	osDelay(10);
-}
+		}
+		osDelay(10);
+	}
 }
 
 //void StartCzujnikiTask(void const * argument) {
