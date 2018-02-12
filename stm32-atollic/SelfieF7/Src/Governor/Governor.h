@@ -8,15 +8,16 @@
 #ifndef GOVERNOR_GOVERNOR_H_
 #define GOVERNOR_GOVERNOR_H_
 
-enum driving_state_e
+typedef enum driving_state_e
 {
 	disarmed = 0,
 	paused,
 	autonomous,
 	semi,
 	fullcontrol,
-}driving_state;
+}driving_state_t;
 
+driving_state_t driving_state;
 enum autonomous_task_e
 {
 	await = 0,
@@ -24,6 +25,7 @@ enum autonomous_task_e
 	lanefollower,
 	laneswitch,
 	crossing,
+	crossing_on_parking,
 	parkingsearch,
 	parking,
 }autonomous_task;
