@@ -8,6 +8,8 @@
 #ifndef BATTERY_BATTERY_H_
 #define BATTERY_BATTERY_H_
 
+float Sharp_f;
+
 float Amps_f;
 float Volts_f;
 float mAhs_drawn;

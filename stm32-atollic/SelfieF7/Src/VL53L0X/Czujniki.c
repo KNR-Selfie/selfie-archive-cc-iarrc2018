@@ -13,6 +13,7 @@
 #include "Governor.h"
 #include "Battery.h"
 #include "Lighting.h"
+#include "Filtering.h"
 
 //xSemaphoreHandle i2c2_semaphore = NULL;
 //#define EXPANDER_ADRESS 0x40
@@ -23,8 +24,8 @@ extern uint8_t lane_switching_move;
 extern uint8_t challenge_select;
 
 
-
 void StartCzujnikiTask(void const * argument) {
+
 	while (1) {
 
 
@@ -43,23 +44,14 @@ void StartCzujnikiTask(void const * argument) {
 		}
 
 		if (challenge_select == 2) {
-			///filtr do zrobienia!
-			filtr = 0.891 * filtr + 0.109 * adc_raw[2];
 
-			if (filtr > 500)
-				filter_counter++;
-			else
-				filter_counter = 0;
-
-			if (filter_counter > 250)
-				filter_counter = 10;
-
-			if (filter_counter > 10 && lane_switching_move == 0) {
+			if (Sharp_f > 0.24f && lane_switching_move == 0) {
 				flags[2] = 1;
 				sidesignals = SIDETURN_LEFT;
 				autonomous_task = laneswitch;
 				lane_switching_move = 1;
-				HAL_GPIO_WritePin(Change_Lane_GPIO_Port, Change_Lane_Pin, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(Change_Lane_GPIO_Port, Change_Lane_Pin,
+						GPIO_PIN_SET);
 			} else {
 				flags[2] = 0;
 			}
