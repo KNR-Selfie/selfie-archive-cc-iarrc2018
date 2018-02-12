@@ -275,6 +275,8 @@ void LineDetector::sort_lines()
         SPoint.coordinates = C;
         SPoint.slope = all_points[i].slope;
 
+if(!(abs(SPoint.slope) < 0.3))
+{
         if(alfa > 0 && C.y < BORDER){
             TL_points.push_back(SPoint);
         }
@@ -299,7 +301,7 @@ void LineDetector::sort_lines()
         else if(alfa == 0){
             horizontal_points.push_back(SPoint);
         }
-		
+}		
 		float tolerance = 0.2;
         float parking_angle = 0.71;
         float cross_angle = 0;
@@ -491,8 +493,8 @@ void LineDetector::save_for_next_step()
 	{
 		width = new_pos_right - new_pos_left;
 		
-		if(width < 450)
-			width = 450;
+		if(width < 150)
+			width =	150; //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		else if(width > 600)
 			width = 600;
 	}
@@ -545,7 +547,7 @@ void LineDetector::send_data_to_main(int &detected_middle_pos_near, int &left_la
 	std::cout << "Skrzyzowanie:"<< Cross_line << std::endl;
 }
 
-void LineDetector::restart_lane_detection(int &UART_offset, bool &check_for_offset)
+void LineDetector::restart_lane_detection(int &UART_offset, bool &check_for_offset, int &mask_y, int &mask_width, int &mask_y_1, int &mask_y_2, int &mask_x_l, int &mask_x_r)
 {
 	last_top_middle_point.coordinates.x = 320;
 	last_bottom_middle_point.coordinates.x = 320;
@@ -566,6 +568,13 @@ void LineDetector::restart_lane_detection(int &UART_offset, bool &check_for_offs
 	current_lane = 1;
 	UART_offset = 0;
 	check_for_offset = false;
+
+	mask_y = 200;
+	mask_width = 195;
+	mask_y_1 = 300;
+	mask_y_2 = 340;
+	mask_x_l = 0;
+	mask_x_r = 639;
 }
 
 void LineDetector::cancel_offset(int &UART_offset, bool &check_for_offset) 
@@ -866,9 +875,11 @@ void LineDetector::horizontal_line(cv::Mat frame)
     }
 }
 
-void LineDetector::dynamic_mask (int &left_x, int &right_x)
+
+
+void LineDetector::dynamic_mask (int &left_x, int &right_x, int &mask_y, int &mask_width)
 {
-    int y = 190;
+    int y = mask_y;
     int mask_middle_x;
 	float slope = last_bottom_middle_point.slope;
 	int middle_x = last_bottom_middle_point.coordinates.x;
@@ -878,17 +889,17 @@ void LineDetector::dynamic_mask (int &left_x, int &right_x)
 	if (mask_middle_x < 190) 
 	{
 		left_x = 1;
-		right_x = mask_middle_x + 190;
+		right_x = mask_middle_x + mask_width;
 	}
 	else if (mask_middle_x > 480) 
 	{
 		right_x = 639;
-		left_x = mask_middle_x - 190;
+		left_x = mask_middle_x - mask_width;
 	}
 	else
 	{
-		left_x = mask_middle_x - 190;
-		right_x = mask_middle_x + 190; 
+		left_x = mask_middle_x - mask_width;
+		right_x = mask_middle_x + mask_width; 
 	}
 }
 

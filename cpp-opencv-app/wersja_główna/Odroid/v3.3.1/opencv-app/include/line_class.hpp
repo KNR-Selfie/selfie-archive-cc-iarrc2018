@@ -42,9 +42,8 @@ class LineDetector
 			BR_sector,
 			Horizontal_lines;
 
-	bool 	Parking_line;
+
 	bool	Detect_parking_line;	
-	bool	Cross_line;
 	bool	Vertical_line;
 
 	float 	new_slope_left; 
@@ -52,7 +51,6 @@ class LineDetector
 	int 	new_pos_left; 
 	int 	new_pos_right; 
 	int 	new_middle;
-	int 	width;
 
 	int left_ang_st;
 	int right_ang_st;
@@ -64,6 +62,9 @@ class LineDetector
 	int emergency_counter;
 
 public:
+	int width;
+	bool	Cross_line;
+	bool 	Parking_line;
 	LineDetector()
 	{
 		last_top_middle_point.coordinates = cv::Point(320,150);
@@ -107,6 +108,8 @@ public:
 	//
 	void draw_data(cv::Mat &output, cv::Point points[]);
 
+	//void drawLines(cv::Mat &output);
+
 	//	
 	void calculate_all_slopes();
 	void sort_lines();
@@ -120,7 +123,7 @@ public:
 
 	//
 	void send_data_to_main(int &detected_middle_pos_near, int &left_lane_angle_st, int &right_lane_angle_st, char &flags_to_UART);
-	void restart_lane_detection(int &UART_offset, bool &check_for_offset);
+	void restart_lane_detection(int &UART_offset, bool &check_for_offset, int &mask_y, int &mask_widthint, int &mask_y_1, int &mask_y_2, int &mask_x_l, int &mask_x_r);
 	
 	//
 	void cancel_offset(int &UART_offset, bool &check_for_offset);
@@ -129,8 +132,8 @@ public:
 
 	//
 	void horizontal_line (cv::Mat frame);
-	void dynamic_mask (int &left_x, int &right_x);
-
+	//void dynamic_mask (int &left_x, int &right_x, int mask_y, int mask_width);
+	void dynamic_mask (int &left_x, int &right_x, int &mask_y, int &mask_width);
 	//Sortowanie wektorow:
 	//void quick_sort (vector<Punkt> points);
 };
