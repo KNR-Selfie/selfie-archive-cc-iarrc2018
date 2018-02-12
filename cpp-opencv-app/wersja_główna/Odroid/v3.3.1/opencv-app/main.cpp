@@ -39,6 +39,12 @@ char flags_to_UART = 0b00000000;
 //dynamic mask
 int left_x = 60;
 int right_x = 530;
+int mask_y = 200;
+int mask_width = 195;
+int mask_y_1 = 300;
+int mask_y_2 = 340;
+int mask_x_l = 0;
+int mask_x_r = 639;
 
 //For lane change
 int UART_offset = 0;
@@ -141,12 +147,12 @@ int main()
     cv::Mat mask = cv::Mat::zeros(cv::Size(640, 360), CV_8UC1);
     cv::Point points[6] =
     {
-        cv::Point(0, 360),
-		cv::Point(0, 300),
-        cv::Point(left_x, 200),
-        cv::Point(right_x, 200),
-		cv::Point(639, 240),
-        cv::Point(639, 360)
+        cv::Point(mask_x_l, mask_y_2),
+		cv::Point(mask_x_l, mask_y_1),
+        cv::Point(left_x, mask_y),
+        cv::Point(right_x, mask_y),
+		cv::Point(mask_x_r, mask_y_1),
+        cv::Point(mask_x_r, mask_y_2)
     };
     cv::fillConvexPoly(mask, points, 6, cv::Scalar(255, 0, 0));
 	
@@ -154,25 +160,30 @@ int main()
 
     cv::Mat frame_thresh(CAM_RES_Y, CAM_RES_X, CV_8UC1);
     cv::Mat frame_edges(CAM_RES_Y, CAM_RES_X, CV_8UC1);
-    cv::Mat frame_lines(CAM_RES_Y, CAM_RES_X, CV_8UC1);
+    //cv::Mat frame_lines(CAM_RES_Y, CAM_RES_X, CV_8UC1);
 	cv::Mat frame_data(CAM_RES_Y, CAM_RES_X, CV_8UC3);
 
     //cv::namedWindow("Vision", 1);
     //cv::moveWindow("Vision", 0, 0);
     cv::namedWindow("Vision GRAY", 1);
-    cv::moveWindow("Vision GRAY", 400, 0);
+    cv::moveWindow("Vision GRAY", 285, 0);
     //cv::namedWindow("Thresh", 1);
     //cv::moveWindow("Thresh", 1280, 0);
     //cv::namedWindow("Edges", 1);
     //cv::moveWindow("Edges", 640, 0);
     cv::namedWindow("Masked", 1);
-    cv::moveWindow("Masked", 640, 460);
+    cv::moveWindow("Masked", 640, 500);
     //cv::namedWindow("Lines", 1);
     //cv::moveWindow("Lines", 640, 400);
 	cv::namedWindow("Data", 1);
-    cv::moveWindow("Data", 0, 510);
- 
-
+    cv::moveWindow("Data", 0, 650);
+	cv::namedWindow("Thresh", 1);
+    cv::moveWindow("Thresh", 1280, 400);
+	cv::namedWindow("left roi", 1);
+    cv::moveWindow("left roi", 1300, 950);
+	cv::namedWindow("masked roi", 1);
+    cv::moveWindow("masked roi", 1500, 950);
+  
     int thresh_value = 210;
 	int P_min_votes = 20;
 	int P_max_gap = 20;
@@ -228,32 +239,39 @@ int main()
 		//frame_gray = frame_gray_bird;
         lineDetector.edgeDetect(frame_gray, frame_thresh, frame_edges, thresh_value);
 
-		lineDetector.dynamic_mask(left_x, right_x);
+		//lineDetector.dynamic_mask(left_x, right_x, mask_y, mask_width);
+		lineDetector.dynamic_mask(left_x, right_x, mask_y, mask_width);
 		cv::Mat dynamic_mask = cv::Mat::zeros(cv::Size(640, 360), CV_8UC1);
 		cv::Point points[6] =
 		{
-		    cv::Point(0, 360),
-			cv::Point(0, 320),
-		    cv::Point(left_x, 200),
-		    cv::Point(right_x, 200),
-			cv::Point(639, 320),
-		    cv::Point(639, 360)
+		    cv::Point(mask_x_l, mask_y_2),
+			cv::Point(mask_x_l, mask_y_1),
+		    cv::Point(left_x, mask_y),
+		    cv::Point(right_x, mask_y),
+			cv::Point(mask_x_r, mask_y_1),
+		    cv::Point(mask_x_r, mask_y_2)
 		};
 
 		mask = cv::Mat::zeros(cv::Size(640, 360), CV_8UC1);
 		cv::fillConvexPoly(mask, points, 6, cv::Scalar(255, 0, 0));
-		cv::imshow("Mask", mask);
+		//cv::imshow("Mask", mask);
 
         lineDetector.applyMask(frame_edges, mask, frame_edges_masked);
         lineDetector.detectLines(frame_edges_masked, P_min_votes, P_max_gap, P_min_len);
         
+		//lineDetector.drawLines(frame_lines);
+
 		lineDetector.calculate_all_slopes();
 		lineDetector.sort_lines();
 		lineDetector.save_for_next_step();	
 
 		//lineDetector.parking_line(frame_thresh);
 		//lineDetector.cross_line(frame_thresh);
-		lineDetector.horizontal_line(frame_thresh);
+
+	if(!GPIO_input[1])
+	{
+	lineDetector.horizontal_line(frame_thresh);
+	}
 
 		lineDetector.send_data_to_main(detected_middle_pos_near, left_lane_angle_st, right_lane_angle_st, flags_to_UART);
 
@@ -269,10 +287,12 @@ int main()
 		std::cout << "==========UART==========" << std::endl;
 
 		uart_1.send_data();
+		lineDetector.Cross_line = false;
+		lineDetector.Parking_line = false;
 
 		//GPIO
 		GPIO_input[0] = digitalRead(4);	
-        GPIO_input[1] = digitalRead(21);
+		GPIO_input[1] = digitalRead(21);
 		GPIO_input[2] = digitalRead(27);
 		
 		std::cout << "PIN 18 #04: " << GPIO_input[0] << std::endl;
@@ -283,7 +303,7 @@ int main()
 		{
 			if(!GPIO_handled[0])
 			{
-				lineDetector.restart_lane_detection(UART_offset, check_for_offset);
+				lineDetector.restart_lane_detection(UART_offset, check_for_offset, mask_y, mask_width, mask_y_1, mask_y_2, mask_x_l, mask_x_r);
 				GPIO_handled[0] = true;
 			}
 		}
@@ -303,6 +323,25 @@ int main()
 		else
 		{
 			GPIO_handled[1] = false;
+		}
+
+		if(GPIO_input[2])
+		{
+			if(!GPIO_handled[2])
+			{
+				mask_y = 60;
+				mask_width = 120;
+				mask_y_1 = 140;
+				mask_y_2 = 250;
+				mask_x_l = 100;
+				mask_x_r = 539;
+				lineDetector.width = 100;
+				GPIO_handled[2] = true;
+			}
+		}
+		else
+		{
+			GPIO_handled[2] = false;
 		}
 
 		if(show_mask)
@@ -326,7 +365,7 @@ int main()
         cv::imshow("Masked", frame_edges_masked);
         //cv::imshow("Lines", frame_lines);
 		cv::imshow("Data", frame_data);
-		cv::imshow("Mask", mask);
+		//cv::imshow("Mask", mask);
 
 		lineDetector.display_last_middle();
 
@@ -351,6 +390,16 @@ int main()
                 show_mask = false;
             else
                 show_mask = true;
+            break;
+
+		case 's':
+            mask_y = 60;
+			mask_width = 120;
+			mask_y_1 = 140;
+			mask_y_2 = 250;
+			mask_x_l = 100;
+			mask_x_r = 539;
+			lineDetector.width = 100;
             break;
 
         //Send fixed data, do not proceed incoming frames
@@ -398,7 +447,7 @@ int main()
 
         //Manual restart of vision variables
         case 'r':
-            lineDetector.restart_lane_detection(UART_offset, check_for_offset);
+            lineDetector.restart_lane_detection(UART_offset, check_for_offset, mask_y, mask_width, mask_y_1, mask_y_2, mask_x_l, mask_x_r);
             break;
         }
 
