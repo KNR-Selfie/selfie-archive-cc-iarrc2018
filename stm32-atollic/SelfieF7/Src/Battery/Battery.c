@@ -34,7 +34,7 @@ void StartBatteryManager(void const * argument){
 	osSemaphoreWait(ADCSemaphore, osWaitForever);
 	HAL_ADC_Start_DMA(&hadc1, (uint32_t*) adc_raw, 3);
 	lpf_filter_init(&amps_filter, 20, 1.f/dT);
-	lpf_filter_init(&SharpLPF, 2.5f, 1.f/dT);
+	lpf_filter_init(&SharpLPF, 3.f, 1.f/dT);
 	mAhs_drawn = 0;
 
 	while(1)

@@ -95,7 +95,13 @@ void StartGovernorTask(void const * argument) {
 	}
 }
 void autonomous_task_f(void) {
-
+	if (old_driving_state == fullcontrol) {
+		HAL_GPIO_WritePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin,
+				GPIO_PIN_SET);
+		osDelay(100);
+		HAL_GPIO_WritePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin,
+				GPIO_PIN_RESET);
+	}
 	HAL_TIM_Base_Start_IT(&htim10); // timer od sprawdzania komunikacji
 	if (j_syncByte == 255) {
 		set_spd = 700;
@@ -119,6 +125,9 @@ void autonomous_task_f(void) {
 			hold_signals = 2;
 		} else if (hold_signals == 2 && (HAL_GetTick() - time_then > 800)) {
 			sidesignals = SIDETURN_NONE;
+			lane_switching_move = 0;
+			HAL_GPIO_WritePin(Change_Lane_GPIO_Port, Change_Lane_Pin,
+					GPIO_PIN_RESET);
 			hold_signals = 0;
 		}
 
@@ -298,9 +307,6 @@ void lane_switch_f(void) {
 		lane_switching_move = 3;
 	} else if (lane_switching_move == 3 && (HAL_GetTick() - then) > 70) {
 
-		lane_switching_move = 0;
-		HAL_GPIO_WritePin(Change_Lane_GPIO_Port, Change_Lane_Pin,
-				GPIO_PIN_RESET);
 		hold_signals = 1;
 		autonomous_task = lanefollower;
 	}
@@ -407,7 +413,8 @@ void crossing_f(void) {
 		++crossing_move;
 	}
 	if (crossing_move == 1) {
-		set_spd = 500;
+		if (driving_state == autonomous)
+			set_spd = 500;
 		if (fwdRoad - crossing_dist > 150) {
 			++crossing_move;
 		}

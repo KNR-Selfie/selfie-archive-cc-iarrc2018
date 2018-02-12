@@ -27,7 +27,7 @@ uint8_t FutabaStatus = RX_FRAME_FAILSAFE;
 #define RX_OFFSET_T 192
 #define RX_OFFSET_AER 1027
 
-#define SBUS_TIME_NEEDED_PER_FRAME 3000
+#define SBUS_TIME_NEEDED_PER_FRAME 30
 
 
 #define SBUS_MAX_CHANNEL 18
@@ -121,11 +121,11 @@ void sbusDataReceive(uint16_t c)
 {
     static uint8_t sbusFramePosition = 0;
     static int16_t sbusFrameStartAt = 0;
-    int16_t now = GetMicroTick();
+    int16_t now = Get100Tick();
 
     int16_t sbusFrameTime = now - sbusFrameStartAt;
 
-    if (sbusFrameTime > (SBUS_TIME_NEEDED_PER_FRAME + 500)) {
+    if (sbusFrameTime > (SBUS_TIME_NEEDED_PER_FRAME + 5)) {
         sbusFramePosition = 0;
     }
 
@@ -197,12 +197,14 @@ int16_t GetMicroTick(void) {
 	int16_t tick = TIM14->CNT;
 	return tick;
 }
-void MicroDelay(uint16_t Delay) {
+void Micro100Delay(uint16_t Delay) {
 	if(Delay > 0x7fff)
 		return;
-	int16_t tickstart = GetMicroTick();
-	while ((GetMicroTick() - tickstart) < Delay) {
+	int16_t tickstart = Get100Tick();
+	while ((Get100Tick() - tickstart) < Delay) {
 	}
 }
-
-
+int16_t Get100Tick(void) {
+	int16_t tick = TIM14->CNT;
+	return tick;
+}

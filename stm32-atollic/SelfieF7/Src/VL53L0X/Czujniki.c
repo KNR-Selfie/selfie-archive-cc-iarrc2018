@@ -42,9 +42,14 @@ void StartCzujnikiTask(void const * argument) {
 			flags[1] = 0;
 		}
 
-		if (challenge_select == 2) {
+		if (challenge_select == 2 && driving_state != fullcontrol) {
+			if (Sharp_f > 0.75f)
+				filter_counter++;
+			else
+				filter_counter = 0;
 
-			if (Sharp_f > 0.24f && lane_switching_move == 0) {
+			if (filter_counter > 1 && lane_switching_move == 0) {
+				filter_counter = 2;
 				flags[2] = 1;
 				sidesignals = SIDETURN_LEFT;
 				autonomous_task = laneswitch;

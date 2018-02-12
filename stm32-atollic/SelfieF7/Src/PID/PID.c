@@ -19,8 +19,8 @@
 #define ERR_SUM_MAX_SERVOPOS 1500
 #define ERR_SUM_MAX_SERVOANG 1500
 
-#define kpEng 35
-#define kiEng 0.2
+#define kpEng 40
+#define kiEng 0.3
 #define kdEng 0.1
 #define kpServoPos 3.2
 #define kiServoPos 0
@@ -66,8 +66,8 @@ float pid_calculateEngine(pid_params *pid_param, float set_val, float read_val)
 	u = 1500 + (u / 5000);
 	if (set_val < 0) u -= 140;
 	else if (set_val > 0) u += 60;
-	if (u > 1800) u = 1800;
-	if (u< 1100) u = 1100;
+	if (u > 2000) u = 2000;
+	if (u< 1000) u = 1000;
 
 
 	//ponizej jazda do tylu od razu po zadaniu ujemnej predkosci - bez koniecznosci "wracania" palcem na futabie
@@ -91,8 +91,8 @@ float pid_calculateEngine(pid_params *pid_param, float set_val, float read_val)
 				u = 1500 + (u / 5000);
 				if (set_val < 0) u -= 140;
 				else if (set_val > 0) u += 60;
-				if (u > 1800) u = 1800;
-				if (u< 1100) u = 1100;
+				if (u > 2000) u = 2000;
+				if (u< 1000) u = 1000;
 		}
 	}
 	else transition = 0;
