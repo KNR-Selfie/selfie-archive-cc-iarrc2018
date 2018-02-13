@@ -76,6 +76,8 @@
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 extern uint8_t lane_switching_move;
+extern uint8_t challenge_select;
+extern uint8_t parking_counter;
 
 
 //deklaracja zmiennych uzywanych do komunikacji z Odroidem
@@ -86,7 +88,6 @@ uint8_t j_jetsonFlags[2];
 uint8_t synchroniseUARTOdroid = 0;
 
 //flagi odroida
-int ParkingFlag = 0;
 int CrossFlag = 0;
 
 /* USER CODE END PV */
@@ -136,10 +137,14 @@ int main(void)
   MX_TIM11_Init();
 
   /* USER CODE BEGIN 2 */
+  j_jetsonData[0] = 1000;
+  j_jetsonData[1] = 90;
+  j_jetsonData[2] = 90;
 	HAL_UART_Receive_DMA(&huart4, &j_syncByte, 1);
-
+	TIM2->CCR3 = servo_middle;
 	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
 	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
+	TIM2->CCR3 = servo_middle;
 
   /* USER CODE END 2 */
 
@@ -294,15 +299,20 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
                 j_jetsonData[5]  = (int16_t) ((j_buffer[6]>>7 |j_buffer[7]<<1 |j_buffer[8]<<9)            & 0x07FF);
                 j_jetsonData[6]  = (int16_t) ((j_buffer[8]>>2 |j_buffer[9]<<6)                          & 0x07FF);
                 j_jetsonData[7]  = (int16_t) ((j_buffer[9]>>5 |j_buffer[10]<<3)                         & 0x07FF);
-				if ((j_jetsonFlags[0] & 0x30) == 0x20) {
-					//ParkingFlag = 1; //wykrycie strefy parkowania
+				if (((j_jetsonFlags[0] & 0x20) == 0x20 ) && (challenge_select == 1) && (parking_counter<5) && (autonomous_task != parking)){
+					 //wykrycie strefy parkowania
 					autonomous_task = parkingsearch;
 				}
-				else ParkingFlag = 0;
-				if ((j_jetsonFlags[0] & 0x30) == 0x10) {
-					CrossFlag = 1; //wykrycie strefy parkowania
+
+				if (((j_jetsonFlags[0] & 0x10) == 0x10) && (challenge_select ==2) && (autonomous_task != parking)) {
+					 //wykrycie skrzy¿owania
+					autonomous_task = crossing;
 				}
-				else CrossFlag = 0;
+				else if (((j_jetsonFlags[0] & 0x10) == 0x10) && (challenge_select == 1) && (autonomous_task != parking)) {
+					//wykrycie skrzy¿owania
+					autonomous_task = crossing_on_parking;
+				}
+
         	}
         	synchroniseUARTOdroid = 0;
             HAL_UART_Receive_DMA(&huart4, &j_syncByte, 1);
@@ -353,10 +363,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
     }
   if (htim->Instance == TIM11) {
-	  autonomous_task = lanefollower;
-	  lane_switching_move = 0;
-		HAL_GPIO_WritePin(Change_Lane_GPIO_Port,Change_Lane_Pin, GPIO_PIN_RESET);
-		HAL_TIM_Base_Stop_IT(&htim11);
     }
 /* USER CODE END Callback 1 */
 }

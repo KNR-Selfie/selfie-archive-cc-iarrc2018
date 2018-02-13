@@ -77,7 +77,8 @@ uint8_t parking_mode;
 float parking_angle;
 float parking_speed;
 
-uint16_t servo_middle = 943;
+uint16_t servo_middle = 1470;
+uint16_t servo_bandwith = 300;
 
 uint16_t AngleToServo(float angle);
 
@@ -188,5 +189,5 @@ void encodersReset(void) {
 /* +/- 90^ */
 uint16_t AngleToServo(float angle)
 {
-	return (servo_middle - (int16_t)(300.f * angle / 90.f));
+	return (servo_middle + (int16_t)(servo_bandwith * angle / 90.f));
 }

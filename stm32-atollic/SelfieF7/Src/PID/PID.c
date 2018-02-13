@@ -19,10 +19,10 @@
 #define ERR_SUM_MAX_SERVOPOS 1500
 #define ERR_SUM_MAX_SERVOANG 1500
 
-#define kpEng 35
-#define kiEng 0.2
+#define kpEng 40
+#define kiEng 0.3
 #define kdEng 0.1
-#define kpServoPos 3.2
+#define kpServoPos 1.2
 #define kiServoPos 0
 #define kdServoPos 0
 #define kpServoAng 3
@@ -66,8 +66,8 @@ float pid_calculateEngine(pid_params *pid_param, float set_val, float read_val)
 	u = 1500 + (u / 5000);
 	if (set_val < 0) u -= 140;
 	else if (set_val > 0) u += 60;
-	if (u > 1800) u = 1800;
-	if (u< 1100) u = 1100;
+	if (u > 2000) u = 2000;
+	if (u< 1000) u = 1000;
 
 
 	//ponizej jazda do tylu od razu po zadaniu ujemnej predkosci - bez koniecznosci "wracania" palcem na futabie
@@ -91,8 +91,8 @@ float pid_calculateEngine(pid_params *pid_param, float set_val, float read_val)
 				u = 1500 + (u / 5000);
 				if (set_val < 0) u -= 140;
 				else if (set_val > 0) u += 60;
-				if (u > 1800) u = 1800;
-				if (u< 1100) u = 1100;
+				if (u > 2000) u = 2000;
+				if (u< 1000) u = 1000;
 		}
 	}
 	else transition = 0;
@@ -113,10 +113,10 @@ float pid_calculateServoPos(pid_params *pid_paramPos, float set_pos, float read_
 	static float uPos_last = 0;
 
 	//////////////regulator od pozycji
-	if(((j_jetsonData[1] + j_jetsonData[2]) * 0.5) < 90)
-		read_pos = read_pos + (90 - (j_jetsonData[1] + j_jetsonData[2] * 0.5));
-	else if(((j_jetsonData[1] + j_jetsonData[2]) * 0.5) > 90)
-		read_pos = read_pos - ((j_jetsonData[1] + j_jetsonData[2] * 0.5) - 90);
+	//if(((j_jetsonData[1] + j_jetsonData[2]) * 0.5) < 90)
+		//read_pos = read_pos + (80 - (j_jetsonData[1] + j_jetsonData[2] * 0.5));
+	//else if(((j_jetsonData[1] + j_jetsonData[2]) * 0.5) > 90)
+		//read_pos = read_pos - ((j_jetsonData[1] + j_jetsonData[2] * 0.5) - 90);
 
 	pid_paramPos->err = set_pos - read_pos;
 	pid_paramPos->err_sum += pid_paramPos->err;
@@ -133,9 +133,9 @@ float pid_calculateServoPos(pid_params *pid_paramPos, float set_pos, float read_
 		+ pid_paramPos->kd * err_d);
 
 
-	uPos = servo_middle + uPos;
-	if (uPos > (servo_middle+300)) uPos = servo_middle+300;
-	if (uPos < (servo_middle-300)) uPos = servo_middle-300;
+	uPos = servo_middle - uPos;
+	if (uPos > (servo_middle+servo_bandwith)) uPos = servo_middle+servo_bandwith;
+	if (uPos < (servo_middle-servo_bandwith)) uPos = servo_middle-servo_bandwith;
 
 
 
@@ -173,8 +173,8 @@ float pid_calculateServoAng(pid_params *pid_paramAng, float set_angle, float rea
 		+ pid_paramAng->kd * err_d);
 
 	//	uAng = servo_middle + uAng;
-	//	if(uAng > (servo_middle+300)) uAng = servo_middle+300;
-	//	if(uAng < (servo_middle-300)) uAng = servo_middle-300;
+	//	if(uAng > (servo_middle+servo_bandwith)) uAng = servo_middle+servo_bandwith;
+	//	if(uAng < (servo_middle-servo_bandwith)) uAng = servo_middle-servo_bandwith;
 
 
 	if(pid_paramAng->state != PID_RUNNING) uAng = uAng_last;

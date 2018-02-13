@@ -116,7 +116,7 @@ void StartLightingTask(void const * argument) {
 					ws2812_set_color(11, 0, 0, 0);
 				}
 			}
-			else if (RX_AETR[3] > 1250 || sidesignals == SIDETURN_LEFT) {
+			else if (sidesignals == SIDETURN_LEFT) {
 				static int cnt_ind1 = 0;
 				++cnt_ind1;
 				if (cnt_ind1 > 100) {
@@ -193,12 +193,16 @@ void StartLightingTask(void const * argument) {
 					ws2812_set_color(19, 255, 0, 0);
 					ws2812_set_color(18, 255, 0, 0);
 
+					ws2812_set_color(16, 255, 0, 0);
+
 				} else {
 					ws2812_set_color(20, 50, 0, 0);
 					ws2812_set_color(19, 50, 0, 0);
 					ws2812_set_color(18, 50, 0, 0);
+
+					ws2812_set_color(16, 0, 0, 0);
 				}
-			} else if (RX_AETR[3] < 800 || sidesignals == SIDETURN_RIGHT) {
+			} else if (sidesignals == SIDETURN_RIGHT) {
 				static int cnt_ind2 = 0;
 				++cnt_ind2;
 				if (cnt_ind2 > 100) {
@@ -275,10 +279,14 @@ void StartLightingTask(void const * argument) {
 					ws2812_set_color(13, 255, 0, 0);
 					ws2812_set_color(14, 255, 0, 0);
 
+					ws2812_set_color(16, 255, 0, 0);
+
 				} else {
 					ws2812_set_color(12, 50, 0, 0);
 					ws2812_set_color(13, 50, 0, 0);
 					ws2812_set_color(14, 50, 0, 0);
+
+					ws2812_set_color(16, 0, 0, 0);
 				}
 
 			} else {
@@ -300,6 +308,8 @@ void StartLightingTask(void const * argument) {
 					ws2812_set_color(13, 255, 0, 0);
 					ws2812_set_color(14, 255, 0, 0);
 
+					ws2812_set_color(16, 255, 0, 0);
+
 					ws2812_set_color(20, 255, 0, 0);
 					ws2812_set_color(19, 255, 0, 0);
 					ws2812_set_color(18, 255, 0, 0);
@@ -308,6 +318,8 @@ void StartLightingTask(void const * argument) {
 					ws2812_set_color(12, 50, 0, 0);
 					ws2812_set_color(13, 50, 0, 0);
 					ws2812_set_color(14, 50, 0, 0);
+
+					ws2812_set_color(16, 0, 0, 0);
 
 					ws2812_set_color(20, 50, 0, 0);
 					ws2812_set_color(19, 50, 0, 0);

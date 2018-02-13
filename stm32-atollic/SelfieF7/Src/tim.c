@@ -104,7 +104,7 @@ void MX_TIM2_Init(void)
   }
 
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 0;
+  sConfigOC.Pulse = 1470;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
@@ -284,7 +284,7 @@ void MX_TIM14_Init(void)
 {
 
   htim14.Instance = TIM14;
-  htim14.Init.Prescaler = 107;
+  htim14.Init.Prescaler = 10799;
   htim14.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim14.Init.Period = 0xffff;
   htim14.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;

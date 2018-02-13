@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Project>
-<ProjectName>C:\Users\User\Downloads\SelfieF7 (2)\SelfieF7\\SelfieF7</ProjectName>
+<ProjectName>C:\Users\mice\git\Selfie-autonomous-car\stm32-atollic\SelfieF7\\SelfieF7</ProjectName>
 <CMSIS>..\Drivers\CMSIS</CMSIS>
-<HAL_Driver>C:\Users\User\STM32Cube\Repository\STM32Cube_FW_F7_V1.8.0\Drivers\CMSIS</HAL_Driver>
+<HAL_Driver>C:\Users\mice\STM32Cube\Repository\STM32Cube_FW_F7_V1.8.0\Drivers\CMSIS</HAL_Driver>
 
 <Toolchain>TrueSTUDIO</Toolchain>
 <Version>0</Version>

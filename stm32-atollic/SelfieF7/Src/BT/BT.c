@@ -23,9 +23,12 @@
 #include "Battery.h"
 #include "Steering.h"
 
+
+#include "PID.h"
 //informacja o flagach z przerwania odroida
 extern int ParkingFlag;
 extern int CrossFlag;
+extern uint8_t challenge_select;
 
 uint8_t LastCrossFlag = 0;
 uint8_t LastParkingFlag = 0;
@@ -116,6 +119,7 @@ void BT_Commands(uint8_t* Buf, uint32_t length) {
 			autonomous_task = lanefollower;
 		else {
 			autonomous_task = parkingsearch;
+			challenge_select = 1;
 			size = sprintf((char*) txdata, "bede parkowal \r\n\r\n");
 			HAL_UART_Transmit_DMA(&huart3, txdata, size);
 		}
@@ -131,6 +135,14 @@ void BT_Commands(uint8_t* Buf, uint32_t length) {
 		servo_middle++;
 		size = sprintf((char*) txdata, "servo_middle = %d \r\n\r\n", servo_middle);
 		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	}else if (Buf[0] == '3') {
+		pid_paramsServoPos.kp = pid_paramsServoPos.kp+0.1f;
+		size = sprintf((char*) txdata, "servoPosKp = %f \r\n\r\n", pid_paramsServoPos.kp);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	}else if (Buf[0] == '4') {
+		pid_paramsServoPos.kp = pid_paramsServoPos.kp-0.1f;
+		size = sprintf((char*) txdata, "servoPosKp = %f \r\n\r\n", pid_paramsServoPos.kp);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
 	} else if (Buf[0] == '2') {
 		servo_middle--;
 		size = sprintf((char*) txdata, "servo_middle = %d \r\n\r\n", servo_middle);
@@ -143,7 +155,54 @@ void BT_Commands(uint8_t* Buf, uint32_t length) {
 		lane_change_treshold -= 10;
 		size = sprintf((char*) txdata, "lane treshold = %dmm \r\n\r\n", lane_change_treshold);
 		HAL_UART_Transmit_DMA(&huart3, txdata, size);
-	} else if (Buf[0] == 'R')
+	}
+	// PARKOWANIE
+	else if (Buf[0] == '!') {
+		parking_turn_sharpness += 1.f;
+		size = sprintf((char*) txdata, "Kat parkowania = %.1f deg \r\n\r\n",
+				parking_turn_sharpness);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	} else if (Buf[0] == '@') {
+		parking_turn_sharpness -= 1.f;
+		size = sprintf((char*) txdata, "Kat parkowania = %.1f deg \r\n\r\n",
+				parking_turn_sharpness);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	} else if (Buf[0] == '#') {
+		parking_dead_fwd += 5.f;
+		size = sprintf((char*) txdata, "Start parkowania po = %.1f mm \r\n\r\n",
+				parking_dead_fwd);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	} else if (Buf[0] == '$') {
+		parking_dead_fwd -= 5.f;
+		size = sprintf((char*) txdata, "Start parkowania po = %.1f mm \r\n\r\n",
+				parking_dead_fwd);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	} else if (Buf[0] == '%') {
+		parking_depth += 5.f;
+		size = sprintf((char*) txdata,
+				"Glebokosc parkowania = %.1f mm \r\n\r\n", parking_depth);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	} else if (Buf[0] == '^') {
+		parking_depth -= 5.f;
+		size = sprintf((char*) txdata,
+				"Glebokosc parkowania = %.1f mm \r\n\r\n", parking_depth);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	}
+	else if (Buf[0] == '&') {
+		podjedz_pan_distance += 5.f;
+			size = sprintf((char*) txdata,
+					"Podjedz Pan = %.1f mm \r\n\r\n", podjedz_pan_distance);
+			HAL_UART_Transmit_DMA(&huart3, txdata, size);
+		}
+	else if (Buf[0] == '*') {
+		podjedz_pan_distance -= 5.f;
+			size = sprintf((char*) txdata,
+					"Podjedz Pan = %.1f mm \r\n\r\n", podjedz_pan_distance);
+			HAL_UART_Transmit_DMA(&huart3, txdata, size);
+		}
+
+	//RESET
+	else if (Buf[0] == 'R')
 		NVIC_SystemReset();
 }
 void BluetoothRx_Irq(void) {
