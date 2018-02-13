@@ -50,6 +50,8 @@ int mask_x_r = 639;
 int UART_offset = 0;
 bool check_for_offset = false;
 
+int restart_counter = 0;
+
 LineDetector lineDetector;
 Watchdog watchdog;
 UART uart_1;
@@ -58,48 +60,6 @@ int main()
 {    
     //Get access to memmory shared with watchdog app
     watchdog.get_access();
-
-    //===========Data Acquisition Sector==========
-
-    //CAMERA RGB and YUYV
-    cv::VideoCapture camera;
-    camera.open(CAMERA_INDEX, cv::CAP_V4L2);
-
-    if (!camera.isOpened())
-    {
-        std::cout << "Error could not open any camera!" << std::endl
-                  << "Closing app!" << std::endl;
-
-        close_app = true;
-        watchdog.push_flag(2);
-        camera.release();
-        return 0;
-    }
-    else
-    {
-        camera.set(cv::CAP_PROP_FRAME_WIDTH, 640);
-        camera.set(cv::CAP_PROP_FRAME_HEIGHT, 360);
-        camera.set(cv::CAP_PROP_MODE, cv::CAP_MODE_YUYV);
-		camera.set(cv::CAP_PROP_CONVERT_RGB, false);
-        std::cout << "MODE: " << camera.get(cv::CAP_PROP_MODE) << std::endl;
-		std::cout << "RGB: " << camera.get(cv::CAP_PROP_CONVERT_RGB) << std::endl;
-    }
-/*
-    //Read from file
-    cv::Mat frame_gray(CAM_RES_Y, CAM_RES_X, CV_8UC1);
-    frame_gray = cv::imread("../../data/SELFIE-example-img-prosto.png", CV_LOAD_IMAGE_GRAYSCALE);
-
-    if(!frame_gray.data)
-    {
-        std::cout << "No data!" << std::endl
-                  << "Closing app!" << std::endl;
-
-        close_app = true;
-        watchdog.push_flag(2);
-        return 0;
-    }
-*/
-    //===========Data Acquisition Sector==========
 
     //UART
 
@@ -184,15 +144,19 @@ int main()
 	cv::namedWindow("masked roi", 1);
     cv::moveWindow("masked roi", 1500, 950);
   
-    int thresh_value = 210;
+    int thresh_value = 200;
 	int P_min_votes = 20;
 	int P_max_gap = 20;
 	int P_min_len = 20;
-    
+    int morph_size = 7;
+	int morph_elem = 0;
+
 	cv::createTrackbar("Thresh", "Vision GRAY", &thresh_value, 255);
-	cv::createTrackbar("P_min_votes", "Masked", &P_min_votes, 60);
-	cv::createTrackbar("P_max_gap", "Masked", &P_max_gap, 60);
-	cv::createTrackbar("P_min_len", "Masked", &P_min_len, 60);
+	cv::createTrackbar("P_min_votes", "Masked", &P_min_votes, 100);
+	cv::createTrackbar("P_max_gap", "Masked", &P_max_gap, 100);
+	cv::createTrackbar("P_min_len", "Masked", &P_min_len, 100);
+	cv::createTrackbar("Size", "Thresh", &morph_size, 50);
+	cv::createTrackbar("Number", "Thresh", &morph_elem, 50);
 
     //Threads
     //std::thread UART_thread(U_thread, std::ref(uart_1), std::ref(gpio), std::ref(pushButtonValue), std::ref(redLEDValue), std::ref(yellowLEDValue), std::ref(greenLEDValue));
@@ -203,6 +167,51 @@ int main()
     double seconds = 0;
     double fps = 0;
     //FPS
+
+	watchdog.push_flag(1);
+
+	//===========Data Acquisition Sector==========
+
+    //CAMERA RGB and YUYV
+    cv::VideoCapture camera;
+    camera.open(CAMERA_INDEX, cv::CAP_V4L2);
+
+    if (!camera.isOpened())
+    {
+        std::cout << "Error could not open any camera!" << std::endl
+                  << "Closing app!" << std::endl;
+
+        close_app = true;
+        //watchdog.push_flag(2);
+        camera.release();
+        return 0;
+    }
+    else
+    {
+        camera.set(cv::CAP_PROP_FRAME_WIDTH, 640);
+        camera.set(cv::CAP_PROP_FRAME_HEIGHT, 360);
+        camera.set(cv::CAP_PROP_MODE, cv::CAP_MODE_YUYV);
+		camera.set(cv::CAP_PROP_CONVERT_RGB, false);
+        std::cout << "MODE: " << camera.get(cv::CAP_PROP_MODE) << std::endl;
+		std::cout << "RGB: " << camera.get(cv::CAP_PROP_CONVERT_RGB) << std::endl;
+    }
+/*
+    //Read from file
+    cv::Mat frame_gray(CAM_RES_Y, CAM_RES_X, CV_8UC1);
+    frame_gray = cv::imread("../../data/SELFIE-example-img-prosto.png", CV_LOAD_IMAGE_GRAYSCALE);
+
+    if(!frame_gray.data)
+    {
+        std::cout << "No data!" << std::endl
+                  << "Closing app!" << std::endl;
+
+        close_app = true;
+        watchdog.push_flag(2);
+        return 0;
+    }
+*/
+    //===========Data Acquisition Sector==========
+
 
     while(true)
     {
@@ -217,6 +226,11 @@ int main()
 
         //Set flag for watchdog
         watchdog.push_flag(1);
+
+		//GPIO
+		GPIO_input[0] = digitalRead(4);	
+		GPIO_input[1] = digitalRead(21);
+		GPIO_input[2] = digitalRead(27);
 
         //===========Data Acquisition Sector==========
 
@@ -237,10 +251,14 @@ int main()
         lineDetector.applyBlur(frame_gray, frame_gray);
 		//lineDetector.applyBirdEye(frame_gray, frame_gray_bird);
 		//frame_gray = frame_gray_bird;
-        lineDetector.edgeDetect(frame_gray, frame_thresh, frame_edges, thresh_value);
+        lineDetector.edgeDetect(frame_gray, frame_thresh, frame_edges, thresh_value, morph_size, morph_elem);
 
+if(!GPIO_input[1])
+{
 		//lineDetector.dynamic_mask(left_x, right_x, mask_y, mask_width);
 		lineDetector.dynamic_mask(left_x, right_x, mask_y, mask_width);
+}
+
 		cv::Mat dynamic_mask = cv::Mat::zeros(cv::Size(640, 360), CV_8UC1);
 		cv::Point points[6] =
 		{
@@ -262,7 +280,7 @@ int main()
 		//lineDetector.drawLines(frame_lines);
 
 		lineDetector.calculate_all_slopes();
-		lineDetector.sort_lines();
+		lineDetector.sort_lines(GPIO_input[1]);
 		lineDetector.save_for_next_step();	
 
 		//lineDetector.parking_line(frame_thresh);
@@ -286,24 +304,22 @@ int main()
 		std::cout << "Kat prawo: " << uart_1.unia_danych.dane.data_2 << std::endl;
 		std::cout << "==========UART==========" << std::endl;
 
-		uart_1.send_data();
-		lineDetector.Cross_line = false;
-		lineDetector.Parking_line = false;
+		std::cout << "Restart counter: " << restart_counter << std::endl;
 
-		//GPIO
-		GPIO_input[0] = digitalRead(4);	
-		GPIO_input[1] = digitalRead(21);
-		GPIO_input[2] = digitalRead(27);
-		
 		std::cout << "PIN 18 #04: " << GPIO_input[0] << std::endl;
 		std::cout << "PIN 20 #21: " << GPIO_input[1] << std::endl;
 		std::cout << "PIN 27 #27: " << GPIO_input[2] << std::endl;
+
+		uart_1.send_data();
+		lineDetector.Cross_line = false;
+		lineDetector.Parking_line = false;
 		
 		if(GPIO_input[0])
 		{
 			if(!GPIO_handled[0])
 			{
 				lineDetector.restart_lane_detection(UART_offset, check_for_offset, mask_y, mask_width, mask_y_1, mask_y_2, mask_x_l, mask_x_r);
+				restart_counter++;
 				GPIO_handled[0] = true;
 			}
 		}
@@ -488,7 +504,7 @@ void push_new_data_to_UART()
 {
 	std::cout << "OFFSET: " << UART_offset << std::endl;
 	std::cout << "MID:    " << detected_middle_pos_near << std::endl;
-
+std::cout << "int: " << detected_middle_pos_near + UART_offset << std::endl;
     uart_1.unia_danych.dane.data_0 = detected_middle_pos_near + UART_offset;
     uart_1.unia_danych.dane.data_1 = left_lane_angle_st;
     uart_1.unia_danych.dane.data_2 = right_lane_angle_st;

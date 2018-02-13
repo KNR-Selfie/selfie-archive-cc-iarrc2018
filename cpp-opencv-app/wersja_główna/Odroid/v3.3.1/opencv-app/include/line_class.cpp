@@ -91,13 +91,15 @@ void LineDetector::applyBirdEye(cv::Mat &input, cv::Mat &output)
 		cv::warpPerspective(input, output, transformationMat, image_size, cv::INTER_CUBIC | cv::WARP_INVERSE_MAP);
 }
 
-void LineDetector::edgeDetect(cv::Mat &input, cv::Mat &output_thresh, cv::Mat &output_edges, int &threshold_value)
+void LineDetector::edgeDetect(cv::Mat &input, cv::Mat &output_thresh, cv::Mat &output_edges, int &threshold_value, int morph_size, int morph_elem)
 {
   cv::Mat kernel_v;
   cv::Mat kernel_h;
 
   cv::Mat out_v;
   cv::Mat out_h;
+
+	cv::Mat thresh;
 
   cv::Point anchor;
   anchor = cv::Point(-1, -1);
@@ -112,8 +114,18 @@ void LineDetector::edgeDetect(cv::Mat &input, cv::Mat &output_thresh, cv::Mat &o
   kernel_h.at<float>(1, 0) = 0;
   kernel_h.at<float>(2, 0) = -1;
 
-  cv::threshold(input, output_thresh, threshold_value, 255, cv::THRESH_BINARY);
+  cv::threshold(input, thresh, threshold_value, 255, cv::THRESH_BINARY);
 
+//13.02.2018
+//================================================
+int operation = 3;
+
+
+cv::Mat element = getStructuringElement( morph_elem, cv::Size( 2*morph_size + 1, 2*morph_size+1 ), cv::Point( morph_size, morph_size ) );
+
+cv::morphologyEx(thresh, output_thresh, operation, element );
+
+//==================================================
   cv::filter2D(output_thresh, out_v, -1, kernel_v, anchor, 0, cv::BORDER_DEFAULT);
   cv::filter2D(output_thresh, out_h, -1, kernel_h, anchor, 0, cv::BORDER_DEFAULT);
 
@@ -227,7 +239,7 @@ void LineDetector::calculate_all_slopes()
     }
 }
 
-void LineDetector::sort_lines()
+void LineDetector::sort_lines(bool l_change)
 {	
     int parking_points = 0;
     int cross_points = 0;
@@ -275,7 +287,7 @@ void LineDetector::sort_lines()
         SPoint.coordinates = C;
         SPoint.slope = all_points[i].slope;
 
-if(!(abs(SPoint.slope) < 0.3))
+if(true) // !(abs(SPoint.slope) < 0.15) || l_change
 {
         if(alfa > 0 && C.y < BORDER){
             TL_points.push_back(SPoint);
@@ -430,6 +442,25 @@ void LineDetector::save_for_next_step()
 	float average_middle_slope;
 	float average_middle_angle; 
 
+//13.02.2018
+//===========================================================================
+if((!BL_sector) && (!BR_sector))
+{
+	new_pos_left = 100;
+	new_pos_right = 539;
+	
+	new_slope_left = 2;
+	left_ang_st = (atan(new_slope_left)/CV_PI) * 180;
+	if(left_ang_st < 0)
+		left_ang_st += 180;
+
+	new_slope_right = -2;
+	right_ang_st = (atan(new_slope_right)/CV_PI) * 180;	
+	if(right_ang_st < 0)
+		right_ang_st += 180;
+}//===========================================================================
+else
+{
 	//save all data
 	if(BL_sector)
 		new_pos_left = average_pos(BL_points);
@@ -468,7 +499,7 @@ void LineDetector::save_for_next_step()
 			new_pos_right = new_pos_left + width;
 		}
 	}
-
+}
 	new_middle = ((new_pos_right - new_pos_left) / 2) + new_pos_left;
 
 	average_middle_angle = (left_ang_st+right_ang_st) / 2;
@@ -545,6 +576,8 @@ void LineDetector::send_data_to_main(int &detected_middle_pos_near, int &left_la
 	std::cout << "Prawa linia:" << BR_sector << std::endl;
 	std::cout << "Parking:" << Parking_line << std::endl;
 	std::cout << "Skrzyzowanie:"<< Cross_line << std::endl;
+
+	std::cout << "Current lane: " << current_lane << std::endl;
 }
 
 void LineDetector::restart_lane_detection(int &UART_offset, bool &check_for_offset, int &mask_y, int &mask_width, int &mask_y_1, int &mask_y_2, int &mask_x_l, int &mask_x_r)
@@ -752,7 +785,7 @@ void LineDetector::change_lane(int &UART_offset, bool &check_for_offset)
 		current_lane = 0;
 		check_for_offset = true;
 		first_step = true;
-		UART_offset -= (0.8 * width);
+		UART_offset = -600;
 		offset_counter_1 = 0;
 		offset_counter_2 = 0;
 		emergency_counter = 0;
@@ -762,7 +795,7 @@ void LineDetector::change_lane(int &UART_offset, bool &check_for_offset)
 		current_lane = 1;
 		check_for_offset = true;
 		first_step = true;
-		UART_offset += (0.8 * width);
+		UART_offset = 600;
 		offset_counter_1 = 0;
 		offset_counter_2 = 0;
 		emergency_counter = 0;
@@ -772,7 +805,7 @@ void LineDetector::change_lane(int &UART_offset, bool &check_for_offset)
 
 void LineDetector::horizontal_line(cv::Mat frame)
 {
-    int number_of_pixels = 10;
+    int number_of_pixels = 20;
     int x = new_pos_left + 70;
     int y = 220;
     int width = (new_pos_right - new_pos_left) - 140;
@@ -784,13 +817,13 @@ void LineDetector::horizontal_line(cv::Mat frame)
         bool left_side = false;
 		std::cout << "Lewa_linia:" << new_pos_left << std::endl;		
 
-        if(new_pos_left > 95)
+        if(new_pos_left > 40)
         {
               int number_of_left_pixels = 3;
-              int left_x = new_pos_left - 95;
-              int left_y = 180;
-              int left_width = 100;
-              int left_height = 120;
+              int left_x = new_pos_left - 45;
+              int left_y = 150;
+              int left_width = 30;
+              int left_height = 190;
               cv::Scalar left_white_pix;
 
               cv::Mat left_roi;
@@ -803,8 +836,8 @@ void LineDetector::horizontal_line(cv::Mat frame)
               {
                   cv::Point(0, 0),
                   cv::Point(0, left_roi.rows),
-                  cv::Point(left_roi.cols - 40, left_roi.rows),
-                  cv::Point(left_roi.cols - 30, 0)
+                  cv::Point(left_roi.cols - 10, left_roi.rows),
+                  cv::Point(left_roi.cols - 5, 0)
               };
 
               cv::fillConvexPoly(left_mask, left_points, 4, cv::Scalar(255, 0, 0));

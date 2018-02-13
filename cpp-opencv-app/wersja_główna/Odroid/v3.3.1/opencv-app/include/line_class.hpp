@@ -101,7 +101,7 @@ public:
 	//
     void applyBlur(cv::Mat &input, cv::Mat &output); 
 	void applyBirdEye(cv::Mat &input, cv::Mat &output); 
-	void edgeDetect(cv::Mat &input, cv::Mat &output_thresh, cv::Mat &output_edges, int &threshold_value);
+	void edgeDetect(cv::Mat &input, cv::Mat &output_thresh, cv::Mat &output_edges, int &threshold_value, int morph_size, int morph_elem);
 	void applyMask(cv::Mat &input, cv::Mat &mask, cv::Mat &output);
     void detectLines(cv::Mat &input, int &P_min_votes, int &P_max_gap, int &P_min_len);
 
@@ -112,7 +112,7 @@ public:
 
 	//	
 	void calculate_all_slopes();
-	void sort_lines();
+	void sort_lines(bool l_change);
 
 	float average_slope(std::vector<Punkt> &punkty);
  	int average_pos(std::vector<Punkt> &punkty);
