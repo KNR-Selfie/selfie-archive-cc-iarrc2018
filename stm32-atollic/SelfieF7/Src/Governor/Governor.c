@@ -110,7 +110,12 @@ void autonomous_task_f(void) {
 	}
 	HAL_TIM_Base_Start_IT(&htim10); // timer od sprawdzania komunikacji
 	if (j_syncByte == 255) {
-		set_spd = 700;
+		if ((j_jetsonData[1] + j_jetsonData[2]) > 220
+				|| (j_jetsonData[1] + j_jetsonData[2]) < 140)
+			set_spd = speed_corners;
+		else
+			set_spd = speed_freerun;
+
 		set_pos = 1000;
 		set_angle = 90;
 	} else if (j_syncByte == 200) //je?eli nie istnieje Jetson <-> STM, wylacz naped (wartosc j_syncByte = 200 jest ustawiana przez TIMER10)
@@ -169,7 +174,7 @@ void semi_task_f(void)
 	}
 	if (((FutabaChannelData[1] - 1027) > 50)
 			|| ((FutabaChannelData[1] - 1027) < -50))
-		set_spd = (1840 * (FutabaChannelData[1] - 1027) / (1680 - 368));
+		set_spd = 2*(1840 * (FutabaChannelData[1] - 1027) / (1680 - 368));
 	else
 		set_spd = 0;
 	set_pos = 1000;
@@ -184,7 +189,7 @@ void semi_task_f(void)
 void radio_to_actuators_f(void)
 {
 	if (((FutabaChannelData[1] - 1027) > 50) || ((FutabaChannelData[1] - 1027) < -50))
-		set_spd = (1840 * (FutabaChannelData[1] - 1027) / (1680 - 368));
+		set_spd = 2*(1840 * (FutabaChannelData[1] - 1027) / (1680 - 368));
 	else set_spd = 0;
 
 	dutyServo = (servo_middle - 2*servo_bandwith * (FutabaChannelData[3] - 1000) / (1921 - 80));
@@ -211,7 +216,7 @@ void parking_f(void) {
 	if (parking_move == 2) {
 		sidesignals = SIDETURN_RIGHT;
 		steering = 90.f;
-		velocity = -500;
+		velocity = -speed_parking;
 		if ((CumulativeYaw - start_angle) > parking_turn_sharpness
 				|| (CumulativeYaw - start_angle) < -parking_turn_sharpness) {
 			++parking_move;
@@ -222,7 +227,7 @@ void parking_f(void) {
 	if (parking_move == 3) {
 		sidesignals = SIDETURN_RIGHT;
 		steering = (CumulativeYaw - start_angle);
-		velocity = -500;
+		velocity = -speed_parking;
 		if ((fwdRoad - start_distance) < -parking_depth) {
 			++parking_move;
 			start_angle = CumulativeYaw;
@@ -231,7 +236,7 @@ void parking_f(void) {
 	if (parking_move == 4) {
 			sidesignals = SIDETURN_RIGHT;
 			steering = -90.f;
-			velocity = -500;
+			velocity = -speed_parking;
 			if ((CumulativeYaw - start_angle) > parking_turn_sharpness
 					|| (CumulativeYaw - start_angle) < - parking_turn_sharpness || podjedz_pan < podjedz_pan_distance ) {
 
@@ -262,7 +267,7 @@ void parking_f(void) {
 	if (parking_move == 5) {
 		sidesignals = SIDETURN_LEFT;
 		steering = -90.f;
-		velocity = 500;
+		velocity = speed_parking;
 		if ((CumulativeYaw - start_angle) > (parking_turn_sharpness - unfinished_angle)
 				|| (CumulativeYaw - start_angle) < -(parking_turn_sharpness - unfinished_angle)) {
 			++parking_move;
@@ -273,7 +278,7 @@ void parking_f(void) {
 	if (parking_move == 6) {
 		sidesignals = SIDETURN_LEFT;
 		steering = -(CumulativeYaw - start_angle);
-		velocity = 500;
+		velocity = speed_parking;
 		if ((fwdRoad - start_distance) < parking_depth) {
 			++parking_move;
 			start_angle = CumulativeYaw;
@@ -282,7 +287,7 @@ void parking_f(void) {
 	if (parking_move == 7) {
 		sidesignals = SIDETURN_LEFT;
 		steering = 90.f;
-		velocity = 500;
+		velocity = speed_parking;
 		if ((CumulativeYaw - start_angle) > parking_turn_sharpness
 				|| (CumulativeYaw - start_angle) < -parking_turn_sharpness) {
 
@@ -320,7 +325,7 @@ void lane_switch_f(void) {
 		autonomous_task = lanefollower;
 	}
 	if (driving_state == autonomous)
-		set_spd = 600;
+		set_spd = speed_obstacles;
 }
 //moze nastapic ponowne wystawienie flagi do odroida. Flaga gaszona po 0.5s z timera. Timer powraca stan autonomous_task do tradycyjnego lanefollowera.
 
@@ -423,7 +428,7 @@ void crossing_f(void) {
 	}
 	if (crossing_move == 1) {
 		if (driving_state == autonomous)
-			set_spd = 500;
+			set_spd = speed_freerun/2;
 		if (fwdRoad - crossing_dist > 150) {
 			++crossing_move;
 		}
@@ -443,7 +448,7 @@ void crossing_f(void) {
 	//podjechanie metr do przodu
 	if (crossing_move == 4) {
 		if (driving_state == autonomous)
-			set_spd = 700;
+			set_spd = speed_freerun/2;
 		if (fwdRoad - crossing_dist > 300) {
 			crossing_move = 0;
 			autonomous_task = lanefollower;
@@ -463,7 +468,7 @@ void crossing_f(void) {
 void crossing_on_parking_f(void) {
 	static uint8_t phase = 0;
 	if (driving_state == autonomous)
-		set_spd = 700;
+		set_spd = speed_freerun/2;
 	if (phase) {
 		if (fwdRoad - crossing_dist > 450) {
 			crossing_move = 0;
