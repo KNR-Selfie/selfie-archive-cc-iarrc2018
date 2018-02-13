@@ -28,6 +28,12 @@ float parking_depth = 40.f; // [mm]
 float parking_turn_sharpness = 42.f; // [degree]
 float parking_dead_fwd = 170.f; // [mm]
 
+float speed_freerun = 1200;
+float speed_corners = 800;
+float speed_obstacles = 500;
+float speed_parking = 500;
+
+
 uint8_t lane_switching_move = 0;
 uint8_t parking_move = 0;
 uint8_t parking_search_move =0;

@@ -30,6 +30,11 @@ enum autonomous_task_e
 	parking,
 }autonomous_task;
 
+float speed_freerun;
+float speed_corners;
+float speed_obstacles;
+float speed_parking;
+
 float parking_depth;
 float parking_turn_sharpness;
 float parking_dead_fwd;

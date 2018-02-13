@@ -120,7 +120,7 @@ public:
 
 	//
 	void send_data_to_main(int &detected_middle_pos_near, int &left_lane_angle_st, int &right_lane_angle_st, char &flags_to_UART);
-	void restart_lane_detection();
+	void restart_lane_detection(int &UART_offset, bool &check_for_offset);
 	
 	//
 	void cancel_offset(int &UART_offset, bool &check_for_offset);
@@ -128,10 +128,8 @@ public:
 	void display_last_middle();
 
 	//
-	void parking_line (cv::Mat frame);
+	void horizontal_line (cv::Mat frame);
 
-	//
-	void cross_line (cv::Mat frame);
 	//Sortowanie wektorow:
 	//void quick_sort (vector<Punkt> points);
 };
