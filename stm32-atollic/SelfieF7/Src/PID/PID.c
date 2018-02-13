@@ -22,7 +22,7 @@
 #define kpEng 40
 #define kiEng 0.3
 #define kdEng 0.1
-#define kpServoPos 3.2
+#define kpServoPos 1.2
 #define kiServoPos 0
 #define kdServoPos 0
 #define kpServoAng 3

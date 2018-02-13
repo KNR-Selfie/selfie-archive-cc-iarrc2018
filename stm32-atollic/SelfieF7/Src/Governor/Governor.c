@@ -314,7 +314,7 @@ void lane_switch_f(void) {
 		autonomous_task = lanefollower;
 	}
 	if (driving_state == autonomous)
-		set_spd = 400;
+		set_spd = 600;
 }
 //moze nastapic ponowne wystawienie flagi do odroida. Flaga gaszona po 0.5s z timera. Timer powraca stan autonomous_task do tradycyjnego lanefollowera.
 

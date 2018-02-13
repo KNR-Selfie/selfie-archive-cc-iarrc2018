@@ -23,6 +23,8 @@
 #include "Battery.h"
 #include "Steering.h"
 
+
+#include "PID.h"
 //informacja o flagach z przerwania odroida
 extern int ParkingFlag;
 extern int CrossFlag;
@@ -132,6 +134,14 @@ void BT_Commands(uint8_t* Buf, uint32_t length) {
 	} else if (Buf[0] == '1') {
 		servo_middle++;
 		size = sprintf((char*) txdata, "servo_middle = %d \r\n\r\n", servo_middle);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	}else if (Buf[0] == '3') {
+		pid_paramsServoPos.kp = pid_paramsServoPos.kp+0.1f;
+		size = sprintf((char*) txdata, "servoPosKp = %f \r\n\r\n", pid_paramsServoPos.kp);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	}else if (Buf[0] == '4') {
+		pid_paramsServoPos.kp = pid_paramsServoPos.kp-0.1f;
+		size = sprintf((char*) txdata, "servoPosKp = %f \r\n\r\n", pid_paramsServoPos.kp);
 		HAL_UART_Transmit_DMA(&huart3, txdata, size);
 	} else if (Buf[0] == '2') {
 		servo_middle--;
