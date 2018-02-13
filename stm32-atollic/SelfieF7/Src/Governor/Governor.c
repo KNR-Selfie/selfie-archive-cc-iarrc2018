@@ -24,8 +24,8 @@
 #include "tim.h"
 #include "Steering.h"
 
-float parking_depth = 40.f; // [mm]
-float parking_turn_sharpness = 42.f; // [degree]
+float parking_depth = 1.f; // [mm]
+float parking_turn_sharpness = 40.f; // [degree]
 float parking_dead_fwd = 170.f; // [mm]
 
 float speed_freerun = 800;
@@ -113,14 +113,15 @@ void autonomous_task_f(void) {
 	if (j_syncByte == 255) {
 //		if ((j_jetsonData[1] + j_jetsonData[2]) > 200 || (j_jetsonData[1] + j_jetsonData[2]) < 160 || j_jetsonData[0] < 950 || j_jetsonData[0] < 1050)
 		if(j_jetsonData[0] < 850 || j_jetsonData[0] < 1150)
-			set_spd = speed_corners;
-		else
 			set_spd = speed_freerun;
+		else
+			set_spd = speed_corners;
 
 		set_pos = 1000;
 		set_angle = 90;
 	} else if (j_syncByte == 200) //je?eli nie istnieje Jetson <-> STM, wylacz naped (wartosc j_syncByte = 200 jest ustawiana przez TIMER10)
 			{
+        HAL_UART_Receive_DMA(&huart4, &j_syncByte, 1);
 		set_spd = 0;
 		set_angle = 90;
 		set_pos = 1000;
