@@ -8,6 +8,9 @@
 #ifndef GOVERNOR_GOVERNOR_H_
 #define GOVERNOR_GOVERNOR_H_
 
+#include "stdint.h"
+
+int32_t last_odroid_byte;
 typedef enum driving_state_e
 {
 	disarmed = 0,
