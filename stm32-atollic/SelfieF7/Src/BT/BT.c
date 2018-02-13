@@ -148,7 +148,15 @@ void BT_Commands(uint8_t* Buf, uint32_t length) {
 		pid_paramsServoPos.kp = pid_paramsServoPos.kp-0.1f;
 		size = sprintf((char*) txdata, "servoPosKp = %f \r\n\r\n", pid_paramsServoPos.kp);
 		HAL_UART_Transmit_DMA(&huart3, txdata, size);
-	} else if (Buf[0] == '8') {
+	}else if (Buf[0] == '5') {
+			pid_paramsServoPos.kd = pid_paramsServoPos.kd+0.1f;
+			size = sprintf((char*) txdata, "servoPosKd = %f \r\n\r\n", pid_paramsServoPos.kd);
+			HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	}else if (Buf[0] == '6') {
+			pid_paramsServoPos.kd = pid_paramsServoPos.kd-0.1f;
+			size = sprintf((char*) txdata, "servoPosKd = %f \r\n\r\n", pid_paramsServoPos.kd);
+			HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	}else if (Buf[0] == '8') {
 		speed_freerun += 50;
 		size = sprintf((char*) txdata, "speed_freerun = %f \r\n\r\n", speed_freerun);
 		HAL_UART_Transmit_DMA(&huart3, txdata, size);
