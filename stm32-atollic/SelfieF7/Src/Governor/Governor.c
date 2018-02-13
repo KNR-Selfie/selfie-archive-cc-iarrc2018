@@ -112,7 +112,7 @@ void autonomous_task_f(void) {
 	HAL_TIM_Base_Start_IT(&htim10); // timer od sprawdzania komunikacji
 	if (j_syncByte == 255) {
 //		if ((j_jetsonData[1] + j_jetsonData[2]) > 200 || (j_jetsonData[1] + j_jetsonData[2]) < 160 || j_jetsonData[0] < 950 || j_jetsonData[0] < 1050)
-		if(j_jetsonData[0] < 850 || j_jetsonData[0] < 1150)
+		if(j_jetsonData[0] > 850 && j_jetsonData[0] < 1150)
 			set_spd = speed_freerun;
 		else
 			set_spd = speed_corners;
@@ -121,7 +121,7 @@ void autonomous_task_f(void) {
 		set_angle = 90;
 	} else if (j_syncByte == 200) //je?eli nie istnieje Jetson <-> STM, wylacz naped (wartosc j_syncByte = 200 jest ustawiana przez TIMER10)
 			{
-        HAL_UART_Receive_DMA(&huart4, &j_syncByte, 1);
+//        HAL_UART_Receive_DMA(&huart4, &j_syncByte, 1);
 		set_spd = 0;
 		set_angle = 90;
 		set_pos = 1000;
@@ -369,7 +369,7 @@ void parking_search_f(void) {
 	//wykrycie kolejnego pudelka
 	if (parking_search_move == 2 && flags[0] == 1) {
 		place_lenght = fwdRoad - start_place;
-		if (place_lenght > 600) {
+		if (place_lenght > 600 && place_lenght < 2000) {
 			start_place = fwdRoad;//poczatek podjazdu
 			++parking_search_move;
 		} else{
@@ -404,8 +404,14 @@ void await_f(void)
 	}
 
 	else if(box_task_check == 1){
+		TIM2->CCR3 = servo_middle;
 		set_spd = 400;
 		if(fwdRoad - box_dist > 800){
+			HAL_GPIO_WritePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin,
+					GPIO_PIN_SET);
+			osDelay(100);
+			HAL_GPIO_WritePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin,
+					GPIO_PIN_RESET);
 			autonomous_task = lanefollower;
 			challenge_select = 1;
 		}
@@ -427,8 +433,14 @@ void await_f(void)
 	}
 
     else if(box_task_check == 2){
+		TIM2->CCR3 = servo_middle;
 		set_spd = 400;
 		if(fwdRoad - box_dist > 800){
+			HAL_GPIO_WritePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin,
+					GPIO_PIN_SET);
+			osDelay(100);
+			HAL_GPIO_WritePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin,
+					GPIO_PIN_RESET);
 			autonomous_task = lanefollower;
 			challenge_select = 2;
 		}
