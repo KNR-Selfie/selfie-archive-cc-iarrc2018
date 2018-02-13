@@ -39,6 +39,7 @@ float start_place =0;
 float crossing_dist = 0;
 
 uint8_t hold_signals = 0;
+int32_t time_then = 0;
 
 float start_angle = 0;
 float start_distance = 0;
@@ -49,7 +50,9 @@ float podjedz_pan = 0;
 float podjedz_pan_start = 0;
 float podjedz_pan_distance = -80.f;
 
-driving_state_t old_driving_state;
+driving_state_t old_driving_state = disarmed;
+
+void reset_all_to_challenge(void);
 
 void lane_switch_f(void);
 void autonomous_task_f(void);
@@ -83,8 +86,7 @@ void StartGovernorTask(void const * argument) {
 		case fullcontrol:
 			radio_to_actuators_f();
 			if (old_driving_state != fullcontrol) {
-					set_spd = 0;
-					osDelay(800);
+				reset_all_to_challenge();
 				}
 			break;
 		}
@@ -93,7 +95,13 @@ void StartGovernorTask(void const * argument) {
 	}
 }
 void autonomous_task_f(void) {
-
+	if (old_driving_state == fullcontrol) {
+		HAL_GPIO_WritePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin,
+				GPIO_PIN_SET);
+		osDelay(100);
+		HAL_GPIO_WritePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin,
+				GPIO_PIN_RESET);
+	}
 	HAL_TIM_Base_Start_IT(&htim10); // timer od sprawdzania komunikacji
 	if (j_syncByte == 255) {
 		set_spd = 700;
@@ -103,6 +111,7 @@ void autonomous_task_f(void) {
 			{
 		set_spd = 0;
 	}
+
 	switch (autonomous_task) {
 	case await:
 		await_f();
@@ -110,6 +119,18 @@ void autonomous_task_f(void) {
 	case stopped:
 		break;
 	case lanefollower:
+
+		if (hold_signals == 1) {
+			time_then = HAL_GetTick();
+			hold_signals = 2;
+		} else if (hold_signals == 2 && (HAL_GetTick() - time_then > 800)) {
+			sidesignals = SIDETURN_NONE;
+			lane_switching_move = 0;
+			HAL_GPIO_WritePin(Change_Lane_GPIO_Port, Change_Lane_Pin,
+					GPIO_PIN_RESET);
+			hold_signals = 0;
+		}
+
 		break;
 	case laneswitch:
 		lane_switch_f();
@@ -286,13 +307,11 @@ void lane_switch_f(void) {
 		lane_switching_move = 3;
 	} else if (lane_switching_move == 3 && (HAL_GetTick() - then) > 70) {
 
-		lane_switching_move = 0;
-		HAL_GPIO_WritePin(Change_Lane_GPIO_Port, Change_Lane_Pin,
-				GPIO_PIN_RESET);
 		hold_signals = 1;
-		sidesignals = SIDETURN_NONE;
 		autonomous_task = lanefollower;
 	}
+	if (driving_state == autonomous)
+		set_spd = 400;
 }
 //moze nastapic ponowne wystawienie flagi do odroida. Flaga gaszona po 0.5s z timera. Timer powraca stan autonomous_task do tradycyjnego lanefollowera.
 
@@ -394,7 +413,8 @@ void crossing_f(void) {
 		++crossing_move;
 	}
 	if (crossing_move == 1) {
-		set_spd = 500;
+		if (driving_state == autonomous)
+			set_spd = 500;
 		if (fwdRoad - crossing_dist > 150) {
 			++crossing_move;
 		}
@@ -413,7 +433,8 @@ void crossing_f(void) {
 	}
 	//podjechanie metr do przodu
 	if (crossing_move == 4) {
-		set_spd = 700;
+		if (driving_state == autonomous)
+			set_spd = 700;
 		if (fwdRoad - crossing_dist > 300) {
 			crossing_move = 0;
 			autonomous_task = lanefollower;
@@ -432,7 +453,8 @@ void crossing_f(void) {
 }
 void crossing_on_parking_f(void) {
 	static uint8_t phase = 0;
-	set_spd = 700;
+	if (driving_state == autonomous)
+		set_spd = 700;
 	if (phase) {
 		if (fwdRoad - crossing_dist > 450) {
 			crossing_move = 0;
@@ -454,6 +476,25 @@ void crossing_on_parking_f(void) {
 		phase = 1;
 	}
 }
+void reset_all_to_challenge(void){
 
+	sidesignals = SIDETURN_NONE;
+
+	HAL_GPIO_WritePin(Obstacle_Button_GPIO_Port, Obstacle_Button_Pin,GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(Change_Lane_GPIO_Port, Change_Lane_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin, GPIO_PIN_RESET);
+	hold_signals = 0;
+	crossing_move = 0;
+	parking_search_move = 0;
+	parking_move = 0;
+	lane_switching_move = 0;
+	flags[0] = 0; flags[1] = 0; flags[2] = 0;
+
+	if (challenge_select && autonomous_task != parkingsearch)
+		autonomous_task = lanefollower;
+
+	set_spd = 0;
+	osDelay(800);
+}
 
 

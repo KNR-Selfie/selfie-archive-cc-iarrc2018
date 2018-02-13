@@ -28,7 +28,6 @@ void StartCzujnikiTask(void const * argument) {
 
 	while (1) {
 
-
 		if (HAL_GPIO_ReadPin(CzujnikLewy_GPIO_Port, CzujnikLewy_Pin)
 				== GPIO_PIN_RESET) {
 			flags[0] = 1;
@@ -39,13 +38,18 @@ void StartCzujnikiTask(void const * argument) {
 		if (HAL_GPIO_ReadPin(CzujnikPrawy_GPIO_Port, CzujnikPrawy_Pin)
 				== GPIO_PIN_RESET) {
 			flags[1] = 1;
-		} else{
+		} else {
 			flags[1] = 0;
 		}
 
-		if (challenge_select == 2) {
+		if (challenge_select == 2 && driving_state != fullcontrol) {
+			if (Sharp_f > 0.75f)
+				filter_counter++;
+			else
+				filter_counter = 0;
 
-			if (Sharp_f > 0.24f && lane_switching_move == 0) {
+			if (filter_counter > 1 && lane_switching_move == 0) {
+				filter_counter = 2;
 				flags[2] = 1;
 				sidesignals = SIDETURN_LEFT;
 				autonomous_task = laneswitch;
@@ -55,9 +59,9 @@ void StartCzujnikiTask(void const * argument) {
 			} else {
 				flags[2] = 0;
 			}
-}
-	osDelay(10);
-}
+		}
+		osDelay(10);
+	}
 }
 
 //void StartCzujnikiTask(void const * argument) {
