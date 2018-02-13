@@ -125,7 +125,7 @@ void StartSteeringTask(void const * argument) {
 		}
 
 
-		if (pid_speed < 1500)
+		if ((set_spd > 0 && pid_speed < 1500) || set_spd < actualSpeed)
 					brakesignals = BRAKE_NORMAL;
 				else
 					brakesignals = BRAKE_NONE;

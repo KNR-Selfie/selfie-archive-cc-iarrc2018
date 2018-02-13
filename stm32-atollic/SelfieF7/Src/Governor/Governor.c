@@ -28,8 +28,8 @@ float parking_depth = 40.f; // [mm]
 float parking_turn_sharpness = 42.f; // [degree]
 float parking_dead_fwd = 170.f; // [mm]
 
-float speed_freerun = 1200;
-float speed_corners = 800;
+float speed_freerun = 800;
+float speed_corners = 500;
 float speed_obstacles = 500;
 float speed_parking = 500;
 
@@ -110,8 +110,8 @@ void autonomous_task_f(void) {
 	}
 	HAL_TIM_Base_Start_IT(&htim10); // timer od sprawdzania komunikacji
 	if (j_syncByte == 255) {
-		if ((j_jetsonData[1] + j_jetsonData[2]) > 220
-				|| (j_jetsonData[1] + j_jetsonData[2]) < 140)
+//		if ((j_jetsonData[1] + j_jetsonData[2]) > 200 || (j_jetsonData[1] + j_jetsonData[2]) < 160 || j_jetsonData[0] < 950 || j_jetsonData[0] < 1050)
+		if(j_jetsonData[0] < 850 || j_jetsonData[0] < 1150)
 			set_spd = speed_corners;
 		else
 			set_spd = speed_freerun;
@@ -429,7 +429,7 @@ void crossing_f(void) {
 	if (crossing_move == 1) {
 		if (driving_state == autonomous)
 			set_spd = speed_freerun/2;
-		if (fwdRoad - crossing_dist > 150) {
+		if (fwdRoad - crossing_dist > 100) {
 			++crossing_move;
 		}
 	}
@@ -504,10 +504,12 @@ void reset_all_to_challenge(void){
 	lane_switching_move = 0;
 	flags[0] = 0; flags[1] = 0; flags[2] = 0;
 
+	set_spd = 0;
+
 	if (challenge_select && autonomous_task != parkingsearch)
 		autonomous_task = lanefollower;
 
-	set_spd = 0;
+
 	osDelay(800);
 }
 
