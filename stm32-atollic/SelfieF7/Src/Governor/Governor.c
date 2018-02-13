@@ -110,6 +110,8 @@ void autonomous_task_f(void) {
 	} else if (j_syncByte == 200) //je?eli nie istnieje Jetson <-> STM, wylacz naped (wartosc j_syncByte = 200 jest ustawiana przez TIMER10)
 			{
 		set_spd = 0;
+		set_angle = 90;
+		set_pos = 1000;
 	}
 
 	switch (autonomous_task) {
@@ -151,6 +153,7 @@ void autonomous_task_f(void) {
 }
 void semi_task_f(void)
 {
+
 	if (old_driving_state == fullcontrol) {
 		HAL_GPIO_WritePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin,
 				GPIO_PIN_SET);
@@ -178,7 +181,7 @@ void radio_to_actuators_f(void)
 		set_spd = (1840 * (FutabaChannelData[1] - 1027) / (1680 - 368));
 	else set_spd = 0;
 
-	dutyServo = (servo_middle + 600 * (FutabaChannelData[3] - 1000) / (1921 - 80));
+	dutyServo = (servo_middle - 2*servo_bandwith * (FutabaChannelData[3] - 1000) / (1921 - 80));
 }
 void parking_f(void) {
 	float steering = 0, velocity = 0;
@@ -379,7 +382,7 @@ void await_f(void)
 		challenge_select = 1;
 /*
 		set_spd = 500;
-		TIM2->CCR3 = 943;
+		TIM2->CCR3 = servo_middle;
 		osDelay(2000);
 		HAL_GPIO_TogglePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin);
 		osDelay(70);
@@ -394,7 +397,7 @@ void await_f(void)
     	challenge_select = 2;
 /*
 		set_spd = 500;
-		TIM2->CCR3 = 943;
+		TIM2->CCR3 = servo_middle;
 		osDelay(2000);
 		HAL_GPIO_TogglePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin);
 		osDelay(70);
@@ -448,7 +451,7 @@ void crossing_f(void) {
 			osDelay(100);
 			HAL_GPIO_TogglePin(Cross_Obstacles_GPIO_Port, Cross_Obstacles_Pin);
 		} else
-			TIM2->CCR3 = 943;
+			TIM2->CCR3 = servo_middle;
 	}
 }
 void crossing_on_parking_f(void) {
@@ -470,7 +473,7 @@ void crossing_on_parking_f(void) {
 			osDelay(100);
 			HAL_GPIO_TogglePin(Cross_Obstacles_GPIO_Port, Cross_Obstacles_Pin);
 		} else
-			TIM2->CCR3 = 943;
+			TIM2->CCR3 = servo_middle;
 	} else {
 		crossing_dist = fwdRoad;
 		phase = 1;

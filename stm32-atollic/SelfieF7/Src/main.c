@@ -137,10 +137,14 @@ int main(void)
   MX_TIM11_Init();
 
   /* USER CODE BEGIN 2 */
+  j_jetsonData[0] = 1000;
+  j_jetsonData[1] = 90;
+  j_jetsonData[2] = 90;
 	HAL_UART_Receive_DMA(&huart4, &j_syncByte, 1);
-
+	TIM2->CCR3 = servo_middle;
 	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
 	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
+	TIM2->CCR3 = servo_middle;
 
   /* USER CODE END 2 */
 

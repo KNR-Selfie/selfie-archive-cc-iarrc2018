@@ -133,9 +133,9 @@ float pid_calculateServoPos(pid_params *pid_paramPos, float set_pos, float read_
 		+ pid_paramPos->kd * err_d);
 
 
-	uPos = servo_middle + uPos;
-	if (uPos > (servo_middle+300)) uPos = servo_middle+300;
-	if (uPos < (servo_middle-300)) uPos = servo_middle-300;
+	uPos = servo_middle - uPos;
+	if (uPos > (servo_middle+servo_bandwith)) uPos = servo_middle+servo_bandwith;
+	if (uPos < (servo_middle-servo_bandwith)) uPos = servo_middle-servo_bandwith;
 
 
 
@@ -173,8 +173,8 @@ float pid_calculateServoAng(pid_params *pid_paramAng, float set_angle, float rea
 		+ pid_paramAng->kd * err_d);
 
 	//	uAng = servo_middle + uAng;
-	//	if(uAng > (servo_middle+300)) uAng = servo_middle+300;
-	//	if(uAng < (servo_middle-300)) uAng = servo_middle-300;
+	//	if(uAng > (servo_middle+servo_bandwith)) uAng = servo_middle+servo_bandwith;
+	//	if(uAng < (servo_middle-servo_bandwith)) uAng = servo_middle-servo_bandwith;
 
 
 	if(pid_paramAng->state != PID_RUNNING) uAng = uAng_last;

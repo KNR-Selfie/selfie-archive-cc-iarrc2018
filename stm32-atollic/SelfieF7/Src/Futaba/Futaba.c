@@ -85,7 +85,8 @@ void StartFutabaTask(void const * argument)
 	HAL_NVIC_DisableIRQ(USART1_IRQn);
 	HAL_NVIC_SetPriority(USART1_IRQn, 1, 0);
 	HAL_NVIC_EnableIRQ(USART1_IRQn);
-
+	FutabaChannelData[3] = 1000;
+	FutabaChannelData[1] = 1027;
 	MX_TIM14_Init();
 	HAL_TIM_Base_Start(&htim14);
 	HAL_UART_Receive_DMA(&huart1, FutabaBuffer, 1);
