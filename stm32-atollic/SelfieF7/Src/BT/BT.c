@@ -135,7 +135,12 @@ void BT_Commands(uint8_t* Buf, uint32_t length) {
 		servo_middle++;
 		size = sprintf((char*) txdata, "servo_middle = %d \r\n\r\n", servo_middle);
 		HAL_UART_Transmit_DMA(&huart3, txdata, size);
-	}else if (Buf[0] == '3') {
+	}else if (Buf[0] == '2') {
+		servo_middle--;
+		size = sprintf((char*) txdata, "servo_middle = %d \r\n\r\n", servo_middle);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	}
+	else if (Buf[0] == '3') {
 		pid_paramsServoPos.kp = pid_paramsServoPos.kp+0.1f;
 		size = sprintf((char*) txdata, "servoPosKp = %f \r\n\r\n", pid_paramsServoPos.kp);
 		HAL_UART_Transmit_DMA(&huart3, txdata, size);
@@ -143,19 +148,41 @@ void BT_Commands(uint8_t* Buf, uint32_t length) {
 		pid_paramsServoPos.kp = pid_paramsServoPos.kp-0.1f;
 		size = sprintf((char*) txdata, "servoPosKp = %f \r\n\r\n", pid_paramsServoPos.kp);
 		HAL_UART_Transmit_DMA(&huart3, txdata, size);
-	} else if (Buf[0] == '2') {
-		servo_middle--;
-		size = sprintf((char*) txdata, "servo_middle = %d \r\n\r\n", servo_middle);
+	} else if (Buf[0] == '8') {
+		speed_freerun += 50;
+		size = sprintf((char*) txdata, "speed_freerun = %f \r\n\r\n", speed_freerun);
 		HAL_UART_Transmit_DMA(&huart3, txdata, size);
-	} else if (Buf[0] == '9') {
-		lane_change_treshold += 10;
-		size = sprintf((char*) txdata, "lane treshold = %dmm \r\n\r\n", lane_change_treshold);
+	}else if (Buf[0] == '9') {
+		speed_corners += 50;
+		size = sprintf((char*) txdata, "speed_corners = %f \r\n\r\n", speed_corners);
 		HAL_UART_Transmit_DMA(&huart3, txdata, size);
-	} else if (Buf[0] == '0') {
-		lane_change_treshold -= 10;
-		size = sprintf((char*) txdata, "lane treshold = %dmm \r\n\r\n", lane_change_treshold);
+	}else if (Buf[0] == '0') {
+		speed_obstacles += 50;
+		size = sprintf((char*) txdata, "speed_obstacles = %f \r\n\r\n", speed_obstacles);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	}else if (Buf[0] == '*') {
+		speed_freerun -= 50;
+		size = sprintf((char*) txdata, "speed_freerun = %f \r\n\r\n", speed_freerun);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	}else if (Buf[0] == '(') {
+		speed_corners -= 50;
+		size = sprintf((char*) txdata, "speed_corners = %f \r\n\r\n", speed_corners);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	}else if (Buf[0] == ')') {
+		speed_obstacles -= 50;
+		size = sprintf((char*) txdata, "speed_obstacles = %f \r\n\r\n", speed_obstacles);
 		HAL_UART_Transmit_DMA(&huart3, txdata, size);
 	}
+
+//	else if (Buf[0] == '9') {
+//		lane_change_treshold += 10;
+//		size = sprintf((char*) txdata, "lane treshold = %dmm \r\n\r\n", lane_change_treshold);
+//		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+//	} else if (Buf[0] == '0') {
+//		lane_change_treshold -= 10;
+//		size = sprintf((char*) txdata, "lane treshold = %dmm \r\n\r\n", lane_change_treshold);
+//		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+//	}
 	// PARKOWANIE
 	else if (Buf[0] == '!') {
 		parking_turn_sharpness += 1.f;
