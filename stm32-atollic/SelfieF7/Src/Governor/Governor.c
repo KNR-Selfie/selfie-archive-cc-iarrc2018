@@ -33,7 +33,7 @@ float speed_corners = 500;
 float speed_obstacles = 500;
 float speed_parking = 500;
 
-
+uint8_t box_task_check = 0;
 uint8_t lane_switching_move = 0;
 uint8_t parking_move = 0;
 uint8_t parking_search_move =0;
@@ -43,6 +43,7 @@ uint8_t parking_counter = 0;
 float place_lenght = 0;
 float start_place =0;
 float crossing_dist = 0;
+float box_dist = 0;
 
 uint8_t hold_signals = 0;
 int32_t time_then = 0;
@@ -389,8 +390,8 @@ void await_f(void)
 	set_spd = 0;
 	if (HAL_GPIO_ReadPin(Parking_Button_GPIO_Port, Parking_Button_Pin) == GPIO_PIN_SET) {
 		//ruszenie z boxu
-	osDelay(500);
-		challenge_select = 1;
+		box_task_check = 1;
+		osDelay(500);
 /*
 		set_spd = 500;
 		TIM2->CCR3 = servo_middle;
@@ -399,13 +400,21 @@ void await_f(void)
 		osDelay(70);
 		HAL_GPIO_TogglePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin);
 		*/
-		autonomous_task = lanefollower;
+	}
 
-    }
+	else if(box_task_check == 1){
+		set_spd = 400;
+		if(fwdRoad - box_dist > 800){
+			autonomous_task = lanefollower;
+			challenge_select = 1;
+		}
+	}
+
+
     else if(HAL_GPIO_ReadPin(Obstacle_Button_GPIO_Port,Obstacle_Button_Pin) == GPIO_PIN_SET){
 		//ruszenie z boxu
+		box_task_check = 2;
     	osDelay(500);
-    	challenge_select = 2;
 /*
 		set_spd = 500;
 		TIM2->CCR3 = servo_middle;
@@ -414,9 +423,16 @@ void await_f(void)
 		osDelay(70);
 		HAL_GPIO_TogglePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin);
 */
-		autonomous_task = lanefollower;
+	}
+
+    else if(box_task_check == 2){
+		set_spd = 400;
+		if(fwdRoad - box_dist > 800){
+			autonomous_task = lanefollower;
+			challenge_select = 2;
+		}
     }
-}
+ }
 
 
 void crossing_f(void) {
