@@ -356,6 +356,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 /* USER CODE BEGIN Callback 1 */
   if(htim->Instance == TIM10){ //timer 10 sprawdzajacy czy jest komunikacja Jetson<->STM. CNT zerowany w obsludze uarta
         j_syncByte = 200;
+		synchroniseUARTOdroid = 0;
     }
   if (htim->Instance == TIM7) {
 

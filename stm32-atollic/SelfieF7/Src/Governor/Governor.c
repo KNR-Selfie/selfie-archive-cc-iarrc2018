@@ -118,6 +118,7 @@ void autonomous_task_f(void) {
 		set_spd = 0;
 		set_angle = 90;
 		set_pos = 1000;
+		synchroniseUARTOdroid = 0;
 //			HAL_UART_DeInit(&huart4);
 //			osDelay(5);
 //			synchroniseUARTOdroid = 0;
@@ -199,7 +200,8 @@ void semi_task_f(void)
 void radio_to_actuators_f(void)
 {
 	if (((FutabaChannelData[1] - 1027) > 50) || ((FutabaChannelData[1] - 1027) < -50))
-		set_spd = 2*(1840 * (FutabaChannelData[1] - 1027) / (1680 - 368));
+		set_spd = 2*(1840 * (FutabaChannelData[1] - 1027) / (1680 - 368));	// Wersja testy
+		//set_spd = 2*(300 * (FutabaChannelData[1] - 1027) / (1680 - 368)); // wersja zawody
 	else set_spd = 0;
 
 	dutyServo = (servo_middle - 2*servo_bandwith * (FutabaChannelData[3] - 1000) / (1921 - 80));
@@ -539,6 +541,7 @@ void reset_all_to_challenge(void){
 	parking_search_move = 0;
 	parking_move = 0;
 	lane_switching_move = 0;
+	synchroniseUARTOdroid = 0;
 	flags[0] = 0; flags[1] = 0; flags[2] = 0;
 
 	set_spd = 0;
