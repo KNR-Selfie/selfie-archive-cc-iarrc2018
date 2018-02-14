@@ -70,6 +70,7 @@ float set_pos = 0;
 float set_angle = 0;
 uint16_t dutyServo = 0;
 
+float old_set_spd = 0;
 
 extern float KpJetson;
 
@@ -125,10 +126,11 @@ void StartSteeringTask(void const * argument) {
 		}
 
 
-		if ((set_spd > 0 && pid_speed < 1500) || set_spd < actualSpeed)
+		if ((set_spd >= 0 && set_spd < (old_set_spd)) || (set_spd < 0 && set_spd > (old_set_spd)))
 					brakesignals = BRAKE_NORMAL;
 				else
 					brakesignals = BRAKE_NONE;
+		old_set_spd = set_spd;
 		//static int16_t pid_value;
 		/* motor loop needs own separate tick
 		pid_value = wheel_pid(wheel_kp, wheel_ki, wheel_kd, set_spd);

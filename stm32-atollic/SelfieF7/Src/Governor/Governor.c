@@ -27,8 +27,8 @@
 extern uint8_t synchroniseUARTOdroid;
 
 float parking_depth = 1.f; // [mm]
-float parking_turn_sharpness = 40.f; // [degree]
-float parking_dead_fwd = 170.f; // [mm]
+float parking_turn_sharpness = 38.f; // [degree]
+float parking_dead_fwd = 160.f; // [mm]
 
 float speed_freerun = 600;
 float speed_corners = 500;
@@ -57,7 +57,7 @@ float unfinished_angle = 0;
 uint8_t oldflags_1 = 0;
 float podjedz_pan = 0;
 float podjedz_pan_start = 0;
-float podjedz_pan_distance = -80.f;
+float podjedz_pan_distance = -60.f;
 
 driving_state_t old_driving_state = disarmed;
 
@@ -78,7 +78,9 @@ void StartGovernorTask(void const * argument) {
 	HAL_GPIO_WritePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin, GPIO_PIN_SET);
 	osDelay(100);
 	HAL_GPIO_WritePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin, GPIO_PIN_RESET);
-
+	osDelay(100);
+	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
+	TIM2->CCR3 = servo_middle;
 	while (1) {
 
 		switch (driving_state) {
