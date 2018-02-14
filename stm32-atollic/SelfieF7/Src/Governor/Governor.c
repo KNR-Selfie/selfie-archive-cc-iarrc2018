@@ -24,16 +24,18 @@
 #include "tim.h"
 #include "Steering.h"
 
-float parking_depth = 40.f; // [mm]
-float parking_turn_sharpness = 42.f; // [degree]
-float parking_dead_fwd = 170.f; // [mm]
+extern uint8_t synchroniseUARTOdroid;
 
-float speed_freerun = 1200;
-float speed_corners = 800;
+float parking_depth = 1.f; // [mm]
+float parking_turn_sharpness = 38.f; // [degree]
+float parking_dead_fwd = 160.f; // [mm]
+
+float speed_freerun = 600;
+float speed_corners = 500;
 float speed_obstacles = 500;
 float speed_parking = 500;
 
-
+uint8_t box_task_check = 0;
 uint8_t lane_switching_move = 0;
 uint8_t parking_move = 0;
 uint8_t parking_search_move =0;
@@ -43,6 +45,7 @@ uint8_t parking_counter = 0;
 float place_lenght = 0;
 float start_place =0;
 float crossing_dist = 0;
+float box_dist = 0;
 
 uint8_t hold_signals = 0;
 int32_t time_then = 0;
@@ -54,7 +57,7 @@ float unfinished_angle = 0;
 uint8_t oldflags_1 = 0;
 float podjedz_pan = 0;
 float podjedz_pan_start = 0;
-float podjedz_pan_distance = -80.f;
+float podjedz_pan_distance = -60.f;
 
 driving_state_t old_driving_state = disarmed;
 
@@ -75,7 +78,9 @@ void StartGovernorTask(void const * argument) {
 	HAL_GPIO_WritePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin, GPIO_PIN_SET);
 	osDelay(100);
 	HAL_GPIO_WritePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin, GPIO_PIN_RESET);
-
+	osDelay(100);
+	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
+	TIM2->CCR3 = servo_middle;
 	while (1) {
 
 		switch (driving_state) {
@@ -109,20 +114,28 @@ void autonomous_task_f(void) {
 				GPIO_PIN_RESET);
 	}
 	HAL_TIM_Base_Start_IT(&htim10); // timer od sprawdzania komunikacji
-	if (j_syncByte == 255) {
-		if ((j_jetsonData[1] + j_jetsonData[2]) > 220
-				|| (j_jetsonData[1] + j_jetsonData[2]) < 140)
-			set_spd = speed_corners;
-		else
-			set_spd = speed_freerun;
-
-		set_pos = 1000;
-		set_angle = 90;
-	} else if (j_syncByte == 200) //je?eli nie istnieje Jetson <-> STM, wylacz naped (wartosc j_syncByte = 200 jest ustawiana przez TIMER10)
+	if (HAL_GetTick() - last_odroid_byte > 500) //je?eli nie istnieje Jetson <-> STM, wylacz naped (wartosc j_syncByte = 200 jest ustawiana przez TIMER10)
 			{
+		//        HAL_UART_Receive_DMA(&huart4, &j_syncByte, 1);
 		set_spd = 0;
 		set_angle = 90;
 		set_pos = 1000;
+		synchroniseUARTOdroid = 0;
+//			HAL_UART_DeInit(&huart4);
+//			osDelay(5);
+//			synchroniseUARTOdroid = 0;
+//			MX_UART4_Init();
+//			osDelay(5);
+//			HAL_UART_Receive_DMA(&huart4, &j_syncByte, 1);
+	} else {
+//		if ((j_jetsonData[1] + j_jetsonData[2]) > 200 || (j_jetsonData[1] + j_jetsonData[2]) < 160 || j_jetsonData[0] < 950 || j_jetsonData[0] < 1050)
+		if (j_jetsonData[0] > 850 && j_jetsonData[0] < 1150)
+			set_spd = speed_freerun;
+		else
+			set_spd = speed_corners;
+
+		set_pos = 1000;
+		set_angle = 90;
 	}
 
 	switch (autonomous_task) {
@@ -189,7 +202,8 @@ void semi_task_f(void)
 void radio_to_actuators_f(void)
 {
 	if (((FutabaChannelData[1] - 1027) > 50) || ((FutabaChannelData[1] - 1027) < -50))
-		set_spd = 2*(1840 * (FutabaChannelData[1] - 1027) / (1680 - 368));
+		set_spd = 2*(1840 * (FutabaChannelData[1] - 1027) / (1680 - 368));	// Wersja testy
+		//set_spd = 2*(300 * (FutabaChannelData[1] - 1027) / (1680 - 368)); // wersja zawody
 	else set_spd = 0;
 
 	dutyServo = (servo_middle - 2*servo_bandwith * (FutabaChannelData[3] - 1000) / (1921 - 80));
@@ -367,7 +381,7 @@ void parking_search_f(void) {
 	//wykrycie kolejnego pudelka
 	if (parking_search_move == 2 && flags[0] == 1) {
 		place_lenght = fwdRoad - start_place;
-		if (place_lenght > 600) {
+		if (place_lenght > 600 && place_lenght < 2000) {
 			start_place = fwdRoad;//poczatek podjazdu
 			++parking_search_move;
 		} else{
@@ -389,8 +403,8 @@ void await_f(void)
 	set_spd = 0;
 	if (HAL_GPIO_ReadPin(Parking_Button_GPIO_Port, Parking_Button_Pin) == GPIO_PIN_SET) {
 		//ruszenie z boxu
-	osDelay(500);
-		challenge_select = 1;
+		box_task_check = 1;
+		osDelay(500);
 /*
 		set_spd = 500;
 		TIM2->CCR3 = servo_middle;
@@ -399,13 +413,27 @@ void await_f(void)
 		osDelay(70);
 		HAL_GPIO_TogglePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin);
 		*/
-		autonomous_task = lanefollower;
+	}
 
-    }
+	else if(box_task_check == 1){
+		TIM2->CCR3 = servo_middle;
+		set_spd = 400;
+		if(fwdRoad - box_dist > 800){
+			HAL_GPIO_WritePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin,
+					GPIO_PIN_SET);
+			osDelay(100);
+			HAL_GPIO_WritePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin,
+					GPIO_PIN_RESET);
+			autonomous_task = lanefollower;
+			challenge_select = 1;
+		}
+	}
+
+
     else if(HAL_GPIO_ReadPin(Obstacle_Button_GPIO_Port,Obstacle_Button_Pin) == GPIO_PIN_SET){
 		//ruszenie z boxu
+		box_task_check = 2;
     	osDelay(500);
-    	challenge_select = 2;
 /*
 		set_spd = 500;
 		TIM2->CCR3 = servo_middle;
@@ -414,9 +442,22 @@ void await_f(void)
 		osDelay(70);
 		HAL_GPIO_TogglePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin);
 */
-		autonomous_task = lanefollower;
+	}
+
+    else if(box_task_check == 2){
+		TIM2->CCR3 = servo_middle;
+		set_spd = 400;
+		if(fwdRoad - box_dist > 800){
+			HAL_GPIO_WritePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin,
+					GPIO_PIN_SET);
+			osDelay(100);
+			HAL_GPIO_WritePin(Vision_Reset_GPIO_Port, Vision_Reset_Pin,
+					GPIO_PIN_RESET);
+			autonomous_task = lanefollower;
+			challenge_select = 2;
+		}
     }
-}
+ }
 
 
 void crossing_f(void) {
@@ -429,7 +470,7 @@ void crossing_f(void) {
 	if (crossing_move == 1) {
 		if (driving_state == autonomous)
 			set_spd = speed_freerun/2;
-		if (fwdRoad - crossing_dist > 150) {
+		if (fwdRoad - crossing_dist > 100) {
 			++crossing_move;
 		}
 	}
@@ -502,12 +543,15 @@ void reset_all_to_challenge(void){
 	parking_search_move = 0;
 	parking_move = 0;
 	lane_switching_move = 0;
+	synchroniseUARTOdroid = 0;
 	flags[0] = 0; flags[1] = 0; flags[2] = 0;
+
+	set_spd = 0;
 
 	if (challenge_select && autonomous_task != parkingsearch)
 		autonomous_task = lanefollower;
 
-	set_spd = 0;
+
 	osDelay(800);
 }
 

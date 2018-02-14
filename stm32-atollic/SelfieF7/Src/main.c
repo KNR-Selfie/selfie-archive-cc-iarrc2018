@@ -137,14 +137,12 @@ int main(void)
   MX_TIM11_Init();
 
   /* USER CODE BEGIN 2 */
-  j_jetsonData[0] = 1000;
-  j_jetsonData[1] = 90;
-  j_jetsonData[2] = 90;
+	HAL_NVIC_DisableIRQ(UART4_IRQn);
+	HAL_NVIC_SetPriority(UART4_IRQn, 1, 0);
+	HAL_NVIC_EnableIRQ(UART4_IRQn);
 	HAL_UART_Receive_DMA(&huart4, &j_syncByte, 1);
 	TIM2->CCR3 = servo_middle;
 	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
-	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
-	TIM2->CCR3 = servo_middle;
 
   /* USER CODE END 2 */
 
@@ -271,6 +269,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	}
     if (huart->Instance == UART4) //odroid
     {
+    	last_odroid_byte = HAL_GetTick();
 
         TIM10->CNT = 0;
         if(j_syncByte==0xFF && synchroniseUARTOdroid == 0)
@@ -289,7 +288,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
         }
         else if(synchroniseUARTOdroid == 2)
         {
-        	if(j_jetsonFlags[1] == 0xFE && ((j_jetsonFlags[0] & 0x0003) == 0)){
+        	if(j_jetsonFlags[1] == 0xFE ){ //&& ((j_jetsonFlags[0] & 0x0003) == 0)){
                 //przetlumaczenie 11x8 na uzyteczne 8x11
                 j_jetsonData[0]  = (int16_t) ((j_buffer[0] |j_buffer[1]<<8)                               & 0x07FF);
                 j_jetsonData[1]  = (int16_t) ((j_buffer[1]>>3 |j_buffer[2]<<5)                          & 0x07FF);
@@ -358,6 +357,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 /* USER CODE BEGIN Callback 1 */
   if(htim->Instance == TIM10){ //timer 10 sprawdzajacy czy jest komunikacja Jetson<->STM. CNT zerowany w obsludze uarta
         j_syncByte = 200;
+		synchroniseUARTOdroid = 0;
     }
   if (htim->Instance == TIM7) {
 
