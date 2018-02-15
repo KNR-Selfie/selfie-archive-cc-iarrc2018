@@ -44,6 +44,9 @@ extern float set_angle;
 extern uint16_t dutyServo;
 
 /* SRODEK SERWA! */
+
+
+
 uint16_t servo_middle;
 uint16_t servo_bandwith;
 

@@ -19,16 +19,9 @@
 #define ERR_SUM_MAX_SERVOPOS 1500
 #define ERR_SUM_MAX_SERVOANG 1500
 
-#define kpEng 40
-#define kiEng 0.3
-#define kdEng 0.1
-#define kpServoPos 1.6f
-#define kiServoPos 0
-#define kdServoPos 0.45f
-#define kpServoAng 3
-#define kiServoAng 0
-#define kdServoAng 0
 
+float read_filtered = 0;
+pt1Filter_t OdroidLPF;
 
 void pid_paramsinit(pid_params *pid_param, float kp, float ki, float kd){
 	pid_param->kp = kp;
@@ -66,6 +59,8 @@ float pid_calculateEngine(pid_params *pid_param, float set_val, float read_val)
 	u = 1500 + (u / 5000);
 	if (set_val < 0) u -= 140;
 	else if (set_val > 0) u += 60;
+//	else if( set_val == 0 && read_val > 100)
+//		u = 1100;
 	if (u > 2000) u = 2000;
 	if (u< 1000) u = 1000;
 
@@ -117,8 +112,8 @@ float pid_calculateServoPos(pid_params *pid_paramPos, float set_pos, float read_
 		//read_pos = read_pos + (80 - (j_jetsonData[1] + j_jetsonData[2] * 0.5));
 	//else if(((j_jetsonData[1] + j_jetsonData[2]) * 0.5) > 90)
 		//read_pos = read_pos - ((j_jetsonData[1] + j_jetsonData[2] * 0.5) - 90);
-
-	pid_paramPos->err = set_pos - read_pos;
+	read_filtered = pt1FilterApply(&OdroidLPF, read_pos);
+	pid_paramPos->err = set_pos - read_filtered;
 	pid_paramPos->err_sum += pid_paramPos->err;
 
 	if (pid_paramPos->err_sum > ERR_SUM_MAX_SERVOPOS) {
@@ -172,9 +167,9 @@ float pid_calculateServoAng(pid_params *pid_paramAng, float set_angle, float rea
 	uAng = (pid_paramAng->kp * pid_paramAng->err + pid_paramAng->ki * pid_paramAng->err_sum
 		+ pid_paramAng->kd * err_d);
 
-	//	uAng = servo_middle + uAng;
-	//	if(uAng > (servo_middle+servo_bandwith)) uAng = servo_middle+servo_bandwith;
-	//	if(uAng < (servo_middle-servo_bandwith)) uAng = servo_middle-servo_bandwith;
+		uAng = servo_middle + uAng;
+		if(uAng > (servo_middle+servo_bandwith)) uAng = servo_middle+servo_bandwith;
+		if(uAng < (servo_middle-servo_bandwith)) uAng = servo_middle-servo_bandwith;
 
 
 	if(pid_paramAng->state != PID_RUNNING) uAng = uAng_last;
@@ -250,7 +245,7 @@ void StartPID(void){
 	errorSA = 0;
 	wyjscieRegulatoraSP = 0;
 	wyjscieRegulatoraSA = 0;
-
+	pt1FilterInit(&OdroidLPF, 5, 0.33f);
 	pid_paramsinit(&pid_paramsEngine, kpEng, kiEng, kdEng);
 	pid_paramsinit(&pid_paramsServoPos, kpServoPos, kiServoPos, kdServoPos);
 	pid_paramsinit(&pid_paramsServoAng, kpServoAng, kiServoAng, kdServoAng);
