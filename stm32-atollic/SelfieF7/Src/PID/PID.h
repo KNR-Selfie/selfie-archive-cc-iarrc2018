@@ -10,6 +10,17 @@
 
 #include "cmsis_os.h"
 
+
+#define kpEng 40
+#define kiEng 0.3
+#define kdEng 0.1
+#define kpServoPos 1.55f
+#define kiServoPos 0
+#define kdServoPos 0.42f
+#define kpServoAng 3.6
+#define kiServoAng 0
+#define kdServoAng 0
+
 float pid_speed;
 float pid_servo;
 

@@ -78,6 +78,8 @@ uint8_t parking_mode;
 float parking_angle;
 float parking_speed;
 
+
+
 uint16_t servo_middle = 1470;
 uint16_t servo_bandwith = 300;
 
@@ -113,10 +115,12 @@ void StartSteeringTask(void const * argument) {
 
 		pid_servo = pid_servo_f();
 
-		if(driving_state == fullcontrol)
+		if (driving_state == fullcontrol)
 			TIM2->CCR3 = dutyServo;
 		else {
-			if (autonomous_task == parking) {
+			if (autonomous_task == await)
+				TIM2->CCR3 = servo_middle;
+			else if (autonomous_task == parking) {
 				TIM2->CCR3 = AngleToServo(parking_angle);
 			}
 
@@ -126,7 +130,7 @@ void StartSteeringTask(void const * argument) {
 		}
 
 
-		if ((set_spd >= 0 && set_spd < (old_set_spd)) || (set_spd < 0 && set_spd > (old_set_spd)))
+		if ((set_spd >= 0 && ((set_spd < old_set_spd) || set_spd < actualSpeed)) || (set_spd < 0 && ((set_spd > old_set_spd)|| set_spd>actualSpeed)))
 					brakesignals = BRAKE_NORMAL;
 				else
 					brakesignals = BRAKE_NONE;
