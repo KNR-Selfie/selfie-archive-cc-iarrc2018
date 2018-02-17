@@ -524,8 +524,8 @@ else
 	{
 		width = new_pos_right - new_pos_left;
 		
-		if(width < 150)
-			width =	150; //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		if(width < 380)
+            width =	380;
 		else if(width > 600)
 			width = 600;
 	}
@@ -544,6 +544,9 @@ void LineDetector::send_data_to_main(int &detected_middle_pos_near, int &left_la
 	detected_middle_pos_near = new_middle + 680;
 	left_lane_angle_st = left_ang_st;
 	right_lane_angle_st = right_ang_st;
+
+flags_to_UART &= ~(1<<0);
+flags_to_UART &= ~(1<<1);
 
 	if(BL_sector)
 		flags_to_UART |= (1<<7);
@@ -817,10 +820,10 @@ void LineDetector::horizontal_line(cv::Mat frame)
         bool left_side = false;
 		std::cout << "Lewa_linia:" << new_pos_left << std::endl;		
 
-        if(new_pos_left > 40)
+        if(new_pos_left > 45)
         {
               int number_of_left_pixels = 3;
-              int left_x = new_pos_left - 45;
+              int left_x = new_pos_left - 40;
               int left_y = 150;
               int left_width = 30;
               int left_height = 190;
