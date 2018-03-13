@@ -134,6 +134,4 @@ public:
 	void horizontal_line (cv::Mat frame);
 	//void dynamic_mask (int &left_x, int &right_x, int mask_y, int mask_width);
 	void dynamic_mask (int &left_x, int &right_x, int &mask_y, int &mask_width);
-	//Sortowanie wektorow:
-	//void quick_sort (vector<Punkt> points);
 };

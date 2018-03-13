@@ -97,7 +97,6 @@ int main()
 
     cv::Mat frame(CAM_RES_Y, CAM_RES_X, CV_8UC4);
     cv::Mat frame_gray(CAM_RES_Y, CAM_RES_X, CV_8UC1);
-	//cv::Mat frame_gray_bird(CAM_RES_Y, CAM_RES_X, CV_8UC1);
     cv::Mat frame_edges_masked(CAM_RES_Y, CAM_RES_X, CV_8UC1);
 
     //===========Data Acquisition Sector==========

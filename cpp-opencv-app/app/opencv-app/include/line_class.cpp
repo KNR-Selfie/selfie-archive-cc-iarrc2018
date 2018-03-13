@@ -4,91 +4,9 @@
 #define BORDER 140
 #define MULTIPLICATION 1
 
-void dec_to_bin(char liczba)
-{
-  int i=31;
-  bool ok=false;
-  while(i--)
-  {
-    //warunek, który pozwoli ominąć początkowe zera
-    if(liczba>>i&1&!ok) 
-      ok=true;
- 
-    if(ok)
-      std::cout<<((liczba>>i)&1);
- 
-  }
-
-	std::cout << std::endl;
-}
-
 void LineDetector::applyBlur(cv::Mat &input, cv::Mat &output)
 {
     cv::GaussianBlur(input, output, cv::Size(3,3), 0, 0);
-}
-
-void LineDetector::applyBirdEye(cv::Mat &input, cv::Mat &output)
-{
-	resize(input, input, cv::Size(640, 380));
-
-	double focalLength, dist, alpha; 
-	int alpha_ = 20, f_ = 700, dist_ = 700;
-
-	alpha =((double)alpha_ -90) * CV_PI/180;
-	focalLength = (double)f_;
-	dist = (double)dist_;
-
-	cv::Size image_size = input.size();
-	double w = (double)image_size.width, h = (double)image_size.height;
-
-	// Projecion matrix 2D -> 3D
-	cv::Mat A1 = (cv::Mat_<float>(4, 3)<< 
-		1, 0, -w/2,
-		0, 1, -h/2,
-		0, 0, 0,
-		0, 0, 1 );
-	
-	// Rotation matrices Rx, Ry, Rz
-
-	cv::Mat RX = (cv::Mat_<float>(4, 4) << 
-		1, 0, 0, 0,
-		0, cos(alpha), -sin(alpha), 0,
-		0, sin(alpha), cos(alpha), 0,
-		0, 0, 0, 1 );
-/*
-		Mat RY = (Mat_<float>(4, 4) << 
-			cos(beta), 0, -sin(beta), 0,
-			0, 1, 0, 0,
-			sin(beta), 0, cos(beta), 0,
-			0, 0, 0, 1	);
-
-		Mat RZ = (Mat_<float>(4, 4) << 
-			cos(gamma), -sin(gamma), 0, 0,
-			sin(gamma), cos(gamma), 0, 0,
-			0, 0, 1, 0,
-			0, 0, 0, 1	);
-*/
-
-		// R - rotation matrix
-		cv::Mat R = RX; //* RY * RZ;
-
-		// T - translation matrix
-		cv::Mat T = (cv::Mat_<float>(4, 4) << 
-			1, 0, 0, 0,  
-			0, 1, 0, 0,  
-			0, 0, 1, dist,  
-			0, 0, 0, 1); 
-		
-		// K - intrinsic matrix 
-		cv::Mat K = (cv::Mat_<float>(3, 4) << 
-			focalLength, 0, w/2, 0,
-			0, focalLength, h/2, 0,
-			0, 0, 1, 0
-			); 
-
-		cv::Mat transformationMat = K * (T * (R * A1));
-
-		cv::warpPerspective(input, output, transformationMat, image_size, cv::INTER_CUBIC | cv::WARP_INVERSE_MAP);
 }
 
 void LineDetector::edgeDetect(cv::Mat &input, cv::Mat &output_thresh, cv::Mat &output_edges, int &threshold_value, int morph_size, int morph_elem)
@@ -115,21 +33,15 @@ void LineDetector::edgeDetect(cv::Mat &input, cv::Mat &output_thresh, cv::Mat &o
   kernel_h.at<float>(2, 0) = -1;
 
   cv::threshold(input, thresh, threshold_value, 255, cv::THRESH_BINARY);
+  
+  int operation = 3;
+  cv::Mat element = getStructuringElement( morph_elem, cv::Size( 2*morph_size + 1, 2*morph_size+1 ), cv::Point( morph_size, morph_size ) );
+  cv::morphologyEx(thresh, output_thresh, operation, element );
 
-//13.02.2018
-//================================================
-int operation = 3;
-
-
-cv::Mat element = getStructuringElement( morph_elem, cv::Size( 2*morph_size + 1, 2*morph_size+1 ), cv::Point( morph_size, morph_size ) );
-
-cv::morphologyEx(thresh, output_thresh, operation, element );
-
-//==================================================
   cv::filter2D(output_thresh, out_v, -1, kernel_v, anchor, 0, cv::BORDER_DEFAULT);
   cv::filter2D(output_thresh, out_h, -1, kernel_h, anchor, 0, cv::BORDER_DEFAULT);
 
-	output_edges = out_v;
+  output_edges = out_v;
 
   //cv::bitwise_or(out_v, out_h, output_edges);
   //cv::add(out_v, out_h, output_edges);
@@ -143,7 +55,6 @@ void LineDetector::applyMask(cv::Mat &input, cv::Mat &mask, cv::Mat &output)
 void LineDetector::detectLines(cv::Mat &input, int &P_min_votes, int &P_max_gap, int &P_min_len)
 {
     HoughLinesP(input, lines, 1, CV_PI/180, P_min_votes, P_min_len, P_max_gap);  
-	//Bylo: CV_PI/180*10
 }
 
 /*
@@ -260,36 +171,15 @@ void LineDetector::sort_lines(bool l_change)
 
     for(int i = 0; i < all_points.size(); i++)
     {
-		//prosty podzia na prawo i lewo:///////////////////////////////////
-		////////////////////////////////////////////////////////////////////
-		/*SPoint.coordinates.x = all_points[i].coordinates.x;
-		SPoint.coordinates.y = all_points[i].coordinates.y;
-        SPoint.slope = all_points[i].slope;
-
-		if (all_points[i].coordinates.x < last_bottom_middle_point.coordinates.x)
-			BL_points.push_back(SPoint);
-
-		if (all_points[i].coordinates.x > last_bottom_middle_point.coordinates.x)
-			BR_points.push_back(SPoint); */
-		///////////////////////////////////////////////////////////////////
-
-        //int v = sqrt(((all_points[i].coordinates.x)^2) + ((all_points[i].coordinates.y)^2));
-        //int w = sqrt(((all_points[i+1].coordinates.x)^2) + ((all_points[i+1].coordinates.y)^2));
-        //int scalar = (all_points[i].coordinates.x * all_points[i+1].coordinates.x) + (all_points[i].coordinates.y * 		  all_points[i+1].coordinates.y);
- 
         C.x = all_points[i].coordinates.x;
         C.y = all_points[i].coordinates.y;
 
     	int alfa = (Ax - Bx)*(C.y - By)-(Ay - By)*(C.x-Bx);
 
-       // float beta = scalar / (v * w);
-
         SPoint.coordinates = C;
         SPoint.slope = all_points[i].slope;
 
-if(true) // !(abs(SPoint.slope) < 0.15) || l_change
-{
-        if(alfa > 0 && C.y < BORDER){
+		if(alfa > 0 && C.y < BORDER){
             TL_points.push_back(SPoint);
         }
 
@@ -313,21 +203,10 @@ if(true) // !(abs(SPoint.slope) < 0.15) || l_change
         else if(alfa == 0){
             horizontal_points.push_back(SPoint);
         }
-}		
+		
 		float tolerance = 0.2;
         float parking_angle = 0.71;
         float cross_angle = 0;
-		
-		
-        //if((beta == parking_angle - tolerance) || (beta == parking_angle + tolerance))
-       // {
-           // parking_points++;
-        //}
-
-        //if((beta == cross_angle - tolerance) || (beta == cross_angle + tolerance))
-        //{
-            //cross_points++;
-        //}
     }
 
 	if(TL_points.size() > 3)
@@ -357,23 +236,6 @@ if(true) // !(abs(SPoint.slope) < 0.15) || l_change
 	std::cout << "BL: " << BL_sector << "  ";
 	std::cout << "BR: " << BR_sector << std::endl;
 	std::cout << "HR: " << Horizontal_lines << std::endl;
-
-	//std::cout << "near:" << near.coordinates.x << "::" << near.coordinates.y << std::endl;
-	
-	//last_top_middle_point.slope = average_slope(BR_points);
-	//last_top_middle_point.coordinates = cv::Point(average_pos(BR_points), 250);	
-
-	//std::cout << "1 slope:" << last_top_middle_point.slope << std::endl;
-	//std::cout << "1 coords:" << last_top_middle_point.coordinates << std::endl;
-
-	//last_bottom_middle_point.slope = average_slope(BL_points);
-	//last_bottom_middle_point.coordinates = cv::Point(average_pos(BL_points), 250);	
-
-	//std::cout << "2 slope:" << last_bottom_middle_point.slope  << std::endl;
-	//std::cout << "2 coords:" << last_bottom_middle_point.coordinates << std::endl;
-
-	//std::cout << "Bottom left:" << BL_points.size() << std::endl;
-	//std::cout << "Bottom right:" << BR_points.size() << std::endl;	
 }
 
 float LineDetector::average_slope(std::vector<Punkt> &punkty)
@@ -405,10 +267,6 @@ float LineDetector::average_slope(std::vector<Punkt> &punkty)
             average_slope_near = average_slope_dodatni/count_dodatnie;
         else
             average_slope_near = average_slope_ujemny/count_ujemne;
-
-        //std::cout << "Slope: " << average_slope_near << std::endl;
-        //std::cout << "Dodatnich: " << count_dodatnie << std::endl;
-        //std::cout << "Ujemnych: " << count_ujemne << std::endl;
     }
     else
     {
@@ -432,18 +290,9 @@ int LineDetector::average_pos(std::vector<Punkt> &punkty)
 
 void LineDetector::save_for_next_step()
 {
-	//calculate left line angle in degrees
-	//float left_angle;
-	
-	//calculate right line angle in degrees
-	//float right_angle;
-
-	//calculate average slope
 	float average_middle_slope;
 	float average_middle_angle; 
 
-//13.02.2018
-//===========================================================================
 if((!BL_sector) && (!BR_sector))
 {
 	new_pos_left = 100;
@@ -458,7 +307,7 @@ if((!BL_sector) && (!BR_sector))
 	right_ang_st = (atan(new_slope_right)/CV_PI) * 180;	
 	if(right_ang_st < 0)
 		right_ang_st += 180;
-}//===========================================================================
+}
 else
 {
 	//save all data
@@ -486,14 +335,14 @@ else
 			right_ang_st += 180;
 	}
 
-	//Uciekla z lewej
+	//Lost left line
 	if(!BL_sector && BR_sector)
 	{
 		new_pos_left = new_pos_right - width;
 	}
 	else
 	{
-		//Uciekla z prawej
+		//Lost right line
 		if(BL_sector && !BR_sector)
 		{
 			new_pos_right = new_pos_left + width;
@@ -504,7 +353,6 @@ else
 
 	average_middle_angle = (left_ang_st+right_ang_st) / 2;
 	
-	//if(!BL_sector || !BR_sector)
 	average_middle_slope = tan((average_middle_angle / 180) * CV_PI);
 
 	last_bottom_middle_point.coordinates = cv::Point(new_middle, 300);
@@ -531,12 +379,6 @@ else
 	}
 	
 	std::cout << "Width: " << width << std::endl;
-
-
-	/*if(BL_sector = false || BR_sector = false)
-	{
-		last_bottom_middle = last_bottom_middle + (width / 2);
-	}*/
 }
 
 void LineDetector::send_data_to_main(int &detected_middle_pos_near, int &left_lane_angle_st, int &right_lane_angle_st, char &flags_to_UART)
@@ -552,26 +394,21 @@ flags_to_UART &= ~(1<<1);
 		flags_to_UART |= (1<<7);
 	else
 		flags_to_UART &= ~(1<<7);
-		//flags_to_UART &= 0b01111111;
 
 	if(BR_sector)
 		flags_to_UART |= (1<<6);
 	else
 		flags_to_UART &= ~(1<<6);
-		//flags_to_UART &= 0b10111111;
 
 	if(Parking_line)
 		flags_to_UART |= (1<<5);
 	else
 		flags_to_UART &= ~(1<<5);
-		//flags_to_UART &= 0b11011111;
 
 	if(Cross_line)
 		flags_to_UART |= (1<<4);
 	else
 		flags_to_UART &= ~(1<<4);
-		//flags_to_UART &= 0b11101111;
-
 
 	std::cout << flags_to_UART << std::endl;
 
@@ -660,127 +497,8 @@ void LineDetector::cancel_offset(int &UART_offset, bool &check_for_offset)
 			}
 		}
 	}
-
-/*
-	if(current_lane)
-	{
-		if(first_step)
-		{
-			if(emergency_counter > 15)
-			{
-				first_step = false;
-				second_step = false;
-				check_for_offset = false;
-				UART_offset = 0;
-			}
-			else
-			{
-				emergency_counter++;			
-			}
-			
-			if(!BL_sector)
-			{
-				if(offset_counter_1 >= 2)
-				{
-					first_step = false;
-					second_step = true;
-					offset_counter_2 = 0;
-				}
-				else
-				{
-					offset_counter_1++;
-				}			
-			}
-			else
-			{
-				offset_counter_1--;
-			}
-		}
-
-		if(second_step)
-		{
-			if(BL_sector)
-			{
-				if(offset_counter_2 >= 4)
-				{
-					first_step = false;
-					second_step = false;
-					check_for_offset = false;
-					UART_offset = 0;
-				}
-				else
-				{
-					offset_counter_2++;
-				}			
-			}
-			else
-			{
-				offset_counter_2--;
-			}
-		}
-	}
-	else
-	{
-		if(first_step)
-		{
-			if(emergency_counter > 15)
-			{
-				first_step = false;
-				second_step = false;
-				check_for_offset = false;
-				UART_offset = 0;
-			}
-			else
-			{
-				emergency_counter++;			
-			}
-
-			if(!BR_sector)
-			{
-				if(offset_counter_1 >= 2)
-				{
-					first_step = false;
-					second_step = true;
-					offset_counter_2 = 0;
-				}
-				else
-				{
-					offset_counter_1++;
-				}			
-			}
-			else
-			{
-				offset_counter_1 = 0;
-			}
-		}
-
-		if(second_step)
-		{
-			if(BR_sector)
-			{
-				if(offset_counter_2 >= 4)
-				{
-					first_step = false;
-					second_step = false;
-					check_for_offset = false;
-					UART_offset = 0;
-				}
-				else
-				{
-					offset_counter_2++;
-				}			
-			}
-			else
-			{
-				offset_counter_2 = 0;
-			}
-		}
-	}
-*/
 }
 
-
-//
 void LineDetector::change_lane(int &UART_offset, bool &check_for_offset)
 {
 	if(current_lane)
@@ -943,9 +661,3 @@ void LineDetector::display_last_middle()
 {
 	std::cout << "LAST MIDDLE: " << last_bottom_middle_point.coordinates.x << std::endl;
 }
-
-/*void LineDetector::quick_sort(vector<Punkt> points)
-{
-
-} */
-
