@@ -9,9 +9,6 @@ Computer Vision application designed to run on NVidia Jetson / Odroid platform.
 ### stm32-atollic
 Vehicle controller based on FreeRTOS. Project for STM32F7 (AnyFC F7 board)
 
-### android-app (under development / suspended)
-Application for Android System to handle vehicle parameters via Bluetooth
-
 ## How to contribute
 
 1. Fork this repo to your account.
