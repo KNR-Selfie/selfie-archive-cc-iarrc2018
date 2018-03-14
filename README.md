@@ -5,7 +5,10 @@
 This file contains only basic informations, more details will hopefully occur as Wiki in finite time :)
 
 ## Version 1.0 - *Selfie*
-Software released as [version 1.0](https://github.com/perciax/Selfie-autonomous-car/tree/1.0) in first ready-to-go robot *Selfie*. It was prepared specifically for [Carolo-Cup 2018](https://wiki.ifr.ing.tu-bs.de/carolocup/) competition. It is fullfilling all the competition requirements, so basically it is able to perform:
+
+<img align="right" height="300" src="https://user-images.githubusercontent.com/16399071/37375786-96f3a8d6-2721-11e8-87de-6ebe179637dd.JPG">
+
+Software released as [version 1.0](https://github.com/perciax/Selfie-autonomous-car/tree/v1.0) in first ready-to-go robot *Selfie*. It was prepared specifically for [Carolo-Cup 2018](https://wiki.ifr.ing.tu-bs.de/carolocup/) competition. It is fullfilling all the competition requirements, so basically it is able to perform:
 - road lane tracking, 
 - collision avoiding,
 - overtaking maneuver
