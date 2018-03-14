@@ -2,10 +2,10 @@
 
 *Selfie* is the student project of autonomous cars. Vehicles based on 1:10 scale RC cars are customized to be able to operate autonomously in simulated road environments. They are equipped with camera, computer vision computing unit, controller and set of sensors like magnetic encoders, distance sensors and IMU.
 
-This file contains only basic informations, more details will hopefully occur as Wiki finite time :)
+This file contains only basic informations, more details will hopefully occur as Wiki in finite time :)
 
 ## Version 1.0 - *Selfie*
-Software released as [version 1.0](https://github.com/perciax/Selfie-autonomous-car/tree/1.0) in first ready-to-go robot *Selfie*. It was prepared specifically for [Carolo-Cup 2018](https://wiki.ifr.ing.tu-bs.de/carolocup/) competition. It is fullfilling all the competition requirements, so basically it able to perform:
+Software released as [version 1.0](https://github.com/perciax/Selfie-autonomous-car/tree/1.0) in first ready-to-go robot *Selfie*. It was prepared specifically for [Carolo-Cup 2018](https://wiki.ifr.ing.tu-bs.de/carolocup/) competition. It is fullfilling all the competition requirements, so basically it is able to perform:
 - road lane tracking, 
 - collision avoiding,
 - overtaking maneuver
