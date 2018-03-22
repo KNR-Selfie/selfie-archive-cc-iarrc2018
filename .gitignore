@@ -12,6 +12,7 @@ target/
 
 # OpenCV
 build/
+*.pro.user
 *.md~
 *.cpp~
 *.h~
