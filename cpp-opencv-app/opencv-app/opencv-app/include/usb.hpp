@@ -30,4 +30,5 @@ class USB
 public:
     USB();
     int init(int speed = B115200);
+    bool send_data(data_container &to_send);
 };

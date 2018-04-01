@@ -81,3 +81,22 @@ int USB::init(int speed)
     }
     return 1;
 }
+
+bool USB::send_data(data_container &to_send)
+{
+    write(fd, &to_send.start, 1);
+    write(fd, &to_send.code, 1);
+    write(fd, &to_send.length, 1);
+
+    for(int i = 0; i < to_send.length; i++)
+    {
+        if(write(fd, &to_send.data[i], 1) < 0)
+            return 0;
+    }
+
+    write(fd, &to_send.length, 1);
+    write(fd, &to_send.code, 1);
+    write(fd, &to_send.stop, 1);
+
+    return 1;
+}
