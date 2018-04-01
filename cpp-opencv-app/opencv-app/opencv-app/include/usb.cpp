@@ -4,6 +4,20 @@ USB::USB()
 {
     std::string name = "/dev/ttyUSB0";
     strcpy(&portname[0], name.c_str());
+
+    // Codes table
+    to_send_left_line_visible.code = 0x64;
+    to_send_right_line_visible.code = 0x65;
+    to_send_horizontal_pos.code = 0x66;
+    to_send_left_angle.code = 0x67;
+    to_send_right_angle.code = 0x68;
+
+    // Length table
+    to_send_left_line_visible.length = 1;
+    to_send_right_line_visible.length = 1;
+    to_send_horizontal_pos.length = 4;
+    to_send_left_angle.length = 4;
+    to_send_right_angle.length = 4;
 }
 
 int USB::init(int speed)
@@ -32,7 +46,8 @@ int USB::init(int speed)
 
     // Get attributes of transmission
     struct termios tty;
-    if (tcgetattr(fd, &tty) < 0) {
+    if (tcgetattr(fd, &tty) < 0)
+    {
         std::cout << "Error while getting attributes!" << std::endl;
         return -2;
     }
