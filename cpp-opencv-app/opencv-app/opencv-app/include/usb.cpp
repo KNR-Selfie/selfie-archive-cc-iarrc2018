@@ -44,7 +44,8 @@ int USB::init(int speed)
     tty.c_cflag |= (CLOCAL | CREAD);    // program will not become owner of port
     tty.c_cflag &= ~CSIZE;              // bit mask for data bits
     tty.c_cflag |= CS8;                 // 8 bit data lenght
-    tty.c_cflag &= ~PARENB;             // no parity
+    tty.c_cflag |= PARENB;              // enable parity
+    tty.c_cflag &= ~PARODD;             // even parity
     tty.c_cflag &= ~CSTOPB;             // 1 stop bit
     tty.c_cflag &= ~CRTSCTS;            // no hardware flowcontrol
 
