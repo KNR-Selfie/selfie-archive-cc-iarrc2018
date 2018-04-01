@@ -73,6 +73,9 @@ int USB::init(int speed)
     tty.c_cc[VMIN] = 1;
     tty.c_cc[VTIME] = 1;
 
+    // set to non blocking mode
+    fcntl(fd, F_SETFL, FNDELAY);
+
     // Set new parameters of transmission
     if (tcsetattr(fd, TCSANOW, &tty) != 0)
     {
@@ -82,21 +85,44 @@ int USB::init(int speed)
     return 1;
 }
 
-bool USB::send_data(data_container &to_send)
+bool USB::send_one_chunk(data_container &to_send)
 {
-    write(fd, &to_send.start, 1);
-    write(fd, &to_send.code, 1);
-    write(fd, &to_send.length, 1);
+    int check = 0;
+
+    check += write(fd, &to_send.start, 1);
+    check += write(fd, &to_send.code, 1);
+    check += write(fd, &to_send.length, 1);
 
     for(int i = 0; i < to_send.length; i++)
-    {
-        if(write(fd, &to_send.data[i], 1) < 0)
-            return 0;
-    }
+        check += write(fd, &to_send.data[i], 1);
 
-    write(fd, &to_send.length, 1);
-    write(fd, &to_send.code, 1);
-    write(fd, &to_send.stop, 1);
+    check += write(fd, &to_send.length, 1);
+    check += write(fd, &to_send.code, 1);
+    check += write(fd, &to_send.stop, 1);
 
-    return 1;
+    if(check != 6 + to_send.length)
+        return 0;
+    else
+        return 1;
+}
+
+bool USB::read_one_chunk()
+{
+    int check = 0;
+
+    check += read(fd, &incoming_data.start, 1);
+    check += read(fd, &incoming_data.code, 1);
+    check += read(fd, &incoming_data.length, 1);
+
+    for(int i = 0; i < incoming_data.length; i++)
+        check += read(fd, &incoming_data.data[i], 1);
+
+    check += read(fd, &incoming_data.length, 1);
+    check += read(fd, &incoming_data.code, 1);
+    check += read(fd, &incoming_data.stop, 1);
+
+    if(check != 6 + incoming_data.length)
+        return 0;
+    else
+        return 1;
 }

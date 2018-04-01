@@ -21,6 +21,8 @@ class USB
     int fd;
     char portname[13] = "/dev/ttyUSB0";
 
+    data_container incoming_data;
+
     data_container to_send_left_line_visible;
     data_container to_send_right_line_visible;
     data_container to_send_horizontal_pos;
@@ -30,5 +32,6 @@ class USB
 public:
     USB();
     int init(int speed = B115200);
-    bool send_data(data_container &to_send);
+    bool send_one_chunk(data_container &to_send);
+    bool read_one_chunk();
 };
