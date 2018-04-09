@@ -7,6 +7,11 @@
 
 #include <include/usb.hpp>
 
+// Race mode ---> fps boost
+// Debug mode --> display data
+#define RACE_MODE
+//#define DEBUG_MODE
+
 #define CAMERA_INDEX 0
 #define CAM_RES_X 640
 #define CAM_RES_Y 360
@@ -19,7 +24,7 @@ int main()
 {
     // Declaration of cv::MAT variables
     cv::Mat frame(CAM_RES_Y, CAM_RES_X, CV_8UC4);
-
+/*
     // STM communication init
     if(Usb_STM.init(B1152000) < 0)
     {
@@ -33,7 +38,7 @@ int main()
         std::cout << "Closing app!" << std::endl;
         return -1;
     }
-
+*/
     // Camera init
     cv::VideoCapture camera;
     camera.open(CAMERA_INDEX, cv::CAP_V4L2);
@@ -76,6 +81,7 @@ int main()
         // Get new frame from camera
         camera >> frame;
 
+#ifdef DEBUG_MODE
         // Display info on screen
         cv::imshow("Camera", frame);
 
@@ -100,6 +106,8 @@ int main()
 
             break;
         }
+#endif
+
     }
 
     return 0;
