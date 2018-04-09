@@ -9,8 +9,8 @@
 
 // Race mode ---> fps boost
 // Debug mode --> display data
-#define RACE_MODE
-//#define DEBUG_MODE
+//#define RACE_MODE
+#define DEBUG_MODE
 
 #define CAMERA_INDEX 0
 #define CAM_RES_X 640
@@ -22,9 +22,17 @@ USB Usb_LIDAR;
 
 int main()
 {
+#ifdef DEBUG_MODE
+    //FPS
+    struct timespec start, end;
+    unsigned short licznik_czas = 0;
+    float seconds = 0;
+    float fps = 0;
+#endif
+
     // Declaration of cv::MAT variables
     cv::Mat frame(CAM_RES_Y, CAM_RES_X, CV_8UC4);
-/*
+
     // STM communication init
     if(Usb_STM.init(B1152000) < 0)
     {
@@ -38,7 +46,7 @@ int main()
         std::cout << "Closing app!" << std::endl;
         return -1;
     }
-*/
+
     // Camera init
     cv::VideoCapture camera;
     camera.open(CAMERA_INDEX, cv::CAP_V4L2);
@@ -78,6 +86,15 @@ int main()
 
     while(true)
     {
+#ifdef DEBUG_MODE
+        //FPS
+        if(licznik_czas == 0)
+        {
+            clock_gettime(CLOCK_MONOTONIC, &start);
+        }
+        //FPS
+#endif
+
         // Get new frame from camera
         camera >> frame;
 
@@ -105,6 +122,19 @@ int main()
         default:
 
             break;
+        }
+
+        if(licznik_czas > 100)
+        {
+            licznik_czas = 0;
+            clock_gettime(CLOCK_MONOTONIC, &end);
+            seconds = (end.tv_sec - start.tv_sec);
+            fps  =  1 / (seconds / 100);
+            std::cout << "FPS: " << fps << std::endl;
+        }
+        else
+        {
+            licznik_czas++;
         }
 #endif
 
