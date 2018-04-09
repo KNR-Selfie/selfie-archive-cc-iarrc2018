@@ -57,6 +57,19 @@ int main()
         camera.set(cv::CAP_PROP_CONVERT_RGB, true);
         std::cout << "RGB: " << camera.get(cv::CAP_PROP_CONVERT_RGB) << std::endl;
     }
+/*
+    //Read from file
+    cv::Mat frame_gray(CAM_RES_Y, CAM_RES_X, CV_8UC1);
+    frame_gray = cv::imread("../../data/SELFIE-example-img-prosto.png", CV_LOAD_IMAGE_GRAYSCALE);
+
+    if(!frame_gray.data)
+    {
+        std::cout << "No data!" << std::endl
+                  << "Closing app!" << std::endl;
+
+        return 0;
+    }
+*/
 
     while(true)
     {
