@@ -4,6 +4,7 @@
 #include <mutex>
 
 #include <include/usb.hpp>
+#include <include/sharedmemory.hpp>
 #include <include/lanedetector.hpp>
 
 // Race mode ---> fps boost
