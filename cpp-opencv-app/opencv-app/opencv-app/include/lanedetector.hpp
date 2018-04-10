@@ -11,5 +11,5 @@ public:
     void colorTransform();
     void edgeDetect();
     void detectLine(cv::Mat &input, std::vector<std::vector<cv::Point>> &output);
-    void drawData();
+    void drawData(cv::Mat &frame, std::vector<std::vector<cv::Point>> &data_points);
 };
