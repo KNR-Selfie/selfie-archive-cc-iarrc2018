@@ -6,6 +6,7 @@
 #include "opencv2/imgproc/imgproc.hpp"
 
 #include <include/usb.hpp>
+#include <include/lanedetector.hpp>
 
 // Race mode ---> fps boost
 // Debug mode --> display data
