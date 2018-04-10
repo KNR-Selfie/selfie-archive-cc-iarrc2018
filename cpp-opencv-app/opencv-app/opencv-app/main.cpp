@@ -1,6 +1,7 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include <mutex>
 
 #include <include/usb.hpp>
 #include <include/lanedetector.hpp>
@@ -15,9 +16,17 @@
 #define CAM_RES_Y 360
 #define FRAME_TIME 30
 
+// Handlers for custom classes
 USB Usb_STM;
 USB Usb_LIDAR;
 LaneDetector laneDetector;
+
+// Variables for communication between threads
+bool close_app = false;
+std::mutex mu;
+
+// Function declarations
+void read_from_STM_thread(USB &STM);
 
 int main()
 {
@@ -31,7 +40,7 @@ int main()
 
     // Declaration of cv::MAT variables
     cv::Mat frame(CAM_RES_Y, CAM_RES_X, CV_8UC4);
-
+/*
     // STM communication init
     if(Usb_STM.init(B1152000) < 0)
     {
@@ -45,7 +54,7 @@ int main()
         std::cout << "Closing app!" << std::endl;
         return -1;
     }
-
+*/
     // Camera init
     cv::VideoCapture camera;
     camera.open(CAMERA_INDEX, cv::CAP_V4L2);
@@ -82,6 +91,8 @@ int main()
         return 0;
     }
 */
+    // Start threads
+    std::thread USB_STM_in_thread(read_from_STM_thread, std::ref(Usb_STM));
 
     while(true)
     {
@@ -150,5 +161,30 @@ int main()
 
     }
 
+    close_app = true;
+    USB_STM_in_thread.join();
+    std::cout << "KK skończyłęm!" << std::endl;
     return 0;
+}
+
+void read_from_STM_thread(USB &STM)
+{
+    while(!close_app)
+    {
+        // Read new data if available
+        if(STM.read_one_chunk())
+        {
+            // Process data
+
+            //Save new data
+            std::unique_lock<std::mutex> locker(mu);
+
+            locker.unlock();
+        }
+        else
+        {
+            // Wait 5ms
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        }
+    }
 }

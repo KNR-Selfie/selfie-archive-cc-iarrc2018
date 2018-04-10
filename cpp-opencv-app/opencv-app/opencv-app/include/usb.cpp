@@ -74,7 +74,9 @@ int USB::init(int speed)
     tty.c_cc[VTIME] = 1;
 
     // set to non blocking mode
-    fcntl(fd, F_SETFL, FNDELAY);
+    //fcntl(fd, F_SETFL, FNDELAY);
+    int flags = fcntl(fd, F_GETFL, 0);
+    fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 
     // Set new parameters of transmission
     if (tcsetattr(fd, TCSANOW, &tty) != 0)
