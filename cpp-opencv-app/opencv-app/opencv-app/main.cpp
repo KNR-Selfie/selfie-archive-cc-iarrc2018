@@ -20,6 +20,7 @@
 
 USB Usb_STM;
 USB Usb_LIDAR;
+LaneDetector laneDetector;
 
 int main()
 {
