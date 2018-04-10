@@ -20,6 +20,6 @@ public:
     bool init();
     bool get_access();
     void push_data();
-    unsigned short pull_data();
+    void pull_data();
     void close();
 };

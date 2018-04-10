@@ -50,12 +50,12 @@ void SharedMemory::push_data()
 
 }
 
-unsigned short SharedMemory::pull_data()
+void SharedMemory::pull_data()
 {
-    return 0;
+
 }
 
 void SharedMemory::close()
 {
-
+    system("ipcrm -M 55555");
 }
