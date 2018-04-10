@@ -10,6 +10,16 @@
 
 class SharedMemory
 {
+    int mem_id;
+    key_t  key = 55555;
+    char *shared_variable;
+    char *end_of_variable;
+
 public:
     SharedMemory();
+    bool init();
+    bool get_access();
+    void push_data();
+    unsigned short pull_data();
+    void close();
 };
