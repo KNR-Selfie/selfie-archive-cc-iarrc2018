@@ -7,7 +7,7 @@ class LaneDetector
 {
 public:
     LaneDetector();
-    void applyBlur();
+    void applyBlur(cv::Mat &input, cv::Mat &output);
     void colorTransform();
     void edgeDetect();
     void detectLine(cv::Mat &input, std::vector<std::vector<cv::Point>> &output);

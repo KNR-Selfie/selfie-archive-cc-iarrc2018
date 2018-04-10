@@ -5,9 +5,9 @@ LaneDetector::LaneDetector()
 
 }
 
-void LaneDetector::applyBlur()
+void LaneDetector::applyBlur(cv::Mat &input, cv::Mat &output)
 {
-
+    cv::GaussianBlur(input, output, cv::Size(3,3), 0, 0);
 }
 
 void LaneDetector::colorTransform()
