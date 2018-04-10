@@ -96,7 +96,18 @@ int main()
 
         // Get new frame from camera
         camera >> frame;
+/*
+        // Process frame
+        laneDetector.applyBlur();
+        laneDetector.colorTransform();
+        laneDetector.edgeDetect();
 
+        laneDetector.detectLine();
+        laneDetector.detectLine();
+
+        laneDetector.drawData();
+        laneDetector.drawData();
+*/
 #ifdef DEBUG_MODE
         // Display info on screen
         cv::imshow("Camera", frame);
