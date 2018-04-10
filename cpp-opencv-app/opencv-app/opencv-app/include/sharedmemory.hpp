@@ -11,7 +11,7 @@
 class SharedMemory
 {
     int mem_id;
-    key_t  key = 55555;
+    key_t  key;
     char *shared_variable;
     char *end_of_variable;
 
