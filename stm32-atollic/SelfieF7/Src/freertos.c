@@ -57,20 +57,16 @@
 #include "Battery.h"
 #include "Czujniki.h"
 #include "BT.h"
+#include "USBTask.h"
+
 #include "main.h"
 #include "gpio.h"
 
-#include "usbd_cdc_if.h"
+
 
 #include "Steering.h"
-extern USBD_HandleTypeDef hUsbDeviceFS;
-uint8_t usbTxBuffer[256];
-uint32_t len;
-uint8_t able_to_receive = 0;
 
-extern float set_spd;
-extern float actualSpeed;
-extern float pid_speed;
+
 /* USER CODE END Includes */
 
 /* Variables -----------------------------------------------------------------*/
@@ -83,6 +79,7 @@ osThreadId CzujnikiTaskHandle;
 osThreadId BTTaskHandle;
 osThreadId FutabaTaskHandle;
 osThreadId GovernorTaskHandle;
+osThreadId USBTaskHandle;
 
 /* USER CODE BEGIN Variables */
 osThreadId blinkTID;
@@ -90,6 +87,7 @@ osThreadId driveControlTID;
 osThreadId engineTID;
 osThreadId servoTID;
 osThreadId SDcardTID;
+osThreadId USBTID;
 /* USER CODE END Variables */
 
 /* Function prototypes -------------------------------------------------------*/
@@ -102,8 +100,8 @@ extern void StartCzujnikiTask(void const * argument);
 extern void StartBTTask(void const * argument);
 extern void StartFutabaTask(void const * argument);
 extern void StartGovernorTask(void const * argument);
+extern void StartUSBTask(void const * argument);
 
-extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /* USER CODE BEGIN FunctionPrototypes */
@@ -186,6 +184,9 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(GovernorTask, StartGovernorTask, osPriorityHigh, 0, 256);
   GovernorTaskHandle = osThreadCreate(osThread(GovernorTask), NULL);
 
+  osThreadDef(USBTask, StartUSBTask, osPriorityHigh, 0, 512);
+  USBTaskHandle = osThreadCreate(osThread(USBTask), NULL);
+
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
 //    osThreadDef(blink, blinkThread, osPriorityLow, 0, 128);
@@ -200,63 +201,17 @@ void MX_FREERTOS_Init(void) {
 /* StartDefaultTask function */
 void StartDefaultTask(void const * argument)
 {
-  /* init code for USB_DEVICE */
-  MX_USB_DEVICE_Init();
 
   /* USER CODE BEGIN StartDefaultTask */
 	/* Infinite loop */
 	for (;;) {
-		if (hUsbDeviceFS.dev_state == USBD_STATE_CONFIGURED) {
-
-			static uint16_t cnt00 = 0;
-			if (cnt00++ > 9) {
-				HAL_GPIO_TogglePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin);
-				cnt00 = 0;
-			}
-
-		}
-		osDelay(10);
+		osDelay(1000);
 	}
   /* USER CODE END StartDefaultTask */
 }
 
 /* USER CODE BEGIN Application */
-int8_t MAIN_USB_Receive(uint8_t* Buf, uint32_t *Len) {
-	if (Buf[0] == 'B')
-		machine_bootloader();
-	else if (Buf[0] == 'a') {
-		len = sprintf((char*) usbTxBuffer,
-				"YawRate\t\t= %.5f deg/s\r\nCumulativeYaw\t= %.5f deg\r\n\r\n",
-				YawRate, CumulativeYaw);
-		CDC_Transmit_FS(usbTxBuffer, len);
-	} else if (Buf[0] == 'b') {
-		len = sprintf((char*) usbTxBuffer,
-				"GyroTemp\t= %.2f degC\r\n\r\n",
-				temperature);
-		CDC_Transmit_FS(usbTxBuffer, len);
-	} else if (Buf[0] == 'c') {
-		len = sprintf((char*) usbTxBuffer,
-				"Voltage\t\t= %.2f Volts\r\nCurrent\t= %.2f Amps\r\nFuel\t= %.1f mAh\r\n\r\n",
-				Volts_f, Amps_f, mAhs_drawn);
-		CDC_Transmit_FS(usbTxBuffer, len);
-	} else if (Buf[0] == 'e') {
-		len =
-				sprintf((char*) usbTxBuffer,
-						"vleft = %d \r\nvright = %d \r\nvfwd = %d \r\ndistleft = %.1f \r\ndistright = %.1f\r\nfwdDist = %.1f \r\n\r\n",
-						vleft, vright, vfwd, leftRoad, rightRoad, fwdRoad);
-		CDC_Transmit_FS(usbTxBuffer, len);
-	} else if (Buf[0] == 'v') {
-		len = 0;
-		for (int sensor = 0; sensor < VLX_SENSOR_COUNT; sensor++)
-			len += sprintf((char*) usbTxBuffer + len, "vlx[%d] = %d\r\n",
-					sensor+1, range[sensor]);
-		len += sprintf((char*)usbTxBuffer + len, "\r\n");
 
-		CDC_Transmit_FS(usbTxBuffer, len);
-	} else if (Buf[0] == 'R')
-		NVIC_SystemReset();
-	return 0;
-}
 /* USER CODE END Application */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
