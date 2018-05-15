@@ -3,59 +3,56 @@
 #include <chrono>
 #include <mutex>
 
-#include <include/usb.hpp>
 #include <include/sharedmemory.hpp>
+#include <include/lidar.hpp>
 #include <include/lanedetector.hpp>
 
 // Race mode ---> fps boost
 // Debug mode --> display data
 //#define RACE_MODE
 #define DEBUG_MODE
+#//define NO_USB
 
 #define CAMERA_INDEX 0
 #define CAM_RES_X 640
-#define CAM_RES_Y 360
+#define CAM_RES_Y 480
 #define FRAME_TIME 30
 
 // Handlers for custom classes
-USB Usb_STM;
-USB Usb_LIDAR;
 LaneDetector laneDetector;
+Lidar lidar;
+SharedMemory shm_lidar_data(50001);
+SharedMemory shm_lane_points(50002);
+SharedMemory shm_usb_to_send(50003);
+SharedMemory shm_watchdog(50004);
 
 // Variables for communication between threads
 bool close_app = false;
 std::mutex mu;
 
 // Function declarations
-void read_from_STM_thread(USB &STM);
+
 
 int main()
 {
 #ifdef DEBUG_MODE
     //FPS
     struct timespec start, end;
-    unsigned short licznik_czas = 0;
+    unsigned int licznik_czas = 0;
     float seconds = 0;
     float fps = 0;
 #endif
 
     // Declaration of cv::MAT variables
     cv::Mat frame(CAM_RES_Y, CAM_RES_X, CV_8UC4);
-/*
-    // STM communication init
-    if(Usb_STM.init(B1152000) < 0)
-    {
-        std::cout << "Closing app!" << std::endl;
-        return -1;
-    }
+    cv::Mat bird_eye_frame;
+    cv::Mat vector_frame;
+    cv::Mat undist_frame, cameraMatrix, distCoeffs;
+    cv::Mat frame_out_yellow, frame_out_white, frame_out_edge_yellow, frame_out_edge_white;
 
-    // Lidar communication init
-    if(Usb_LIDAR.init(B115200) < 0)
-    {
-        std::cout << "Closing app!" << std::endl;
-        return -1;
-    }
-*/
+    // Declaration of std::vector variables
+    std::vector<std::vector<cv::Point>> vector;
+
     // Camera init
     cv::VideoCapture camera;
     camera.open(CAMERA_INDEX, cv::CAP_V4L2);
@@ -79,6 +76,26 @@ int main()
         camera.set(cv::CAP_PROP_CONVERT_RGB, true);
         std::cout << "RGB: " << camera.get(cv::CAP_PROP_CONVERT_RGB) << std::endl;
     }
+
+    //Read XML file
+    laneDetector.UndistXML(cameraMatrix, distCoeffs);
+    laneDetector.CreateTrackbars();
+
+#ifndef NO_USB
+    // Lidar communication init
+    lidar.init();
+    lidar.allocate_memory();
+    lidar.calculate_offset();
+#endif
+
+    // Shared Memory init
+    shm_lidar_data.init();
+    shm_lane_points.init();
+    shm_usb_to_send.init();
+    shm_watchdog.init();
+
+    //Trackbars
+
 /*
     //Read from file
     cv::Mat frame_gray(CAM_RES_Y, CAM_RES_X, CV_8UC1);
@@ -92,9 +109,8 @@ int main()
         return 0;
     }
 */
-    // Start threads
-    std::thread USB_STM_in_thread(read_from_STM_thread, std::ref(Usb_STM));
 
+    // Main loop
     while(true)
     {
 #ifdef DEBUG_MODE
@@ -108,21 +124,33 @@ int main()
 
         // Get new frame from camera
         camera >> frame;
-/*
+
         // Process frame
-        laneDetector.applyBlur();
-        laneDetector.colorTransform();
-        laneDetector.edgeDetect();
+        laneDetector.Undist(frame, undist_frame, cameraMatrix, distCoeffs);
+        laneDetector.Hsv(undist_frame, frame_out_yellow, frame_out_white, frame_out_edge_yellow, frame_out_edge_white);
+        //laneDetector.applyBlur();
+        laneDetector.BirdEye(frame_out_edge_yellow, bird_eye_frame);
+        cv::cvtColor(bird_eye_frame, bird_eye_frame, cv::COLOR_RGB2GRAY);
+        cv::threshold(bird_eye_frame,bird_eye_frame, 1, 255, 1);
+        //laneDetector.colorTransform();
+        //laneDetector.edgeDetect();
 
-        laneDetector.detectLine();
-        laneDetector.detectLine();
+    //    laneDetector.detectLine(bird_eye_frame, vector);
+        //laneDetector.detectLine();
+    //    laneDetector.drawData(bird_eye_frame, vector);
+        //laneDetector.drawData();
 
-        laneDetector.drawData();
-        laneDetector.drawData();
-*/
+        shm_lane_points.push_data(vector);
+
 #ifdef DEBUG_MODE
         // Display info on screen
-        cv::imshow("Camera", frame);
+        //cv::imshow("Camera", frame);
+        //cv::imshow("UndsCamera", undist_frame);
+        cv::imshow("Frame", frame);
+        cv::imshow("Yellow Line", frame_out_yellow);
+        cv::imshow("Yellow Edges", frame_out_edge_yellow);
+        cv::imshow("BirdEye", bird_eye_frame);
+
 
         // Get input from user
         char keypressed = (char)cv::waitKey(FRAME_TIME);
@@ -134,9 +162,31 @@ int main()
         switch(keypressed)
         {
         case '1':
+        {
+            cv::Mat LIDAR_data = cv::Mat(FRAME_X, FRAME_Y, CV_8UC3);
+
+            while(true)
+            {
+                lidar.read_new_data();
+                lidar.polar_to_cartesian();
+                lidar.draw_data(LIDAR_data);
+
+                // Show data in window
+                cv::imshow("LIDAR", LIDAR_data);
+                // Clear window for next frame data
+                LIDAR_data = cv::Mat::zeros(FRAME_X, FRAME_Y, CV_8UC3);
+
+                // Get input from user
+                char keypressed_1 = (char)cv::waitKey(100);
+
+                // Process given input
+                if( keypressed_1 == 27 )
+                    break;
+            }
+
 
             break;
-
+        }
         case '2':
 
             break;
@@ -146,12 +196,12 @@ int main()
             break;
         }
 
-        if(licznik_czas > 100)
+        if(licznik_czas > 1000)
         {
             licznik_czas = 0;
             clock_gettime(CLOCK_MONOTONIC, &end);
             seconds = (end.tv_sec - start.tv_sec);
-            fps  =  1 / (seconds / 100);
+            fps  =  1 / (seconds / 1000);
             std::cout << "FPS: " << fps << std::endl;
         }
         else
@@ -163,29 +213,13 @@ int main()
     }
 
     close_app = true;
-    USB_STM_in_thread.join();
-    std::cout << "KK skończyłęm!" << std::endl;
+
+    camera.release();
+
+    shm_lidar_data.close();
+    shm_lane_points.close();
+    shm_usb_to_send.close();
+    shm_watchdog.close();
+
     return 0;
-}
-
-void read_from_STM_thread(USB &STM)
-{
-    while(!close_app)
-    {
-        // Read new data if available
-        if(STM.read_one_chunk())
-        {
-            // Process data
-
-            //Save new data
-            std::unique_lock<std::mutex> locker(mu);
-
-            locker.unlock();
-        }
-        else
-        {
-            // Wait 5ms
-            std::this_thread::sleep_for(std::chrono::milliseconds(5));
-        }
-    }
 }
