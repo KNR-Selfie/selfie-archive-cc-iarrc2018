@@ -209,9 +209,10 @@ void LaneDetector::Hsv(cv::Mat frame_in, cv::Mat &yellow_frame_out, cv::Mat &whi
         white_canny = whi_Line_frame;
 }
 
-void LaneDetector::colorTransform()
+void LaneDetector::colorTransform(cv::Mat &input, cv::Mat &output)
 {
-
+    cv::cvtColor(input, input, cv::COLOR_RGB2GRAY);
+    cv::threshold(input, output, 1, 255, 1);
 }
 
 void LaneDetector::edgeDetect()

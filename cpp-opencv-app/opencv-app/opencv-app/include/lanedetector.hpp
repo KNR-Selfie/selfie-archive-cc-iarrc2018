@@ -20,7 +20,7 @@ public:
     void BirdEye(cv::Mat frame_in, cv::Mat &frame_out);
     void UndistXML(cv::Mat &cameraMatrix, cv::Mat &distCoeffs);
     void Undist(cv::Mat frame_in, cv::Mat &frame_out, cv::Mat cameraMatrix, cv::Mat distCoeffs);
-    void colorTransform();
+    void colorTransform(cv::Mat &input, cv::Mat &output);
     void edgeDetect();
     void detectLine(cv::Mat &input, std::vector<std::vector<cv::Point>> &output);
     void drawData(cv::Mat &frame, std::vector<std::vector<cv::Point>> &data_points);

@@ -11,7 +11,7 @@
 // Debug mode --> display data
 //#define RACE_MODE
 #define DEBUG_MODE
-#//define NO_USB
+#define NO_USB
 
 #define CAMERA_INDEX 0
 #define CAM_RES_X 640
@@ -31,7 +31,7 @@ bool close_app = false;
 std::mutex mu;
 
 // Function declarations
-
+//
 
 int main()
 {
@@ -95,6 +95,7 @@ int main()
     shm_watchdog.init();
 
     //Trackbars
+    //
 
 /*
     //Read from file
@@ -128,18 +129,13 @@ int main()
         // Process frame
         laneDetector.Undist(frame, undist_frame, cameraMatrix, distCoeffs);
         laneDetector.Hsv(undist_frame, frame_out_yellow, frame_out_white, frame_out_edge_yellow, frame_out_edge_white);
-        //laneDetector.applyBlur();
         laneDetector.BirdEye(frame_out_edge_yellow, bird_eye_frame);
-        cv::cvtColor(bird_eye_frame, bird_eye_frame, cv::COLOR_RGB2GRAY);
-        cv::threshold(bird_eye_frame,bird_eye_frame, 1, 255, 1);
-        //laneDetector.colorTransform();
-        //laneDetector.edgeDetect();
+        laneDetector.colorTransform(bird_eye_frame, bird_eye_frame);
 
-    //    laneDetector.detectLine(bird_eye_frame, vector);
-        //laneDetector.detectLine();
-    //    laneDetector.drawData(bird_eye_frame, vector);
-        //laneDetector.drawData();
+        // Detect lines
+        //
 
+        // Push data
         shm_lane_points.push_data(vector);
 
 #ifdef DEBUG_MODE
@@ -150,7 +146,6 @@ int main()
         cv::imshow("Yellow Line", frame_out_yellow);
         cv::imshow("Yellow Edges", frame_out_edge_yellow);
         cv::imshow("BirdEye", bird_eye_frame);
-
 
         // Get input from user
         char keypressed = (char)cv::waitKey(FRAME_TIME);

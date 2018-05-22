@@ -9,26 +9,16 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 
-#define MEMSIZE 16384
-/*
-uint32_t velocity = 500;
-uint32_t servo_angle = 90000;
-unsigned char reset_STM = 0;
-unsigned char red_light_detected = 0;
-unsigned char green_light_detected = 0;
-unsigned char stop_line_detected = 0;
-uint32_t stop_distance = 0;
-*/
-
 class SharedMemory
 {
     int mem_id;
+    int mem_size;
     key_t  key;
-    char *shared_variable;
-    char *end_of_variable;
+    uint32_t *shared_variable;
+    uint32_t *end_of_variable;
 
 public:
-    SharedMemory(key_t  k);
+    SharedMemory(key_t  k = 50000, int m_size = 64);
     bool init();
     bool get_access();
     void push_data(std::vector<std::vector<cv::Point>> vector);
