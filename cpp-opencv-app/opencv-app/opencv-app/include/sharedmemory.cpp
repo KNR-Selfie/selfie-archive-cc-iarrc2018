@@ -49,7 +49,7 @@ bool SharedMemory::get_access()
 void SharedMemory::push_data(std::vector<std::vector<cv::Point>> vector)
 {
     uint32_t tmp[128];
-    int j = 0;
+    int j = 1;
 
     // Data vector to int[]
     for(uint32_t i = 0; i < vector.size(); i++)
@@ -62,6 +62,8 @@ void SharedMemory::push_data(std::vector<std::vector<cv::Point>> vector)
             j+= 2;
         }
     }
+
+    tmp[0] = j;
 
     // Copy data to shm
     memcpy(shared_variable, &tmp[0], 4*j);
