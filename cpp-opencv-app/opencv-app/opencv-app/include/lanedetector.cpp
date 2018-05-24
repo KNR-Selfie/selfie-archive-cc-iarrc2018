@@ -215,47 +215,31 @@ void LaneDetector::colorTransform(cv::Mat &input, cv::Mat &output)
     cv::threshold(input, output, 1, 255, 1);
 }
 
-void LaneDetector::edgeDetect()
-{
 
-}
 
 void LaneDetector::detectLine(cv::Mat &input, std::vector<std::vector<cv::Point>> &output)
 {
     std::vector<cv::Vec4i> hierarchy;
+    int accuracy = 5;
 
     cv::findContours(input, output, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
-    for (std::vector<std::vector<cv::Point>>::iterator filt = output.begin(); filt != output.end();){
-        if (filt->size()<40)
-            filt = output.erase(filt);
-        else
-            filt++;
-    }
-    //std::cout<<A_value<<std::endl;
-    for (unsigned int i = 0; i < output.size(); i++)
-    {
-        cv::approxPolyDP(cv::Mat(output[i]),output[i], A_value, false);
-    }
-    for (unsigned int j= 0; j < output.size(); j++)
-    {
-        //std::cout<<output.size()<<"\t"<<j<<"\t"<<output[j].size()<<std::endl;
 
+    for (int i = 0; i < output.size(); i++)
+    {
+        cv::approxPolyDP(cv::Mat(output[i]),output[i], accuracy, false);
     }
-    drawData(input, output);
 }
 
-void LaneDetector::drawData(cv::Mat &frame, std::vector<std::vector<cv::Point>> &data_points)
+void LaneDetector::drawPoints(std::vector<std::vector<cv::Point>> &input, cv::Mat &output)
 {
-    for (unsigned int i = 0; i < data_points.size(); i++)
+    for (int i = 0; i < input.size(); i++)
     {
-            for (unsigned int j = 0; j<data_points[i].size(); j++)
-            {
+        for (unsigned int j = 0; j < input[i].size(); j++)
+        {
+            cv::circle(output, input[i][j], 3, cv::Scalar(0, 255, 255), CV_FILLED, cv::LINE_AA);
 
-                std::cout << "X: " <<data_points[i][j].x << ", Y: " << data_points[i][j].y << std::endl;
-                //cv::circle(frame, data_points[i][j], 3, cv::Scalar(0, 255, 255), cv::FILLED, cv::LINE_AA);
-
-                //if (j>0)
-                   // cv::line(frame, cv::Point(data_points[i][j - 1]), cv::Point(data_points[i][j]), cv::Scalar(0, 0, 255), 2);
-            }
+            if (j>0)
+                cv::line(output, cv::Point(input[i][j - 1]), cv::Point(input[i][j]), cv::Scalar(0, 0, 255), 2);
         }
+    }
 }

@@ -45,8 +45,8 @@ int main()
 
     // Declaration of cv::MAT variables
     cv::Mat frame(CAM_RES_Y, CAM_RES_X, CV_8UC4);
-    cv::Mat bird_eye_frame;
-    cv::Mat vector_frame;
+    cv::Mat bird_eye_frame(CAM_RES_Y, CAM_RES_X, CV_8UC3);
+    cv::Mat vector_frame(CAM_RES_Y, CAM_RES_X, CV_8UC3);
     cv::Mat undist_frame, cameraMatrix, distCoeffs;
     cv::Mat frame_out_yellow, frame_out_white, frame_out_edge_yellow, frame_out_edge_white;
 
@@ -133,7 +133,8 @@ int main()
         laneDetector.colorTransform(bird_eye_frame, bird_eye_frame);
 
         // Detect lines
-        //
+        laneDetector.detectLine(bird_eye_frame, vector);
+        laneDetector.drawPoints(vector, vector_frame);
 
         // Push data
         shm_lane_points.push_data(vector);
@@ -146,6 +147,9 @@ int main()
         cv::imshow("Yellow Line", frame_out_yellow);
         cv::imshow("Yellow Edges", frame_out_edge_yellow);
         cv::imshow("BirdEye", bird_eye_frame);
+        cv::imshow("Vector", vector_frame);
+
+        vector_frame = cv::Mat::zeros(CAM_RES_Y, CAM_RES_X, CV_8UC3);
 
         // Get input from user
         char keypressed = (char)cv::waitKey(FRAME_TIME);
