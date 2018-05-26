@@ -12,7 +12,7 @@ static const int V_slider_max = 255;
 static const int Thresh_max = 255;
 static const int Accuracy_max = 100;
 
-static int H_yellow_slider = 191, S_yellow_slider = 139, V_yellow_slider = 46, yel_Thresh_sider = 102;
+static int H_yellow_slider = 62, S_yellow_slider = 36, V_yellow_slider = 153, yel_Thresh_sider = 56;
 static int H_white_slider, S_white_slider, V_white_slider, whi_Thresh_sider;
 static int A_slider = 50;
 static int H_yellow = 191, V_yellow = 139, S_yellow = 46, Thresh_yellow = 102;
@@ -212,7 +212,7 @@ void LaneDetector::Hsv(cv::Mat frame_in, cv::Mat &yellow_frame_out, cv::Mat &whi
 void LaneDetector::colorTransform(cv::Mat &input, cv::Mat &output)
 {
     cv::cvtColor(input, input, cv::COLOR_RGB2GRAY);
-    cv::threshold(input, output, 1, 255, 1);
+    cv::threshold(input, output, 20, 255, 1);
 }
 
 
@@ -221,6 +221,7 @@ void LaneDetector::detectLine(cv::Mat &input, std::vector<std::vector<cv::Point>
 {
     std::vector<cv::Vec4i> hierarchy;
     int accuracy = 5;
+    output.clear();
 
     cv::findContours(input, output, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
 

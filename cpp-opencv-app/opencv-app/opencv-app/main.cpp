@@ -46,6 +46,7 @@ int main()
     // Declaration of cv::MAT variables
     cv::Mat frame(CAM_RES_Y, CAM_RES_X, CV_8UC4);
     cv::Mat bird_eye_frame(CAM_RES_Y, CAM_RES_X, CV_8UC3);
+    cv::Mat bird_eye_frame_tr(CAM_RES_Y, CAM_RES_X, CV_8UC3);
     cv::Mat vector_frame(CAM_RES_Y, CAM_RES_X, CV_8UC3);
     cv::Mat undist_frame, cameraMatrix, distCoeffs;
     cv::Mat frame_out_yellow, frame_out_white, frame_out_edge_yellow, frame_out_edge_white;
@@ -130,10 +131,10 @@ int main()
         laneDetector.Undist(frame, undist_frame, cameraMatrix, distCoeffs);
         laneDetector.Hsv(undist_frame, frame_out_yellow, frame_out_white, frame_out_edge_yellow, frame_out_edge_white);
         laneDetector.BirdEye(frame_out_edge_yellow, bird_eye_frame);
-        laneDetector.colorTransform(bird_eye_frame, bird_eye_frame);
+        laneDetector.colorTransform(bird_eye_frame, bird_eye_frame_tr);
 
         // Detect lines
-        laneDetector.detectLine(bird_eye_frame, vector);
+        laneDetector.detectLine(bird_eye_frame_tr, vector);
         laneDetector.drawPoints(vector, vector_frame);
 
         // Push data
@@ -146,6 +147,7 @@ int main()
         cv::imshow("Frame", frame);
         cv::imshow("Yellow Line", frame_out_yellow);
         cv::imshow("Yellow Edges", frame_out_edge_yellow);
+        cv::imshow("BirdEyeTtransform", bird_eye_frame_tr);
         cv::imshow("BirdEye", bird_eye_frame);
         cv::imshow("Vector", vector_frame);
 

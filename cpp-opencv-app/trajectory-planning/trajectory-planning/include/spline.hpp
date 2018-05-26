@@ -8,6 +8,7 @@
 #include <opencv2/opencv.hpp>
 
 using namespace cv;
+using namespace tk;
 class spline_t
 {
 public:
@@ -17,6 +18,8 @@ public:
 
     spline_t();
     void add_point();
+    void delete_point();
+    void fit_vector(int points_num);
     void set_point_value(int num,double x, double y);
     void set_spline();
     void draw(cv::Mat& frame,const cv::Scalar& col);

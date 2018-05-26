@@ -69,12 +69,16 @@ void SharedMemory::push_data(std::vector<std::vector<cv::Point>> vector)
     memcpy(shared_variable, &tmp[0], 4*j);
 }
 
-void SharedMemory::pull_data()
-{
-    for(int i = 0; i < 20; i++)
-        std::cout << shared_variable[i];
 
-    std::cout << std::endl;
+void SharedMemory::pull_data(std::vector<cv::Point> &point_vector)
+{   uint32_t lenght = shared_variable[0];
+
+        for(int i =0;i<lenght;i++){
+            point_vector.push_back(cv::Point(shared_variable[2*i+1],shared_variable[2*i+2]));
+        }
+
+
+
 }
 
 void SharedMemory::close()
@@ -83,3 +87,15 @@ void SharedMemory::close()
     command += std::to_string(key);
     system(command.c_str());
 }
+uint32_t SharedMemory::get_lenght()
+{
+    return shared_variable[0];
+}
+///////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+

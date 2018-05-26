@@ -26,6 +26,11 @@ void tangent::draw(Mat& frame,const Scalar& col)
              pom.y = i;
              pom.x = a*i+b;
 
+             if(pom.x>640)
+                 pom.x = 640;
+             else if(pom.x<0)
+                 pom.x=0;
+
              color = frame.at<Vec3b>(pom);
              color.val[0] = col[0];
              color.val[1] = col[1];
@@ -41,4 +46,18 @@ void tangent::angle(spline_t spl)
        angle_deg =  - angle_deg * 90 / M_PI;
     else
        angle_deg = (-angle_deg * 90 / M_PI);
+}
+
+void tangent::calculate_poly2(poly2_interp poly2, int x){
+
+    a = 2*poly2.a*x +poly2.b;
+    b =-a*x + poly2.a*x*x+poly2.b*x+poly2.c;
+
+}
+
+void tangent::calculate_exp(exp_interp exp_fit, int x){
+
+    a = exp_fit.A*exp_fit.B*exp(exp_fit.B*x);
+    b =-a*x + exp_fit.A*exp(exp_fit.B*x);
+
 }
