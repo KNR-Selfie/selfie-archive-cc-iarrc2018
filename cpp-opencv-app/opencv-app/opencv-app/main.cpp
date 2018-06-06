@@ -130,7 +130,7 @@ int main()
         // Process frame
         laneDetector.Undist(frame, undist_frame, cameraMatrix, distCoeffs);
         laneDetector.Hsv(undist_frame, frame_out_yellow, frame_out_white, frame_out_edge_yellow, frame_out_edge_white);
-        laneDetector.BirdEye(frame_out_edge_yellow, bird_eye_frame);
+        laneDetector.BirdEye(frame_out_yellow, bird_eye_frame);
         laneDetector.colorTransform(bird_eye_frame, bird_eye_frame_tr);
 
         // Detect lines

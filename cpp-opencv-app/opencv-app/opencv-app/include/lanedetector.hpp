@@ -19,6 +19,8 @@ public:
     static void on_yellow_V_trackbar(int, void*);
     static void on_thresh_trackbar(int, void*);
     static void on_accuracy_trackbar(int, void*);
+    static void on_f_trackbar(int, void*);
+    static void on_acc_trackbar(int,void*);
     void Hsv(cv::Mat frame_in, cv::Mat &yellow_frame_out, cv::Mat &white_frame_out, cv::Mat &yellow_canny, cv::Mat &white_canny);
     void colorTransform(cv::Mat &input, cv::Mat &output);
     void detectLine(cv::Mat &input, std::vector<std::vector<cv::Point>> &output);

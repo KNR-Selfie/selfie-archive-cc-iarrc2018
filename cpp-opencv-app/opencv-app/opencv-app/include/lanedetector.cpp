@@ -11,14 +11,18 @@ static const int S_slider_max = 255;
 static const int V_slider_max = 255;
 static const int Thresh_max = 255;
 static const int Accuracy_max = 100;
+static const int F_max = 1000;
 
-static int H_yellow_slider = 62, S_yellow_slider = 36, V_yellow_slider = 153, yel_Thresh_sider = 56;
+static int H_yellow_slider = 46, S_yellow_slider = 185, V_yellow_slider = 192, yel_Thresh_sider = 131;
 static int H_white_slider, S_white_slider, V_white_slider, whi_Thresh_sider;
-static int A_slider = 50;
+static int A_slider = 13;
+static int K_slider = 973;
 static int H_yellow = 191, V_yellow = 139, S_yellow = 46, Thresh_yellow = 102;
 static int H_white, V_white, S_white, Thresh_white;
 static int A_value = 50;
-
+static int K_value = 50;
+static int Acc_slider = 50;
+static int Acc_value = 50;
 LaneDetector::LaneDetector()
 {
 
@@ -52,8 +56,11 @@ void LaneDetector::Undist(cv::Mat frame_in, cv::Mat &frame_out, cv::Mat cameraMa
 
 void LaneDetector::BirdEye(cv::Mat frame_in, cv::Mat &frame_out)
 {
-    int alpha_ = 5;
-	int f_ = 500, dist_ = 500;
+    int alpha_ = A_slider;
+    double focalLength;
+    int dist_ = 500;
+    int f_ = K_slider;
+    focalLength = (double)f_;
 
 	double f, dist;
 	double alpha;
@@ -90,7 +97,14 @@ void LaneDetector::BirdEye(cv::Mat frame_in, cv::Mat &frame_out)
 		0, 0, 1, 0
 		);
 
-    cv::Mat transfo = A2 * (T * (R * A1));
+    // K - intrinsic matrix
+    cv::Mat K = (cv::Mat_<float>(3, 4) <<
+        focalLength, 0, w / 2, 0,
+        0, focalLength, h / 2, 0,
+        0, 0, 1, 0
+        );
+
+    cv::Mat transfo = K * (T * (R * A1));
 
     cv::warpPerspective(frame_in, frame_out, transfo, taille, cv::INTER_CUBIC | cv::WARP_INVERSE_MAP);
 }
@@ -109,6 +123,8 @@ void LaneDetector::CreateTrackbars()
     cv::createTrackbar("V", "White Line", &V_white_slider, V_slider_max, LaneDetector::on_yellow_V_trackbar);
     cv::createTrackbar("T", "White Line", &whi_Thresh_sider, Thresh_max, LaneDetector::on_thresh_trackbar);
     cv::createTrackbar("A", "BirdEye", &A_slider, Accuracy_max, LaneDetector::on_accuracy_trackbar);
+    cv::createTrackbar("K", "BirdEye", &K_slider, F_max, LaneDetector::on_f_trackbar);
+    cv::createTrackbar("Acc", "BirdEye", &Acc_slider, 255, LaneDetector::on_acc_trackbar);
 }
 
 void LaneDetector::on_yellow_H_trackbar(int, void*)
@@ -136,6 +152,18 @@ void LaneDetector::on_accuracy_trackbar(int, void*)
 {
         A_value = A_slider;
 }
+
+void LaneDetector::on_f_trackbar(int, void*)
+{
+        K_value = K_slider;
+}
+
+
+void LaneDetector::on_acc_trackbar(int, void*)
+{
+        Acc_value= Acc_slider;
+}
+
 
 void LaneDetector::Hsv(cv::Mat frame_in, cv::Mat &yellow_frame_out, cv::Mat &white_frame_out, cv::Mat &yellow_canny, cv::Mat &white_canny)
 {
@@ -220,14 +248,14 @@ void LaneDetector::colorTransform(cv::Mat &input, cv::Mat &output)
 void LaneDetector::detectLine(cv::Mat &input, std::vector<std::vector<cv::Point>> &output)
 {
     std::vector<cv::Vec4i> hierarchy;
-    int accuracy = 5;
+
     output.clear();
 
     cv::findContours(input, output, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
 
     for (int i = 0; i < output.size(); i++)
     {
-        cv::approxPolyDP(cv::Mat(output[i]),output[i], accuracy, false);
+        cv::approxPolyDP(cv::Mat(output[i]),output[i], Acc_value, false);
     }
 }
 

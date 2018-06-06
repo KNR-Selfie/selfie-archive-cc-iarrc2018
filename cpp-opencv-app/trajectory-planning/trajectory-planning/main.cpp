@@ -1,6 +1,8 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include <vector>
+#include <fstream>
+#include <stdlib.h>
 
 #include "include/spline.hpp"
 #include "include/sliders.h"
@@ -77,6 +79,14 @@ int main(int argc, char** argv)
     poly2_interp pol_fit;
 
     poly3_interp pol3_fit;
+/////////////////////////////////////////////////////////
+    Mat receive_points = Mat::zeros( Height, Length, CV_8UC3 ); //blank matrix
+
+    string linia;
+    //fstream plik;
+    ofstream plik ("/home/selfie/Desktop/cpp-opencv-app/trajectory-planning/trajectory-planning/krzywa_prosta1.txt");
+
+
 
 
 
@@ -91,18 +101,53 @@ while(1){
     point_vector.clear();
     lenght = shm_lane_points.get_lenght();
 
-    std::cout << "LENGHT: " << lenght << std::endl;
+    //std::cout << "LENGHT: " << lenght << std::endl;
 
     shm_lane_points.pull_data(point_vector);
 
+    if(plik.good()==true)
+    {
+        for(int i=0;i<point_vector.size();i++){
+        plik<<point_vector[i].x;
+        plik<<endl;
+        plik<<point_vector[i].y;
+        plik<<endl;
 
-    for(int i=0;i<3;i++)
-        cout<< "Punkt nr "<<i+1<<" x :"<<point_vector[i].x<<" y :"<<point_vector[i].y<<endl;;
+        }
+        plik.close();
+    }
 
-   cout<< "Punkt nr "<<lenght<<" x :"<<point_vector[lenght-1].x<<" y :"<<point_vector[lenght-1].y<<endl;
+    for (int i=0;i<point_vector.size();i++){
+        Vec3b color;
+        Point pom;
 
-   pol3_fit.calculate_3coef(point_vector,lenght);
-   pol3_fit.draw(preview,CV_RGB(0,255,0));
+            pom.x =point_vector[i].x;
+            pom.y=point_vector[i].y;
+
+
+
+            color = receive_points.at<Vec3b>(pom);
+            color.val[0] = 255;
+            color.val[1] = 255;
+            color.val[2] = 255;
+            receive_points.at<Vec3b>(pom) = color;
+         }
+
+
+
+    imshow("odebrane",receive_points);
+    receive_points = Mat::zeros( Height, Length, CV_8UC3 );
+
+
+//    for(int i=0;i<3;i++)
+//        cout<< "Punkt nr "<<i+1<<" x :"<<point_vector[i].x<<" y :"<<point_vector[i].y<<endl;;
+
+//   cout<< "Punkt nr "<<lenght<<" x :"<<point_vector[lenght-1].x<<" y :"<<point_vector[lenght-1].y<<endl;
+
+
+
+   pol_fit.calculate_coef(point_vector,lenght);
+   pol_fit.draw(preview,CV_RGB(0,255,0));
 
 
     vector<Point> test(5);
