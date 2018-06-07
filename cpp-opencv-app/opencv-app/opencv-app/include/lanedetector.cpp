@@ -112,16 +112,16 @@ void LaneDetector::BirdEye(cv::Mat frame_in, cv::Mat &frame_out)
 void LaneDetector::CreateTrackbars()
 {
     cv::namedWindow("Yellow Line", 1);
-    //cv::namedWindow("White Line", 1);
+    cv::namedWindow("White Line", 1);
     cv::namedWindow("BirdEye", 1);
     cv::createTrackbar("H", "Yellow Line", &H_yellow_slider, H_slider_max, LaneDetector::on_yellow_H_trackbar);
     cv::createTrackbar("S", "Yellow Line", &S_yellow_slider, S_slider_max, LaneDetector::on_yellow_S_trackbar);
     cv::createTrackbar("V", "Yellow Line", &V_yellow_slider, V_slider_max, LaneDetector::on_yellow_V_trackbar);
-    cv::createTrackbar("T", "Yellow Line", &yel_Thresh_sider, Thresh_max, LaneDetector::on_thresh_trackbar);
-    cv::createTrackbar("H", "White Line", &H_white_slider, H_slider_max, LaneDetector::on_yellow_H_trackbar);
-    cv::createTrackbar("S", "White Line", &S_white_slider, S_slider_max, LaneDetector::on_yellow_S_trackbar);
-    cv::createTrackbar("V", "White Line", &V_white_slider, V_slider_max, LaneDetector::on_yellow_V_trackbar);
-    cv::createTrackbar("T", "White Line", &whi_Thresh_sider, Thresh_max, LaneDetector::on_thresh_trackbar);
+    cv::createTrackbar("T", "Yellow Line", &yel_Thresh_sider, Thresh_max, LaneDetector::on_yellow_thresh_trackbar);
+    cv::createTrackbar("H", "White Line", &H_white_slider, H_slider_max, LaneDetector::on_white_H_trackbar);
+    cv::createTrackbar("S", "White Line", &S_white_slider, S_slider_max, LaneDetector::on_white_S_trackbar);
+    cv::createTrackbar("V", "White Line", &V_white_slider, V_slider_max, LaneDetector::on_white_V_trackbar);
+    cv::createTrackbar("T", "White Line", &whi_Thresh_sider, Thresh_max, LaneDetector::on_white_thresh_trackbar);
     cv::createTrackbar("A", "BirdEye", &A_slider, Accuracy_max, LaneDetector::on_accuracy_trackbar);
     cv::createTrackbar("K", "BirdEye", &K_slider, F_max, LaneDetector::on_f_trackbar);
     cv::createTrackbar("Acc", "BirdEye", &Acc_slider, 255, LaneDetector::on_acc_trackbar);
@@ -130,21 +130,33 @@ void LaneDetector::CreateTrackbars()
 void LaneDetector::on_yellow_H_trackbar(int, void*)
 {
         H_yellow = H_yellow_slider;
+}
+void LaneDetector::on_white_H_trackbar(int, void*)
+{
         H_white = H_white_slider;
 }
 void LaneDetector::on_yellow_S_trackbar(int, void*)
 {
         S_yellow = S_yellow_slider;
+}
+void LaneDetector::on_white_S_trackbar(int, void*)
+{
         S_white = S_white_slider;
 }
 void LaneDetector::on_yellow_V_trackbar(int, void*)
 {
         V_yellow = V_yellow_slider;
+}
+void LaneDetector::on_white_V_trackbar(int, void*)
+{
         V_white = V_white_slider;
 }
-void LaneDetector::on_thresh_trackbar(int, void*)
+void LaneDetector::on_yellow_thresh_trackbar(int, void*)
 {
         Thresh_yellow = yel_Thresh_sider;
+}
+void LaneDetector::on_white_thresh_trackbar(int, void*)
+{
         Thresh_white = whi_Thresh_sider;
 }
 
@@ -212,11 +224,6 @@ void LaneDetector::Hsv(cv::Mat frame_in, cv::Mat &yellow_frame_out, cv::Mat &whi
         inRange(frame_in, whi_minHSV, whi_maxHSV, whi_maskHSV);
         bitwise_and(imageHSV, imageHSV, yel_resultHSV, yel_maskHSV);
         bitwise_and(imageHSV, imageHSV, whi_resultHSV, whi_maskHSV);
-
-        //erode(yel_resultHSV, yel_resultHSV, cv::Mat(), cv::Point(-1, -1), 3);
-        //dilate(yel_resultHSV, yel_resultHSV, cv::Mat(), cv::Point(-1, -1), 3);
-        erode(whi_resultHSV, whi_resultHSV, cv::Mat(), cv::Point(-1, -1), 3);
-        dilate(whi_resultHSV, whi_resultHSV, cv::Mat(), cv::Point(-1, -1), 3);
 
         medianBlur(yel_resultHSV, yel_resultHSV, 5);
         medianBlur(whi_resultHSV, whi_resultHSV, 5);

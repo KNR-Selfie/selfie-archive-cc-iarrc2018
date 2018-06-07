@@ -21,7 +21,7 @@ public:
     SharedMemory(key_t  k = 50000, int m_size = 100000);
     bool init();
     bool get_access();
-    void push_data(std::vector<std::vector<cv::Point>> vector);
+    void push_data(std::vector<std::vector<cv::Point>> vector_yellow, std::vector<std::vector<cv::Point> > vector_white, std::vector<std::vector<cv::Point> > vector_cones);
     void pull_data();
     void close();
 };

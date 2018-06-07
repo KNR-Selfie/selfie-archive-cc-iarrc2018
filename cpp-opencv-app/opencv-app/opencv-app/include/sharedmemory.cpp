@@ -46,27 +46,99 @@ bool SharedMemory::get_access()
     return 1;
 }
 
-void SharedMemory::push_data(std::vector<std::vector<cv::Point>> vector)
+void SharedMemory::push_data(std::vector<std::vector<cv::Point>> vector_yellow, std::vector<std::vector<cv::Point>> vector_white, std::vector<std::vector<cv::Point>> vector_cones)
 {
     uint32_t tmp[25000];
     int j = 1;
+    int head = 0;
 
-    // Data vector to int[]
-    for(uint32_t i = 0; i < vector.size(); i++)
+    // Yellow lines
+    if(vector_yellow.size() > 0)
     {
-        for(uint32_t k = 0; k < vector[i].size(); k++)
+        // Data vector to int[]
+        for(uint32_t i = 0; i < vector_yellow.size(); i++)
         {
-            tmp[j] = vector[i][k].x;
-            tmp[j+1] = vector[i][k].y;
+            for(uint32_t k = 0; k < vector_yellow[i].size(); k++)
+            {
+                tmp[head+j] = vector_yellow[i][k].x;
+                tmp[head+j+1] = vector_yellow[i][k].y;
 
-            j+= 2;
+                j+= 2;
+            }
         }
+        tmp[head] = j;
+        tmp[head+j] = 1000;
+        head += j;
+        std::cout << std::endl << "Detected yellow: " << j/2 << std::endl;
     }
-    tmp[0] = j;
-    std::cout << "Wykryto: " << j << std::endl;
+    else
+    {
+        tmp[head] = 0;
+        tmp[head+1] = 1000;
+        head += 2;
+    }
+
+
+    //White lines
+    j = 1;
+
+    if(vector_white.size() > 0)
+    {
+        // Data vector to int[]
+        for(uint32_t i = 0; i < vector_white.size(); i++)
+        {
+            for(uint32_t k = 0; k < vector_white[i].size(); k++)
+            {
+                tmp[head+j] = vector_white[i][k].x;
+                tmp[head+j+1] = vector_white[i][k].y;
+
+                j+= 2;
+            }
+        }
+        tmp[head] = j;
+        tmp[head+j] = 1000;
+        head += j;
+        std::cout << "Detected white: " << j/2 << std::endl;
+    }
+    else
+    {
+        tmp[head] = 0;
+        tmp[head+1] = 1000;
+        head += 2;
+    }
+
+
+    //Cones
+    j = 1;
+
+    if(vector_cones.size() > 0)
+    {
+        // Data vector to int[]
+        for(uint32_t i = 0; i < vector_cones.size(); i++)
+        {
+            for(uint32_t k = 0; k < vector_cones[i].size(); k++)
+            {
+                tmp[head+j] = vector_cones[i][k].x;
+                tmp[head+j+1] = vector_cones[i][k].y;
+
+                j+= 2;
+            }
+        }
+        tmp[head] = j;
+        head += j;
+        std::cout << "Detected cones: " << j/2 << std::endl << std::endl;
+    }
+    else
+    {
+        tmp[head] = 0;
+        tmp[head+1] = 1000;
+        head +=2;
+    }
+
 
     // Copy data to shm
-    memcpy(shared_variable, &tmp[0], 4*j);
+    if(head != 0)
+        memcpy(shared_variable, &tmp[0], 4*head);
 }
 
 void SharedMemory::pull_data()

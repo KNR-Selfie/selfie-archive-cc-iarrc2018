@@ -15,9 +15,13 @@ public:
     void BirdEye(cv::Mat frame_in, cv::Mat &frame_out);
     void CreateTrackbars();
     static void on_yellow_H_trackbar(int, void*);
+    static void on_white_H_trackbar(int, void*);
     static void on_yellow_S_trackbar(int, void*);
+    static void on_white_S_trackbar(int, void*);
     static void on_yellow_V_trackbar(int, void*);
-    static void on_thresh_trackbar(int, void*);
+    static void on_white_V_trackbar(int, void*);
+    static void on_yellow_thresh_trackbar(int, void*);
+    static void on_white_thresh_trackbar(int, void*);
     static void on_accuracy_trackbar(int, void*);
     static void on_f_trackbar(int, void*);
     static void on_acc_trackbar(int,void*);

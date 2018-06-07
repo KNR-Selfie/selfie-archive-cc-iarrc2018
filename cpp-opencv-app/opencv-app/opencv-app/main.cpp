@@ -130,7 +130,7 @@ int main()
         // Process frame
         laneDetector.Undist(frame, undist_frame, cameraMatrix, distCoeffs);
         laneDetector.Hsv(undist_frame, frame_out_yellow, frame_out_white, frame_out_edge_yellow, frame_out_edge_white);
-        laneDetector.BirdEye(frame_out_yellow, bird_eye_frame);
+        laneDetector.BirdEye(frame_out_edge_yellow, bird_eye_frame);
         laneDetector.colorTransform(bird_eye_frame, bird_eye_frame_tr);
 
         // Detect lines
@@ -138,7 +138,7 @@ int main()
         laneDetector.drawPoints(vector, vector_frame);
 
         // Push data
-        shm_lane_points.push_data(vector);
+        shm_lane_points.push_data(vector, vector, vector); // <-- Do zmiany na 3 różne
 
 #ifdef DEBUG_MODE
         // Display info on screen
@@ -146,6 +146,7 @@ int main()
         //cv::imshow("UndsCamera", undist_frame);
         cv::imshow("Frame", frame);
         cv::imshow("Yellow Line", frame_out_yellow);
+        cv::imshow("White Line", frame_out_white);
         cv::imshow("Yellow Edges", frame_out_edge_yellow);
         cv::imshow("BirdEyeTtransform", bird_eye_frame_tr);
         cv::imshow("BirdEye", bird_eye_frame);
