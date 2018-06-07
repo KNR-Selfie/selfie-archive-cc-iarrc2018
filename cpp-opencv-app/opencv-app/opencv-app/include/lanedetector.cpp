@@ -1,10 +1,4 @@
 #include "lanedetector.hpp"
-#include <iostream>
-#include <string>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-
-#define PI 3.1415926
 
 static const int H_slider_max = 360;
 static const int S_slider_max = 255;

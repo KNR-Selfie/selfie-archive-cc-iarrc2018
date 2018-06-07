@@ -1,9 +1,11 @@
 #pragma once
 
-#include "opencv2/highgui/highgui.hpp"
-#include "opencv2/imgproc/imgproc.hpp"
+#include <iostream>
+#include <string>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 
-
+#define PI 3.1415926
 
 class LaneDetector
 {    
