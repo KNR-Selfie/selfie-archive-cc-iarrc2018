@@ -7,16 +7,21 @@ static const int Thresh_max = 255;
 static const int Accuracy_max = 100;
 static const int F_max = 1000;
 
-static int H_yellow_slider = 46, S_yellow_slider = 185, V_yellow_slider = 192, yel_Thresh_sider = 131;
-static int H_white_slider, S_white_slider, V_white_slider, whi_Thresh_sider;
+static int H_yellow_slider = 110, S_yellow_slider = 49, V_yellow_slider = 102, yel_Thresh_sider = 50;
+static int H_white_slider = 82, S_white_slider = 79, V_white_slider = 51, whi_Thresh_sider = 16;
 static int A_slider = 13;
 static int K_slider = 973;
-static int H_yellow = 191, V_yellow = 139, S_yellow = 46, Thresh_yellow = 102;
-static int H_white, V_white, S_white, Thresh_white;
+static int H_yellow = 110, V_yellow = 49, S_yellow = 102, Thresh_yellow = 50;
+static int H_white = 82, V_white = 79, S_white = 51, Thresh_white = 16;
 static int A_value = 50;
 static int K_value = 50;
 static int Acc_slider = 50;
 static int Acc_value = 50;
+static int R_down_slider = 0, G_down_slider = 135, B_down_slider = 135;
+static int R_up_slider = 15, G_up_slider = 255, B_up_slider = 255;
+static int R_down = 0, G_down = 135, B_down = 135;
+static int R_up = 15, G_up = 255, B_up = 255;
+
 LaneDetector::LaneDetector()
 {
 
@@ -29,7 +34,7 @@ void LaneDetector::applyBlur(cv::Mat &input, cv::Mat &output)
 
 void LaneDetector::UndistXML(cv::Mat &cameraMatrix, cv::Mat &distCoeffs)
 {
-    std::string filename = "/home/selfie/Desktop/out_camera_data.xml";
+    std::string filename = "/home/selfie/Desktop/cpp-opencv-app/opencv-app/opencv-app/out_camera_data.xml";
     std::cout << "Reading XML" << std::endl;
     cv::FileStorage fs;
     fs.open(filename, cv::FileStorage::READ);
@@ -57,7 +62,7 @@ void LaneDetector::BirdEye(cv::Mat frame_in, cv::Mat &frame_out)
     focalLength = (double)f_;
 
 	double f, dist;
-	double alpha;
+    double alpha;
 	alpha = ((double)alpha_ - 90.)*PI / 180;
 	f = (double)f_;
 	dist = (double)dist_;
@@ -108,6 +113,7 @@ void LaneDetector::CreateTrackbars()
     cv::namedWindow("Yellow Line", 1);
     cv::namedWindow("White Line", 1);
     cv::namedWindow("BirdEye", 1);
+    cv::namedWindow("ConeDetect", 1);
     cv::createTrackbar("H", "Yellow Line", &H_yellow_slider, H_slider_max, LaneDetector::on_yellow_H_trackbar);
     cv::createTrackbar("S", "Yellow Line", &S_yellow_slider, S_slider_max, LaneDetector::on_yellow_S_trackbar);
     cv::createTrackbar("V", "Yellow Line", &V_yellow_slider, V_slider_max, LaneDetector::on_yellow_V_trackbar);
@@ -119,6 +125,12 @@ void LaneDetector::CreateTrackbars()
     cv::createTrackbar("A", "BirdEye", &A_slider, Accuracy_max, LaneDetector::on_accuracy_trackbar);
     cv::createTrackbar("K", "BirdEye", &K_slider, F_max, LaneDetector::on_f_trackbar);
     cv::createTrackbar("Acc", "BirdEye", &Acc_slider, 255, LaneDetector::on_acc_trackbar);
+    cv::createTrackbar("Rdown", "Cone Detect", &R_down_slider, 255, LaneDetector::on_Rdown_trackbar);
+    cv::createTrackbar("Rdown", "Cone Detect", &R_up_slider, 255, LaneDetector::on_Rup_trackbar);
+    cv::createTrackbar("Gdown", "Cone Detect", &G_down_slider, 255, LaneDetector::on_Gdown_trackbar);
+    cv::createTrackbar("Gup", "Cone Detect", &G_up_slider, 255, LaneDetector::on_Gup_trackbar);
+    cv::createTrackbar("Bdown", "Cone Detect", &B_down_slider, 255, LaneDetector::on_Bdown_trackbar);
+    cv::createTrackbar("Bup", "Cone Detect", &B_up_slider, 255, LaneDetector::on_Bup_trackbar);
 }
 
 void LaneDetector::on_yellow_H_trackbar(int, void*)
@@ -153,23 +165,42 @@ void LaneDetector::on_white_thresh_trackbar(int, void*)
 {
         Thresh_white = whi_Thresh_sider;
 }
-
 void LaneDetector::on_accuracy_trackbar(int, void*)
 {
         A_value = A_slider;
 }
-
 void LaneDetector::on_f_trackbar(int, void*)
 {
         K_value = K_slider;
 }
-
-
 void LaneDetector::on_acc_trackbar(int, void*)
 {
         Acc_value= Acc_slider;
 }
-
+void LaneDetector::on_Rdown_trackbar(int, void*)
+{
+        R_down= R_down_slider;
+}
+void LaneDetector::on_Rup_trackbar(int, void*)
+{
+        R_up= R_up_slider;
+}
+void LaneDetector::on_Gdown_trackbar(int, void*)
+{
+        G_down= G_down_slider;
+}
+void LaneDetector::on_Gup_trackbar(int, void*)
+{
+        G_up= G_up_slider;
+}
+void LaneDetector::on_Bdown_trackbar(int, void*)
+{
+        B_down= B_down_slider;
+}
+void LaneDetector::on_Bup_trackbar(int, void*)
+{
+        B_up= B_up_slider;
+}
 
 void LaneDetector::Hsv(cv::Mat frame_in, cv::Mat &yellow_frame_out, cv::Mat &white_frame_out, cv::Mat &yellow_canny, cv::Mat &white_canny)
 {
@@ -272,4 +303,55 @@ void LaneDetector::drawPoints(std::vector<std::vector<cv::Point>> &input, cv::Ma
                 cv::line(output, cv::Point(input[i][j - 1]), cv::Point(input[i][j]), cv::Scalar(0, 0, 255), 2);
         }
     }
+}
+
+void LaneDetector::ConeDetection(cv::Mat frame_in, cv::Mat &frame_out, std::vector<cv::Point> &conePoints)
+{
+    cv::Mat image_HSV, img_thresh_low,img_thresh_high, result, frame_tmp;
+    std::vector<cv::Vec4i> hierarchy;
+    std::vector<std::vector<cv::Point>> contours;
+
+    cv::cvtColor(frame_in, frame_tmp, cv::COLOR_BGR2RGB);
+    cv::cvtColor(frame_tmp, image_HSV, cv::COLOR_RGB2HSV);
+    cv::inRange(image_HSV, cv::Scalar(R_down, G_down, B_down), cv::Scalar(R_up, G_up, B_up), img_thresh_low);
+    cv::inRange(image_HSV, cv::Scalar(159, 135, 135), cv::Scalar(179, 255, 255), img_thresh_high);
+    cv::bitwise_or(image_HSV, image_HSV, result, img_thresh_low);
+    cv::morphologyEx(result, result, cv::MORPH_OPEN, (5, 5));
+    cv::medianBlur(result, result, 5);
+    cv::cvtColor(result, result, cv::COLOR_BGR2GRAY);
+    cv::threshold(result, result, 30, 255, cv::THRESH_BINARY);
+    cv::Canny(result, frame_out, 80, 160, 3);
+    cv::findContours(result, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+
+    cv::Mat drawing = cv::Mat::zeros(result.size(), CV_8UC3);
+
+    std::vector<cv::Rect> boundRect(contours.size());
+    for (int i = 0; i < contours.size(); i++)
+    {
+        cv::drawContours(drawing, contours, i, cv::Scalar(255, 0, 0), 2, 7, hierarchy, 0, cv::Point());
+        boundRect[i] = cv::boundingRect(cv::Mat(contours[i]));
+        cv::rectangle(drawing, boundRect[i].tl(), boundRect[i].br(), CV_RGB(200, 200, 0), 2, 8, 0);
+
+        std::string label = "cone";
+        cv::putText(drawing, label, boundRect[i].tl() + cv::Point(0, -5), CV_FONT_HERSHEY_DUPLEX, 0.4, CV_RGB(0, 255, 0), 1.0);
+    }
+
+    for(int i = 0; i < boundRect.size(); i++)
+    {
+        cv::Point cone = cv::Point(boundRect[i].x, boundRect[i].y);
+        cone.x = boundRect[i].x + (boundRect[i].width / 2);
+        cone.y = boundRect[i].y + boundRect[i].height;
+        conePoints.push_back(cone);
+        cv::circle(drawing, cone, 1, CV_RGB(255, 255, 0), 6, 8, 0);
+    }
+
+    cv::Point fill[1][4];
+    const cv::Point *ppt[1] = {fill[0]};
+    int npt[] = {4};
+    cv::Mat poly = cv::Mat::zeros(drawing.rows, drawing.cols, CV_8UC3);
+    cv::Mat dst;
+    cv::fillPoly(poly, ppt, npt, 1, CV_RGB(0, 0 , 255), 4);
+
+    cv::addWeighted(drawing, 0.7, poly, 0.3, 0.0, dst);
+    dst.copyTo(frame_out);
 }

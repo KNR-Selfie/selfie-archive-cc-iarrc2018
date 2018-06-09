@@ -6,12 +6,14 @@
 #include <include/sharedmemory.hpp>
 #include <include/lidar.hpp>
 #include <include/lanedetector.hpp>
+#include <include/stoplights.h>
 
 // Race mode ---> fps boost
 // Debug mode --> display data
 //#define RACE_MODE
 #define DEBUG_MODE
 #define NO_USB
+//#define STOPLIGHTS_MODE
 
 #define CAMERA_INDEX 0
 #define CAM_RES_X 640
@@ -20,6 +22,7 @@
 
 // Handlers for custom classes
 LaneDetector laneDetector;
+StopLightDetector lightDetector;
 Lidar lidar;
 SharedMemory shm_lidar_data(50001);
 SharedMemory shm_lane_points(50002);
@@ -35,6 +38,7 @@ std::mutex mu;
 
 int main()
 {
+     cv::Mat test(480, 640, CV_8UC3);
 #ifdef DEBUG_MODE
     //FPS
     struct timespec start, end;
@@ -49,7 +53,15 @@ int main()
     cv::Mat bird_eye_frame_tr(CAM_RES_Y, CAM_RES_X, CV_8UC3);
     cv::Mat vector_frame(CAM_RES_Y, CAM_RES_X, CV_8UC3);
     cv::Mat undist_frame, cameraMatrix, distCoeffs;
+    cv::Mat cone_frame_out;
     cv::Mat frame_out_yellow, frame_out_white, frame_out_edge_yellow, frame_out_edge_white;
+
+#ifdef STOPLIGHTS_MODE
+    //cv::Mats used in stoplight algorythm
+    cv::Mat old_frame(CAM_RES_Y,CAM_RES_X,CV_8UC1);
+    cv::Mat display;
+    cv::Mat diffrence(CAM_RES_Y,CAM_RES_X,CV_8UC1);
+#endif
 
     // Declaration of std::vector variables
     std::vector<std::vector<cv::Point>> vector;
@@ -111,6 +123,12 @@ int main()
         return 0;
     }
 */
+#ifdef STOPLIGHTS_MODE
+    camera >>frame;
+    lightDetector.prepare_first_image(frame,old_frame,lightDetector.roi_number);
+    cv::namedWindow("Light detection", 1);
+    cv::namedWindow("Frame", 1);
+#endif
 
     // Main loop
     while(true)
@@ -127,18 +145,45 @@ int main()
         // Get new frame from camera
         camera >> frame;
 
+#ifdef STOPLIGHTS_MODE
+        //Test ROI on input frame
+        //lightDetector.test_roi(frame,display);
+        lightDetector.find_start(frame,diffrence,old_frame,lightDetector.roi_number);
+#ifdef DEBUG_MODE
+        if (lightDetector.start_finding ==true){
+            cv::imshow("Frame",frame);
+            cv::imshow("Light detection",diffrence);
+            //cv::imshow("Light detection", display);
+        }
+        if (lightDetector.start_light == true){
+            std::cout<<"START"<<std::endl;
+        }
+        else
+            std::cout<<"WAIT"<<std::endl;
+
+        cv::waitKey(20);
+#endif
+#endif
+#ifndef STOPLIGHTS_MODE
         // Process frame
         laneDetector.Undist(frame, undist_frame, cameraMatrix, distCoeffs);
         laneDetector.Hsv(undist_frame, frame_out_yellow, frame_out_white, frame_out_edge_yellow, frame_out_edge_white);
         laneDetector.BirdEye(frame_out_edge_yellow, bird_eye_frame);
         laneDetector.colorTransform(bird_eye_frame, bird_eye_frame_tr);
 
+        // Detect cones
+        std::vector<cv::Point> cones_vector;
+        laneDetector.ConeDetection(frame, cone_frame_out, cones_vector);
+
         // Detect lines
-        laneDetector.detectLine(bird_eye_frame_tr, vector);
+        laneDetector.detectLine(bird_eye_frame, vector);
         laneDetector.drawPoints(vector, vector_frame);
 
         // Push data
+        std::cout << "Push" << std::endl;
         shm_lane_points.push_data(vector, vector, vector); // <-- Do zmiany na 3 różne
+        std::cout << "Pull" << std::endl;
+        shm_lane_points.pull_data(test);
 
 #ifdef DEBUG_MODE
         // Display info on screen
@@ -151,6 +196,10 @@ int main()
         cv::imshow("BirdEyeTtransform", bird_eye_frame_tr);
         cv::imshow("BirdEye", bird_eye_frame);
         cv::imshow("Vector", vector_frame);
+        cv::imshow("Cone Detect", cone_frame_out);
+
+cv::imshow("TEST", test);
+test = cv::Mat::zeros(CAM_RES_Y, CAM_RES_X, CV_8UC3);
 
         vector_frame = cv::Mat::zeros(CAM_RES_Y, CAM_RES_X, CV_8UC3);
 
@@ -210,6 +259,7 @@ int main()
         {
             licznik_czas++;
         }
+#endif
 #endif
 
     }

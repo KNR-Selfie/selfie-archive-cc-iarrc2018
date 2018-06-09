@@ -22,7 +22,7 @@ public:
     bool init();
     bool get_access();
     void push_data(std::vector<std::vector<cv::Point>> vector_yellow, std::vector<std::vector<cv::Point> > vector_white, std::vector<std::vector<cv::Point> > vector_cones);
-    void pull_data();
+    void pull_data(cv::Mat &test);
     void close();
 };
 

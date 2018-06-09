@@ -52,6 +52,8 @@ void SharedMemory::push_data(std::vector<std::vector<cv::Point>> vector_yellow, 
     int j = 1;
     int head = 0;
 
+    std::cout << "Size: " << vector_yellow.size() << std::endl;
+
     // Yellow lines
     if(vector_yellow.size() > 0)
     {
@@ -143,13 +145,14 @@ void SharedMemory::push_data(std::vector<std::vector<cv::Point>> vector_yellow, 
         memcpy(shared_variable, &tmp[0], 4*head);
 }
 
-void SharedMemory::pull_data(cv::Mat &test)
+void SharedMemory::pull_data()
 {
     std::vector<cv::Point> vector;
 
     std::cout << "Length: " << shared_variable[0] << std::endl;
 
     int j = 1;
+    int k = 0;
     cv::Point tmp;
 
     for(int i = j; i < 1000; i+=2)
@@ -160,6 +163,7 @@ void SharedMemory::pull_data(cv::Mat &test)
             tmp.x = shared_variable[i];
             tmp.y = shared_variable[i+1];
             vector.push_back(tmp);
+            k++;
         }
         else
         {
@@ -179,6 +183,7 @@ void SharedMemory::pull_data(cv::Mat &test)
             tmp.x = shared_variable[i];
             tmp.y = shared_variable[i+1];
             vector.push_back(tmp);
+            k++;
         }
         else
         {
@@ -199,6 +204,7 @@ void SharedMemory::pull_data(cv::Mat &test)
             tmp.x = shared_variable[i];
             tmp.y = shared_variable[i+1];
             vector.push_back(tmp);
+            k++;
         }
         else
         {
@@ -207,14 +213,14 @@ void SharedMemory::pull_data(cv::Mat &test)
         }
     }
     std::cout << std::endl;
-
-
-    for(int i = 0; i < vector.size(); i++)
+/*
+    cv::Mat test(640, 480, CV_8UC4);
+    for(int i = 0; i < k; i++)
     {
-        cv::circle(test, vector[i], 2, cv::Scalar(0, 255, 255), CV_FILLED, cv::LINE_AA);
+        cv::circle(test, vector[i], 3, cv::Scalar(0, 255, 255), CV_FILLED, cv::LINE_AA);
     }
-
-
+    cv::imshow("TEST", test);
+*/
 }
 
 void SharedMemory::close()

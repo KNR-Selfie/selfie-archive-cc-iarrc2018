@@ -27,8 +27,15 @@ public:
     static void on_accuracy_trackbar(int, void*);
     static void on_f_trackbar(int, void*);
     static void on_acc_trackbar(int,void*);
+    static void on_Rdown_trackbar(int,void*);
+    static void on_Rup_trackbar(int,void*);
+    static void on_Gdown_trackbar(int,void*);
+    static void on_Gup_trackbar(int,void*);
+    static void on_Bdown_trackbar(int,void*);
+    static void on_Bup_trackbar(int,void*);
     void Hsv(cv::Mat frame_in, cv::Mat &yellow_frame_out, cv::Mat &white_frame_out, cv::Mat &yellow_canny, cv::Mat &white_canny);
     void colorTransform(cv::Mat &input, cv::Mat &output);
     void detectLine(cv::Mat &input, std::vector<std::vector<cv::Point>> &output);
     void drawPoints(std::vector<std::vector<cv::Point> > &input, cv::Mat &output);
+    void ConeDetection(cv::Mat frame_in, cv::Mat &frame_out, std::vector<cv::Point> &conePoints);
 };
