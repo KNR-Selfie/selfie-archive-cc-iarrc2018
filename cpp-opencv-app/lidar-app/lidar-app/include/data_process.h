@@ -64,6 +64,32 @@ void filter_distance(LidarReading &input, LidarReading &output, int closest, int
     }
 }
 
+void filter_single_points(LidarReading &input, int thresh, LidarReading &output)
+{
+    cv::Point tmp;
+    bool last = false;
+
+    output.pos.clear();
+
+    for(uint32_t i = 0; i < input.pos.size() - 1; i++)
+    {
+        tmp = input.pos[i] - input.pos[i+1];
+        if(cv::sqrt(tmp.x*tmp.x + tmp.y*tmp.y) < thresh)
+        {
+            last = true;
+            output.pos.push_back(input.pos[i]);
+            output.angle.push_back(input.angle[i]);
+        }
+        else
+        {
+            if(last)
+                output.pos.push_back(input.pos[i]);
+
+            last = false;
+        }
+    }
+}
+
 void draw_data(cv::Mat &frame, LidarReading &input)
 {
     cv::circle(frame, cv::Point(FRAME_X/2, FRAME_Y/2), 20, cv::Scalar(0, 255, 255), 5, 8, 0);

@@ -17,7 +17,7 @@
 #define FRAME_TIME 100
 #define SHM_SIZE 10000
 
-#define DEBUG_MODE
+//#define DEBUG_MODE
 #define TEST_SHM
 
 #ifndef DEBUG_MODE
@@ -61,6 +61,7 @@ int main()
     LidarReading raw_data;
     LidarReading filtered_data_1;
     LidarReading filtered_data_2;
+    LidarReading filtered_data_3;
 
     // Allocate memmory for data
     int data_size = urg_max_data_size(&urg);
@@ -88,6 +89,7 @@ int main()
     int closest = 75;
     int farthest = 400;
     int scale = 1;
+    int thresh_single = 10;
 
 #ifdef DEBUG_MODE
     //Windows
@@ -107,6 +109,7 @@ int main()
     cv::createTrackbar("Right", "FILTERED", &right_angle, 450);
     cv::createTrackbar("Closest", "FILTERED", &closest, 1000);
     cv::createTrackbar("Farthest", "FILTERED", &farthest, 5000);
+    cv::createTrackbar("Single", "FILTERED", &thresh_single, 100);
 #endif
 
     // Processing loop
@@ -132,14 +135,17 @@ int main()
         // Cut data to far and to close
         filter_distance(filtered_data_1, filtered_data_2, closest, farthest, scale);
 
+        // Cut static in dataset
+        filter_single_points(filtered_data_2, thresh_single, filtered_data_3);
+
 #ifdef DEBUG_MODE
         // Draw data
         draw_data(frame_raw, raw_data);
-        draw_data(frame_filtered, filtered_data_2);
+        draw_data(frame_filtered, filtered_data_3);
         draw_boundaries(frame_filtered, filtered_data_1, closest, farthest, scale);
 #endif
         // Send data to SHM
-        shm_lidar.push_data(filtered_data_2.pos);
+        shm_lidar.push_data(filtered_data_3.pos);
 
 #ifdef TEST_SHM
         //Read from SHM
@@ -158,10 +164,12 @@ int main()
         frame_filtered = cv::Mat::zeros(FRAME_X, FRAME_Y, CV_8UC3);
         frame_test = cv::Mat::zeros(FRAME_X, FRAME_Y, CV_8UC3);
 #endif
+#ifdef DEBUG_MODE
         // Check user input
         char key_input = cv::waitKey(FRAME_TIME);
         if(key_input == 27)
             break;
+#endif
     }
 
     // Stop sensor
