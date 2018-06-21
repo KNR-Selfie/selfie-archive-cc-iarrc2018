@@ -1,6 +1,6 @@
 
 /*
- * port.h 
+ * port.h
  *
  * FUNCTION:
  * This file contains defines for porting the tubing toolkit from GL to
@@ -8,7 +8,7 @@
  *
  * HISTORY:
  * Created by Linas Vepstas --  February 1993
- * Added auto texture coord generation hacks, Linas April 1994 
+ * Added auto texture coord generation hacks, Linas April 1994
  */
 
 #ifndef __GLE_PORT_H__
@@ -44,7 +44,7 @@ typedef double glePoint[2];
 #endif /* FUNKY_C */
 
 /* ====================================================== */
-/* These are used to convey info about topography to the 
+/* These are used to convey info about topography to the
  * texture mapping routines */
 
 #define FRONT 		1
@@ -69,7 +69,7 @@ typedef double glePoint[2];
 #define V3F(x,j,id)		V3F_D(x,j,id)
 #define N3F(x)			N3F_D(x)
 #define T2F(x,y)		T2F_D(x,y)
-#else 
+#else
 #define gleDouble 		float
 #define urot_axis(a,b,c) 	urot_axis_f(a,b,c)
 #define uview_direction(a,b,c) 	uview_direction_f(a,b,c)
@@ -79,7 +79,7 @@ typedef double glePoint[2];
 #define V3F(x,j,id)		V3F_F(x,j,id)
 #define N3F(x)			N3F_F(x)
 #define T2F(x,y)		T2F_F(x,y)
-#endif 
+#endif
 
 /* ====================================================== */
 
@@ -239,43 +239,43 @@ typedef double glePoint[2];
 #ifdef AUTO_TEXTURE
 
 #define BGNTMESH(i,len) { 					\
-	if(_gle_gc -> bgn_gen_texture) (*(_gle_gc -> bgn_gen_texture))(i,len);\
-	glBegin (GL_TRIANGLE_STRIP); 			\
+    if(_gle_gc -> bgn_gen_texture) (*(_gle_gc -> bgn_gen_texture))(i,len);\
+    glBegin (GL_TRIANGLE_STRIP); 			\
 }
 
 #define BGNPOLYGON() { 					\
-	if(_gle_gc -> bgn_gen_texture) (*(_gle_gc -> bgn_gen_texture))();\
-	glBegin (GL_POLYGON);				\
+    if(_gle_gc -> bgn_gen_texture) (*(_gle_gc -> bgn_gen_texture))();\
+    glBegin (GL_POLYGON);				\
 }
 
 #define N3F_F(x) { 					\
-	if(_gle_gc -> n3f_gen_texture) (*(_gle_gc -> n3f_gen_texture))(x); \
-	glNormal3fv(x); 				\
+    if(_gle_gc -> n3f_gen_texture) (*(_gle_gc -> n3f_gen_texture))(x); \
+    glNormal3fv(x); 				\
 }
 
 #define N3F_D(x) { 					\
-	if(_gle_gc -> n3d_gen_texture) (*(_gle_gc -> n3d_gen_texture))(x); \
-	glNormal3dv(x); 				\
+    if(_gle_gc -> n3d_gen_texture) (*(_gle_gc -> n3d_gen_texture))(x); \
+    glNormal3dv(x); 				\
 }
 
 #define V3F_F(x,j,id) { 					\
-	if(_gle_gc -> v3f_gen_texture) (*(_gle_gc -> v3f_gen_texture))(x,j,id);\
-	glVertex3fv(x); 				\
+    if(_gle_gc -> v3f_gen_texture) (*(_gle_gc -> v3f_gen_texture))(x,j,id);\
+    glVertex3fv(x); 				\
 }
 
 #define V3F_D(x,j,id) { 					\
-	if(_gle_gc -> v3d_gen_texture) (*(_gle_gc -> v3d_gen_texture))(x,j,id); \
-	glVertex3dv(x); 				\
+    if(_gle_gc -> v3d_gen_texture) (*(_gle_gc -> v3d_gen_texture))(x,j,id); \
+    glVertex3dv(x); 				\
 }
 
 #define ENDTMESH() {					\
-	if(_gle_gc -> end_gen_texture) (*(_gle_gc -> end_gen_texture))(); \
-	glEnd ();					\
+    if(_gle_gc -> end_gen_texture) (*(_gle_gc -> end_gen_texture))(); \
+    glEnd ();					\
 }
 
 #define ENDPOLYGON() {					\
-	if(_gle_gc -> end_gen_texture) (*(_gle_gc -> end_gen_texture))(); \
-	glEnd ();					\
+    if(_gle_gc -> end_gen_texture) (*(_gle_gc -> end_gen_texture))(); \
+    glEnd ();					\
 }
 
 /* ====================================================== */

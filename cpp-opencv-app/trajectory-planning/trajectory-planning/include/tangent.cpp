@@ -1,7 +1,5 @@
 #include "tangent.hpp"
-#include "spline.hpp"
-#include <opencv2/opencv.hpp>
-#include "math.h"
+
 
 tangent::tangent()
 {
@@ -9,25 +7,25 @@ tangent::tangent()
 
 }
 
-void tangent::calculate(spline_t spl, int num)
-{   spline_point=num;
-
-    a = spl.spline.deriv(1,spl.X[spline_point]);
-    b =-a*spl.X[spline_point]+spl.spline(spl.X[spline_point]);
+void tangent::calculate(spline_t spl, int x)
+{   tangent_spline=spl;
+    tangent_point=x;
+    a = spl.spline.deriv(1,x);
+    b =-a*x+spl.spline(x);
 
 }
 
 void tangent::draw(Mat& frame,const Scalar& col)
 {
 
-    for (int i=0;i<480;i++){
+    for (int i=0;i<frame.rows;i++){
              Point pom;
              Vec3b  color;
              pom.y = i;
              pom.x = a*i+b;
 
-             if(pom.x>640)
-                 pom.x = 640;
+             if(pom.x>frame.cols)
+                 pom.x = frame.cols;
              else if(pom.x<0)
                  pom.x=0;
 
@@ -38,10 +36,12 @@ void tangent::draw(Mat& frame,const Scalar& col)
              frame.at<Vec3b>(pom) = color;
       }
 }
-void tangent::angle(spline_t spl)
+void tangent::angle()
 {
 
-    angle_deg = atan2( (a*480+b) - spl.Y[spline_point],480 - spl.X[spline_point]);
+    //angle_deg = atan2( (a*Height+b) - a*tangent_point+b,Height - tangent_point);
+    angle_deg = atan(a);
+
     if (angle_deg<0)
        angle_deg =  - angle_deg * 90 / M_PI;
     else

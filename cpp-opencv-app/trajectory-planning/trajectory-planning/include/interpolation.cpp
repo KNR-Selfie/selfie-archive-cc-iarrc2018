@@ -1,4 +1,7 @@
-#include "include/interpolation.h"
+#include "interpolation.h"
+
+using namespace std;
+
 poly2_interp::poly2_interp(){
 
 }
@@ -12,7 +15,8 @@ exp_interp::exp_interp(){
 }
 
 
-void poly2_interp::calculate_coef(vector<Point> pts, uint32_t len){
+void poly2_interp::calculate_coef(vector<Point> pts){
+
    double arr_x[3][3];
    double arr_y[3][1];
 
@@ -25,7 +29,9 @@ void poly2_interp::calculate_coef(vector<Point> pts, uint32_t len){
    double sum_xy = 0;
    double sum_x2y= 0;
 
-    for(int i=0;i<len;i++){
+
+    for(int i=0;i<int(pts.size());i++){
+
        sum_x += pts[i].x;
        sum_x2 += pts[i].x*pts[i].x;
        sum_x3 += pts[i].x*pts[i].x*pts[i].x;
@@ -85,17 +91,14 @@ void poly2_interp::calculate_coef(vector<Point> pts, uint32_t len){
 
 void poly2_interp::draw(Mat& frame,const Scalar& col)
 {
-
-    for (int i=0;i<480;i++){
+    cout<<a<<endl<<b<<endl<<c<<endl;
+    for (int i=0;i<640;i++){
         Point pom;
         Vec3b  color;
-      pom.y = i;
-      pom.x=a*i*i+b*i+c;
+      pom.y = a*i*i+b*i+c;
+      if(pom.y>480){}
+      pom.x= i;
 
-      if(pom.x<0)
-          pom.x=0;
-      //else if (pom.x>640)
-          //pom.x=640;
 
       color = frame.at<Vec3b>(pom);
       color.val[0] = col[0];
@@ -106,7 +109,9 @@ void poly2_interp::draw(Mat& frame,const Scalar& col)
 }
 
 
-void poly3_interp::calculate_3coef(vector<Point> pts,uint32_t len){
+
+void poly3_interp::calculate_3coef(vector<Point> pts){
+
 
    double arr_x[4][4];
    double arr_y[4][1];
@@ -123,7 +128,9 @@ void poly3_interp::calculate_3coef(vector<Point> pts,uint32_t len){
    double sum_x2y= 0;
    double sum_x3y=0;
 
-    for(int i=0;i<len;i++){
+
+    for(int i=0;i<pts.size();i++){
+
 
        sum_x += pts[i].x;
        sum_x2 += pts[i].x*pts[i].x;
@@ -196,10 +203,6 @@ void poly3_interp::draw(Mat& frame,const Scalar& col)
       pom.y = i;
       pom.x=a*i*i*i + b*i*i + c*i +d;
 
-      if(pom.x<0)
-          pom.x=0;
-      //else if (pom.x>640)
-          //pom.x=640;
 
       color = frame.at<Vec3b>(pom);
       color.val[0] = col[0];

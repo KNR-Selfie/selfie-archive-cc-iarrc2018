@@ -3,6 +3,7 @@
 #include <opencv2/opencv.hpp>
 #include "include/vvector.h"
 #include <vector>
+#include <iostream>
 
 using namespace std;
 using namespace cv;
@@ -15,7 +16,7 @@ public:
     double c;
 
     poly2_interp();
-    void calculate_coef(vector<Point> pts,uint32_t len);
+    void calculate_coef(vector<Point> pts);
     void draw(Mat& frame,const Scalar& col);
 
 };
@@ -29,7 +30,7 @@ public:
     double d;
 
     poly3_interp();
-    void calculate_3coef(vector<Point> pts,uint32_t len);
+    void calculate_3coef(vector<Point> pts);
     void draw(Mat& frame,const Scalar& col);
 
 };

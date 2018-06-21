@@ -21,7 +21,7 @@ extern "C" {
 
 
 #include <math.h>
-#include "port.h"
+#include "matrix.h"
 
 /* ========================================================== */
 /* Zero out a 2D vector */
