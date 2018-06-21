@@ -11,7 +11,7 @@
 // Race mode ---> fps boost
 // Debug mode --> display data
 //#define RACE_MODE
-#define DEBUG_MODE
+//#define DEBUG_MODE
 #define NO_USB
 //#define STOPLIGHTS_MODE
 
@@ -49,9 +49,12 @@ int main()
 
     // Declaration of cv::MAT variables
     cv::Mat frame(CAM_RES_Y, CAM_RES_X, CV_8UC4);
-    cv::Mat bird_eye_frame(CAM_RES_Y, CAM_RES_X, CV_8UC3);
-    cv::Mat bird_eye_frame_tr(CAM_RES_Y, CAM_RES_X, CV_8UC3);
-    cv::Mat vector_frame(CAM_RES_Y, CAM_RES_X, CV_8UC3);
+    cv::Mat yellow_bird_eye_frame(CAM_RES_Y, CAM_RES_X, CV_8UC3);
+    cv::Mat white_bird_eye_frame(CAM_RES_Y, CAM_RES_X, CV_8UC3);
+    cv::Mat yellow_bird_eye_frame_tr(CAM_RES_Y, CAM_RES_X, CV_8UC3);
+    cv::Mat white_bird_eye_frame_tr(CAM_RES_Y, CAM_RES_X, CV_8UC3);
+    cv::Mat yellow_vector_frame(CAM_RES_Y, CAM_RES_X, CV_8UC3);
+    cv::Mat white_vector_frame(CAM_RES_Y, CAM_RES_X, CV_8UC3);
     cv::Mat undist_frame, cameraMatrix, distCoeffs;
     cv::Mat cone_frame_out;
     cv::Mat frame_out_yellow, frame_out_white, frame_out_edge_yellow, frame_out_edge_white;
@@ -64,7 +67,8 @@ int main()
 #endif
 
     // Declaration of std::vector variables
-    std::vector<std::vector<cv::Point>> vector;
+    std::vector<std::vector<cv::Point>> yellow_vector;
+    std::vector<std::vector<cv::Point>> white_vector;
 
     // Camera init
     cv::VideoCapture camera;
@@ -128,6 +132,28 @@ int main()
     lightDetector.prepare_first_image(frame,old_frame,lightDetector.roi_number);
     cv::namedWindow("Light detection", 1);
     cv::namedWindow("Frame", 1);
+    while(lightDetector.start_light ==false){
+         camera >> frame;
+        //Test ROI on input frame
+        //lightDetector.test_roi(frame,display);
+        lightDetector.find_start(frame,diffrence,old_frame,lightDetector.roi_number);
+#ifdef DEBUG_MODE
+        if (lightDetector.start_finding ==true){
+            cv::imshow("Frame",frame);
+            cv::imshow("Light detection",diffrence);
+            //cv::imshow("Light detection", display);
+        }
+        if (lightDetector.start_light == true){
+            std::cout<<"START"<<std::endl;
+        }
+        else
+            std::cout<<"WAIT"<<std::endl;
+
+        cv::waitKey(20);
+
+#endif
+    }
+
 #endif
 
     // Main loop
@@ -145,63 +171,54 @@ int main()
         // Get new frame from camera
         camera >> frame;
 
-#ifdef STOPLIGHTS_MODE
-        //Test ROI on input frame
-        //lightDetector.test_roi(frame,display);
-        lightDetector.find_start(frame,diffrence,old_frame,lightDetector.roi_number);
-#ifdef DEBUG_MODE
-        if (lightDetector.start_finding ==true){
-            cv::imshow("Frame",frame);
-            cv::imshow("Light detection",diffrence);
-            //cv::imshow("Light detection", display);
-        }
-        if (lightDetector.start_light == true){
-            std::cout<<"START"<<std::endl;
-        }
-        else
-            std::cout<<"WAIT"<<std::endl;
 
-        cv::waitKey(20);
-#endif
-#endif
-#ifndef STOPLIGHTS_MODE
+
         // Process frame
         laneDetector.Undist(frame, undist_frame, cameraMatrix, distCoeffs);
         laneDetector.Hsv(undist_frame, frame_out_yellow, frame_out_white, frame_out_edge_yellow, frame_out_edge_white);
-        laneDetector.BirdEye(frame_out_edge_yellow, bird_eye_frame);
-        laneDetector.colorTransform(bird_eye_frame, bird_eye_frame_tr);
+        laneDetector.BirdEye(frame_out_edge_yellow, yellow_bird_eye_frame);
+        laneDetector.BirdEye(frame_out_edge_white, white_bird_eye_frame);
+        laneDetector.colorTransform(yellow_bird_eye_frame, yellow_bird_eye_frame_tr);
+        laneDetector.colorTransform(white_bird_eye_frame, white_bird_eye_frame_tr);
 
         // Detect cones
         std::vector<cv::Point> cones_vector;
         laneDetector.ConeDetection(frame, cone_frame_out, cones_vector);
 
         // Detect lines
-        laneDetector.detectLine(bird_eye_frame, vector);
-        laneDetector.drawPoints(vector, vector_frame);
+        laneDetector.detectLine(yellow_bird_eye_frame, yellow_vector);
+        laneDetector.detectLine(white_bird_eye_frame_tr, white_vector);
+        laneDetector.drawPoints(yellow_vector, yellow_vector_frame);
+        laneDetector.drawPoints(white_vector, white_vector_frame);
 
         // Push data
         std::cout << "Push" << std::endl;
-        shm_lane_points.push_data(vector, vector, vector); // <-- Do zmiany na 3 różne
+        shm_lane_points.push_data(yellow_vector, white_vector, white_vector); // <-- Do zmiany trzeci wektor z pacholkami
         std::cout << "Pull" << std::endl;
-        shm_lane_points.pull_data(test);
+        //shm_lane_points.pull_data(test);
+
 
 #ifdef DEBUG_MODE
         // Display info on screen
         //cv::imshow("Camera", frame);
         //cv::imshow("UndsCamera", undist_frame);
-        cv::imshow("Frame", frame);
-        cv::imshow("Yellow Line", frame_out_yellow);
-        cv::imshow("White Line", frame_out_white);
-        cv::imshow("Yellow Edges", frame_out_edge_yellow);
-        cv::imshow("BirdEyeTtransform", bird_eye_frame_tr);
-        cv::imshow("BirdEye", bird_eye_frame);
-        cv::imshow("Vector", vector_frame);
-        cv::imshow("Cone Detect", cone_frame_out);
+        cv::imshow("0 Frame", frame);
+        cv::imshow("1.1 Yellow Line", frame_out_yellow);
+        cv::imshow("1.2 White Line", frame_out_white);
+        cv::imshow("2.1 Yellow Edges", frame_out_edge_yellow);
+        cv::imshow("2.2 White Edges", frame_out_edge_white);
+        //cv::imshow("BirdEyeTtransform", bird_eye_frame_tr);
+        cv::imshow("3.1 Yellow Bird Eye", yellow_bird_eye_frame);
+        cv::imshow("3.2 White Bird Eye", white_bird_eye_frame);
+        cv::imshow("4.1 Yellow Vector", yellow_vector_frame);
+        cv::imshow("4.2 White Vector", white_vector_frame);
+        cv::imshow("5 Cone Detect", cone_frame_out);
 
 cv::imshow("TEST", test);
 test = cv::Mat::zeros(CAM_RES_Y, CAM_RES_X, CV_8UC3);
 
-        vector_frame = cv::Mat::zeros(CAM_RES_Y, CAM_RES_X, CV_8UC3);
+        yellow_vector_frame = cv::Mat::zeros(CAM_RES_Y, CAM_RES_X, CV_8UC3);
+        white_vector_frame = cv::Mat::zeros(CAM_RES_Y, CAM_RES_X, CV_8UC3);
 
         // Get input from user
         char keypressed = (char)cv::waitKey(FRAME_TIME);
@@ -260,7 +277,7 @@ test = cv::Mat::zeros(CAM_RES_Y, CAM_RES_X, CV_8UC3);
             licznik_czas++;
         }
 #endif
-#endif
+
 
     }
 
