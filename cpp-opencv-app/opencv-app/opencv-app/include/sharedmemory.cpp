@@ -46,7 +46,7 @@ bool SharedMemory::get_access()
     return 1;
 }
 
-void SharedMemory::push_data(std::vector<std::vector<cv::Point>> vector_yellow, std::vector<std::vector<cv::Point>> vector_white, std::vector<std::vector<cv::Point>> vector_cones)
+void SharedMemory::push_lane_data(std::vector<std::vector<cv::Point>> vector_yellow, std::vector<std::vector<cv::Point>> vector_white, std::vector<cv::Point> vector_cones)
 {
     uint32_t tmp[25000];
     int j = 1;
@@ -69,11 +69,11 @@ void SharedMemory::push_data(std::vector<std::vector<cv::Point>> vector_yellow, 
         tmp[head] = j-1;
         tmp[head+j] = 5000;
         head += j+1;
-        std::cout << std::endl << "Detected yellow: " << (j-1)/2 << std::endl;
+        // std::cout << std::endl << "Detected yellow: " << (j-1)/2 << std::endl;
     }
     else
     {
-        std::cout << "Pusto" << std::endl;
+        std::cout << "Pusto - yellow" << std::endl;
         tmp[head] = 0;
         tmp[head+1] = 5000;
         head += 2;
@@ -99,11 +99,11 @@ void SharedMemory::push_data(std::vector<std::vector<cv::Point>> vector_yellow, 
         tmp[head] = j-1;
         tmp[head+j] = 5000;
         head += j;
-        std::cout << "Detected white: " << (j-1)/2 << std::endl;
+        // std::cout << "Detected white: " << (j-1)/2 << std::endl;
     }
     else
     {
-        std::cout << "Pusto" << std::endl;
+        std::cout << "Pusto - white" << std::endl;
         tmp[head] = 0;
         tmp[head+1] = 5000;
         head += 2;
@@ -115,46 +115,42 @@ void SharedMemory::push_data(std::vector<std::vector<cv::Point>> vector_yellow, 
 
     if(vector_cones.size() > 0)
     {
-        // Data vector to int[]
         for(uint32_t i = 0; i < vector_cones.size(); i++)
         {
-            for(uint32_t k = 0; k < vector_cones[i].size(); k++)
-            {
-                tmp[head+j] = vector_cones[i][k].x;
-                tmp[head+j+1] = vector_cones[i][k].y;
+            tmp[head+j] = vector_cones[i].x;
+            tmp[head+j+1] = vector_cones[i].y;
 
-                j+= 2;
-            }
+            j+= 2;
         }
+
         tmp[head] = j-1;
         head += j;
-        std::cout << "Detected cones: " << (j-1)/2 << std::endl << std::endl;
+        // std::cout << "Detected cones: " << (j-1)/2 << std::endl << std::endl;
     }
     else
     {
-        std::cout << "Pusto" << std::endl;
+        std::cout << "Pusto - cones" << std::endl;
         tmp[head] = 0;
         head ++;
     }
-
 
     // Copy data to shm
     if(head != 0)
         memcpy(shared_variable, &tmp[0], 4*head);
 }
 
-void SharedMemory::pull_data(cv::Mat &test)
+void SharedMemory::pull_lane_data(cv::Mat &test)
 {
     std::vector<cv::Point> vector;
 
-    std::cout << "Length: " << shared_variable[0] << std::endl;
+    // std::cout << "Length: " << shared_variable[0] << std::endl;
 
     int j = 1;
     cv::Point tmp;
 
     for(int i = j; i < 1000; i+=2)
     {
-        std::cout << "X: " << shared_variable[i] << ", Y: " << shared_variable[i+1] << std::endl;
+        // std::cout << "X: " << shared_variable[i] << ", Y: " << shared_variable[i+1] << std::endl;
         if(shared_variable[i] != 5000)
         {
             tmp.x = shared_variable[i];
@@ -163,17 +159,17 @@ void SharedMemory::pull_data(cv::Mat &test)
         }
         else
         {
-            std::cout << "Koniec!" << std::endl;
+            // std::cout << "Koniec!" << std::endl;
             break;
         }
     }
-    std::cout << std::endl;
 
-    std::cout << "Length: " << shared_variable[0] << std::endl;
+    // std::cout << std::endl;
+    // std::cout << "Length: " << shared_variable[0] << std::endl;
 
     for(int i = j; i < 1000; i+=2)
     {
-        std::cout << "X: " << shared_variable[i] << ", Y: " << shared_variable[i+1] << std::endl;
+        // std::cout << "X: " << shared_variable[i] << ", Y: " << shared_variable[i+1] << std::endl;
         if(shared_variable[i] != 5000)
         {
             tmp.x = shared_variable[i];
@@ -182,18 +178,17 @@ void SharedMemory::pull_data(cv::Mat &test)
         }
         else
         {
-            std::cout << "Koniec!" << std::endl;
+            // std::cout << "Koniec!" << std::endl;
             break;
         }
     }
-    std::cout << std::endl;
 
-
-    std::cout << "Length: " << shared_variable[0] << std::endl;
+    // std::cout << std::endl;
+    // std::cout << "Length: " << shared_variable[0] << std::endl;
 
     for(int i = j; i < 1000; i+=2)
     {
-        std::cout << "X: " << shared_variable[i] << ", Y: " << shared_variable[i+1] << std::endl;
+        // std::cout << "X: " << shared_variable[i] << ", Y: " << shared_variable[i+1] << std::endl;
         if(shared_variable[i] != 5000)
         {
             tmp.x = shared_variable[i];
@@ -202,20 +197,44 @@ void SharedMemory::pull_data(cv::Mat &test)
         }
         else
         {
-            std::cout << "Koniec!" << std::endl;
+            // std::cout << "Koniec!" << std::endl;
             break;
         }
     }
-    std::cout << std::endl;
+    // std::cout << std::endl;
 
-
-
-    for(int i = 0; i < vector.size(); i++)
+    for(uint32_t i = 0; i < vector.size(); i++)
     {
         cv::circle(test, vector[i], 2, cv::Scalar(0, 255, 255), CV_FILLED, cv::LINE_AA);
     }
 
 
+}
+
+void SharedMemory::push_scene_data(bool reset_stm, bool red_light_visible, bool green_light_visible, bool stop_line_detected, uint32_t stop_line_distance)
+{
+    uint32_t tmp[8];
+
+    tmp[0] = 5;
+    tmp[1] = reset_stm;
+    tmp[2] = red_light_visible;
+    tmp[3] = green_light_visible;
+    tmp[4] = stop_line_detected;
+    tmp[5] = stop_line_distance;
+
+    // Copy data to shm
+    memcpy(shared_variable, &tmp[0], 24);
+}
+
+void SharedMemory::pull_scene_data()
+{
+    std::cout << std::endl << "SCENE SHM: " << std::endl;
+    std::cout << "Length:    " << shared_variable[0] << std::endl;
+    std::cout << "Reset STM: " << shared_variable[1] << std::endl;
+    std::cout << "Red vis:   " << shared_variable[2] << std::endl;
+    std::cout << "Green vis: " << shared_variable[3] << std::endl;
+    std::cout << "Stop vis:  " << shared_variable[4] << std::endl;
+    std::cout << "Stop dist: " << shared_variable[5] << std::endl;
 }
 
 void SharedMemory::close()
