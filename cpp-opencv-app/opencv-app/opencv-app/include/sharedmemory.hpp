@@ -23,6 +23,8 @@ public:
     bool get_access();
     void push_lane_data(std::vector<std::vector<cv::Point>> vector_yellow, std::vector<std::vector<cv::Point> > vector_white, std::vector<cv::Point> vector_cones);
     void pull_lane_data(cv::Mat &test);
+    void push_scene_data(bool reset_stm, bool red_light_visible, bool green_light_visible, bool stop_line_detected, uint32_t stop_line_distance);
+    void pull_scene_data();
     void close();
 };
 

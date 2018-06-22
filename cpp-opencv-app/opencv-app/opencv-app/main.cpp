@@ -55,6 +55,14 @@ int main()
     cv::Mat cone_frame_out;
     cv::Mat frame_out_yellow, frame_out_white, frame_out_edge_yellow, frame_out_edge_white;
     cv::Mat test_lane(CAM_RES_Y, CAM_RES_X, CV_8UC3);
+    cv::Mat test_scene(CAM_RES_Y, CAM_RES_X, CV_8UC3);
+
+    // Scene variables
+    bool reset_stm = false;
+    bool red_light_visible = false;
+    bool green_light_visible = false;
+    bool stop_line_detected = false;
+    uint32_t stop_line_distance = 0;
 
 #ifdef STOPLIGHTS_MODE
     //cv::Mats used in stoplight algorythm
@@ -191,6 +199,11 @@ int main()
         shm_lane_points.push_lane_data(yellow_vector, white_vector, cones_vector);
         // Test pull
         //shm_lane_points.pull_lane_data(test-lane);
+
+        // Push data
+        shm_usb_to_send.push_scene_data(reset_stm, red_light_visible, green_light_visible, stop_line_detected, stop_line_distance);
+        // Test pull
+        // shm_usb_to_send.pull_scene_data();
 
 
 #ifdef DEBUG_MODE

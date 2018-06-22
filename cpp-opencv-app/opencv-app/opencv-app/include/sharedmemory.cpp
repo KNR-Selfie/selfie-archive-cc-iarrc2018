@@ -211,6 +211,32 @@ void SharedMemory::pull_lane_data(cv::Mat &test)
 
 }
 
+void SharedMemory::push_scene_data(bool reset_stm, bool red_light_visible, bool green_light_visible, bool stop_line_detected, uint32_t stop_line_distance)
+{
+    uint32_t tmp[8];
+
+    tmp[0] = 5;
+    tmp[1] = reset_stm;
+    tmp[2] = red_light_visible;
+    tmp[3] = green_light_visible;
+    tmp[4] = stop_line_detected;
+    tmp[5] = stop_line_distance;
+
+    // Copy data to shm
+    memcpy(shared_variable, &tmp[0], 24);
+}
+
+void SharedMemory::pull_scene_data()
+{
+    std::cout << std::endl << "SCENE SHM: " << std::endl;
+    std::cout << "Length:    " << shared_variable[0] << std::endl;
+    std::cout << "Reset STM: " << shared_variable[1] << std::endl;
+    std::cout << "Red vis:   " << shared_variable[2] << std::endl;
+    std::cout << "Green vis: " << shared_variable[3] << std::endl;
+    std::cout << "Stop vis:  " << shared_variable[4] << std::endl;
+    std::cout << "Stop dist: " << shared_variable[5] << std::endl;
+}
+
 void SharedMemory::close()
 {
     std::string command = "ipcrm -M ";
