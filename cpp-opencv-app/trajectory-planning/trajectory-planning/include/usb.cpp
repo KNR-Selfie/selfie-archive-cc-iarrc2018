@@ -2,6 +2,7 @@
 
 USB_STM::USB_STM()
 {
+
     std::string name = "/dev/ttyACM0";
     strcpy(&portname[0], name.c_str());
 }
@@ -9,11 +10,11 @@ USB_STM::USB_STM()
 int USB_STM::init(int speed)
 {
     // Try openning ports from ttyACM0 to ttyACM9
+
     for(int i = 48; i < 58; i++)
     {
         portname[11] = i;
         fd = open(&portname[0], O_RDWR | O_NOCTTY | O_SYNC);
-
         if (fd < 0)
             std::cout << "Could not open serial communication on port: " << portname << std::endl;
         else
@@ -86,81 +87,82 @@ void USB_STM::char_tab_to_uint32(unsigned char input[], uint32_t *output)
 
 void USB_STM::send_buf(data_container &to_send)
 {
-    //char tmp[5] = {'1', '1', '1', '1', '\0'};
 
     // Pack data
     to_send_packed[0] = to_send.start;
     to_send_packed[1] = to_send.code;
     to_send_packed[2] = to_send.length;
 
-    //uint32_to_char_tab(velocity, tmp);
-    int i=0;
-    for(i=0;i<to_send.length;i++)
+    for(int i=0;i<to_send.length;i++)
     to_send_packed[i+3] = to_send.data[i];
 
-    to_send_packed[i+1] = to_send.length;
-    to_send_packed[i+2] = to_send.code;
-    to_send_packed[i+3] = to_send.stop;
+    to_send_packed[to_send.length+3] = to_send.length;
+    to_send_packed[to_send.length+4] = to_send.code;
+    to_send_packed[to_send.length+5] = to_send.stop;
 
-
-    //Send data
-    write(fd, &to_send_packed, to_send.length+6);
+    //send
+    write(fd, &to_send_packed,22);
+    //unsigned char r = 'r';
+    //write(fd,&r,1);
 
 }
 
 
-void USB_STM::read_buf()
+void USB_STM::read_buf(int buf_size)
 
 {
-    unsigned char buf[64];
-    std::cout << "Len: " << read(fd, &buf, 1) << std::endl;
+    unsigned char buf[buf_size];
+    std::cout << "Len: " << read(fd, &buf, buf_size) << std::endl;
 
-    for(int i = 0; i < 1; i++)
+    for(int i = 0; i < buf_size; i++)
     {
-        std::cout << (int)buf[i];
+        std::cout << (int)buf[i]<<"\t";
+
     }
+   // union
+   // {
+    //    float f;
+     //   unsigned char b[4];
+   // }u;
+    //u.b[0]=buf[0];
+     //u.b[1]=buf[1];
+      //u.b[2]=buf[2];
+      // u.b[3]=buf[3];
+      // std::cout<<"nasz float to "<<u.f<<std::endl;
     std::cout << std::endl;
 }
 
-void USB_STM::data_pack(uint32_t velo,uint32_t ang,unsigned char flags[],uint32_t dist,data_container *container)
+void USB_STM::data_pack(uint32_t velo,uint32_t ang,std::vector<uint32_t>flags,data_container *container)
 {
+    unsigned char char_flags[4]; //convert uint32_flags to unsigned char
+    for(int i=0;i<4;i++)
+    {
+        if(flags[i]>0)
+            char_flags[i]=255;
+    }
 
     unsigned char pom[4];
     uint32_to_char_tab(velo,pom);
-    /*
+
     for(int i=0;i<4;i++)
     {
         container->data[i] = pom[i];
     }
     uint32_to_char_tab(ang,pom);
+
     for(int i=0;i<4;i++)
     {
         container->data[i+4] = pom[i];
     }
-    container->data[8] = flags[0];
-    container->data[9] = flags[1];
-    container->data[10] =flags[2];
-    container->data[11]= flags[3];
 
-    uint32_to_char_tab(dist,pom);
+    container->data[8] = 0 ;//char_flags[0];
+    container->data[9] = 0 ;//char_flags[1];
+    container->data[10] = 0;//char_flags[2];
+    container->data[11]= 0;//char_flags[3];
+
+    uint32_to_char_tab(flags[4],pom);
     for(int i=0;i<4;i++){
         container->data[i+12] = pom[i];
     }
-    */
-    for(int i=0;i<4;i++)
-    {
-        container->data[i]=pom[i];
-    }
-    /*
-    uint32_to_char_tab(ang,pom);
-
-    for(int i=0;i<4;i++)
-    {
-        container->data[i+4]=pom[i];
-    }
-    */
-
-
-
 
 }

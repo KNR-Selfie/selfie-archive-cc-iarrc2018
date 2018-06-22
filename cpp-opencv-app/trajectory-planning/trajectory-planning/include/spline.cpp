@@ -49,15 +49,22 @@ void spline_t::set_point_value(int num,double x, double y)
     Y[num]=y;
 }
 
-void spline_t::set_spline()
+void spline_t::set_spline(std::vector<cv::Point> vec)
 {
+    std :: vector<double> X;
+    std :: vector<double> Y;
+    for(int i=vec.size()-1;i>-1;i--)
+    {   X.push_back(vec[i].y);
+        Y.push_back(vec[i].x);
+    }
+
     spline.set_points(X,Y);
 }
 
 void spline_t::draw(Mat& frame,const Scalar& col)
 {
 
-    for (int i=X[0];i<X[X.size()-1];i++){
+    for (int i=0;i<frame.rows;i++){
         Point pom;
         Vec3b  color;
       pom.y = i;
@@ -65,8 +72,8 @@ void spline_t::draw(Mat& frame,const Scalar& col)
 
       if(pom.x<0)
           pom.x=0;
-      //else if (pom.x>640)
-          //pom.x=640;
+      else if (pom.x>640)
+          pom.x=640;
 
       color = frame.at<Vec3b>(pom);
       color.val[0] = col[0];
@@ -75,3 +82,4 @@ void spline_t::draw(Mat& frame,const Scalar& col)
       frame.at<Vec3b>(pom) = color;
      }
 }
+

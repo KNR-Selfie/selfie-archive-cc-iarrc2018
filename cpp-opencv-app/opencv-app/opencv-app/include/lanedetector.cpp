@@ -8,19 +8,32 @@ static const int Accuracy_max = 100;
 static const int F_max = 1000;
 
 static int H_yellow_slider = 110, S_yellow_slider = 49, V_yellow_slider = 102, yel_Thresh_sider = 50;
-static int H_white_slider = 82, S_white_slider = 79, V_white_slider = 51, whi_Thresh_sider = 16;
+static int H_white_slider = 123, S_white_slider = 102, V_white_slider = 60, whi_Thresh_sider = 33;
 static int A_slider = 13;
 static int K_slider = 973;
 static int H_yellow = 110, V_yellow = 49, S_yellow = 102, Thresh_yellow = 50;
-static int H_white = 82, V_white = 79, S_white = 51, Thresh_white = 16;
+static int H_white = 123, V_white =102, S_white = 60, Thresh_white = 33;
 static int A_value = 50;
 static int K_value = 50;
 static int Acc_slider = 50;
 static int Acc_value = 50;
-static int R_down_slider = 0, G_down_slider = 135, B_down_slider = 135;
-static int R_up_slider = 15, G_up_slider = 255, B_up_slider = 255;
-static int R_down = 0, G_down = 135, B_down = 135;
-static int R_up = 15, G_up = 255, B_up = 255;
+static int Acc_filt = 8;
+static int Acc_filt_slider = 8;
+
+static int R_down_slider = 146, G_down_slider = 82, B_down_slider = 107;
+static int R_up_slider = 176, G_up_slider = 255, B_up_slider = 255;
+static int R_down = 146, G_down = 82, B_down = 107;
+static int R_up = 176, G_up = 255, B_up = 255;
+
+static int H_down_slider = 236, S_down_slider = 0, V_down_slider = 0;
+static int H_up_slider = 255, S_up_slider = 255, V_up_slider = 255;
+static int H_down = 244, S_down = 0, V_down = 0;
+static int H_up = 255, S_up = 255, V_up = 255;
+
+static int H_down_slider_white = 48, S_down_slider_white = 104, V_down_slider_white = 94;
+static int H_up_slider_white = 143, S_up_slider_white = 207, V_up_slider_white = 183;
+static int H_down_white = 48, S_down_white = 104, V_down_white = 94;
+static int H_up_white = 143, S_up_white = 207, V_up_white = 183;
 
 LaneDetector::LaneDetector()
 {
@@ -110,27 +123,41 @@ void LaneDetector::BirdEye(cv::Mat frame_in, cv::Mat &frame_out)
 
 void LaneDetector::CreateTrackbars()
 {
-    cv::namedWindow("Yellow Line", 1);
-    cv::namedWindow("White Line", 1);
-    cv::namedWindow("BirdEye", 1);
-    cv::namedWindow("ConeDetect", 1);
-    cv::createTrackbar("H", "Yellow Line", &H_yellow_slider, H_slider_max, LaneDetector::on_yellow_H_trackbar);
-    cv::createTrackbar("S", "Yellow Line", &S_yellow_slider, S_slider_max, LaneDetector::on_yellow_S_trackbar);
-    cv::createTrackbar("V", "Yellow Line", &V_yellow_slider, V_slider_max, LaneDetector::on_yellow_V_trackbar);
-    cv::createTrackbar("T", "Yellow Line", &yel_Thresh_sider, Thresh_max, LaneDetector::on_yellow_thresh_trackbar);
-    cv::createTrackbar("H", "White Line", &H_white_slider, H_slider_max, LaneDetector::on_white_H_trackbar);
-    cv::createTrackbar("S", "White Line", &S_white_slider, S_slider_max, LaneDetector::on_white_S_trackbar);
-    cv::createTrackbar("V", "White Line", &V_white_slider, V_slider_max, LaneDetector::on_white_V_trackbar);
-    cv::createTrackbar("T", "White Line", &whi_Thresh_sider, Thresh_max, LaneDetector::on_white_thresh_trackbar);
-    cv::createTrackbar("A", "BirdEye", &A_slider, Accuracy_max, LaneDetector::on_accuracy_trackbar);
-    cv::createTrackbar("K", "BirdEye", &K_slider, F_max, LaneDetector::on_f_trackbar);
-    cv::createTrackbar("Acc", "BirdEye", &Acc_slider, 255, LaneDetector::on_acc_trackbar);
-    cv::createTrackbar("Rdown", "Cone Detect", &R_down_slider, 255, LaneDetector::on_Rdown_trackbar);
-    cv::createTrackbar("Rdown", "Cone Detect", &R_up_slider, 255, LaneDetector::on_Rup_trackbar);
-    cv::createTrackbar("Gdown", "Cone Detect", &G_down_slider, 255, LaneDetector::on_Gdown_trackbar);
-    cv::createTrackbar("Gup", "Cone Detect", &G_up_slider, 255, LaneDetector::on_Gup_trackbar);
-    cv::createTrackbar("Bdown", "Cone Detect", &B_down_slider, 255, LaneDetector::on_Bdown_trackbar);
-    cv::createTrackbar("Bup", "Cone Detect", &B_up_slider, 255, LaneDetector::on_Bup_trackbar);
+    cv::namedWindow("1.1 Yellow Line", 1);
+    cv::namedWindow("1.2 White Line", 1);
+    cv::namedWindow("3.1 Yellow Bird Eye", 1);
+    cv::namedWindow("3.2 White Bird Eye", 1);
+    cv::namedWindow("3.3 Line Accuracy",1);
+    cv::namedWindow("5 Cone Detect", 1);
+
+    cv::createTrackbar("A", "3.1 Yellow Bird Eye", &A_slider, Accuracy_max, LaneDetector::on_accuracy_trackbar);
+    cv::createTrackbar("K", "3.1 Yellow Bird Eye", &K_slider, F_max, LaneDetector::on_f_trackbar);
+    cv::createTrackbar("Acc", "3.1 Yellow Bird Eye", &Acc_slider, 255, LaneDetector::on_acc_trackbar);
+    cv::createTrackbar("A", "3.2 White Bird Eye", &A_slider, Accuracy_max, LaneDetector::on_accuracy_trackbar);
+    cv::createTrackbar("K", "3.2 White Bird Eye", &K_slider, F_max, LaneDetector::on_f_trackbar);
+    cv::createTrackbar("Acc", "3.3 Line Accuracy", &Acc_slider, 255, LaneDetector::on_acc_trackbar);
+    cv::createTrackbar("Acc_filt", "3.3 Line Accuracy", &Acc_filt_slider, 20, LaneDetector::on_acc_filt_trackbar);
+
+    cv::createTrackbar("Rdown", "5 Cone Detect", &R_down_slider, 255, LaneDetector::on_Rdown_trackbar);
+    cv::createTrackbar("Rup", "5 Cone Detect", &R_up_slider, 255, LaneDetector::on_Rup_trackbar);
+    cv::createTrackbar("Gdown", "5 Cone Detect", &G_down_slider, 255, LaneDetector::on_Gdown_trackbar);
+    cv::createTrackbar("Gup", "5 Cone Detect", &G_up_slider, 255, LaneDetector::on_Gup_trackbar);
+    cv::createTrackbar("Bdown", "5 Cone Detect", &B_down_slider, 255, LaneDetector::on_Bdown_trackbar);
+    cv::createTrackbar("Bup", "5 Cone Detect", &B_up_slider, 255, LaneDetector::on_Bup_trackbar);
+
+    cv::createTrackbar("Hdown", "1.1 Yellow Line", &H_down_slider, 255, LaneDetector::on_Hdown_trackbar);
+    cv::createTrackbar("Hup", "1.1 Yellow Line", &H_up_slider, 255, LaneDetector::on_Hup_trackbar);
+    cv::createTrackbar("Sdown", "1.1 Yellow Line", &S_down_slider, 255, LaneDetector::on_Sdown_trackbar);
+    cv::createTrackbar("Sup", "1.1 Yellow Line", &S_up_slider, 255, LaneDetector::on_Sup_trackbar);
+    cv::createTrackbar("Vdown", "1.1 Yellow Line", &V_down_slider, 255, LaneDetector::on_Vdown_trackbar);
+    cv::createTrackbar("Vup", "1.1 Yellow Line", &V_up_slider, 255, LaneDetector::on_Vup_trackbar);
+
+    cv::createTrackbar("Hdown", "1.2 White Line", &H_down_slider_white, 255, LaneDetector::on_Hdown_trackbar_white);
+    cv::createTrackbar("Hup", "1.2 White Line", &H_up_slider_white, 255, LaneDetector::on_Hup_trackbar_white);
+    cv::createTrackbar("Sdown", "1.2 White Line", &S_down_slider_white, 255, LaneDetector::on_Sdown_trackbar_white);
+    cv::createTrackbar("Sup", "1.2 White Line", &S_up_slider_white, 255, LaneDetector::on_Sup_trackbar_white);
+    cv::createTrackbar("Vdown", "1.2 White Line", &V_down_slider_white, 255, LaneDetector::on_Vdown_trackbar_white);
+    cv::createTrackbar("Vup", "1.2 White Line", &V_up_slider_white, 255, LaneDetector::on_Vup_trackbar_white);
 }
 
 void LaneDetector::on_yellow_H_trackbar(int, void*)
@@ -175,32 +202,87 @@ void LaneDetector::on_f_trackbar(int, void*)
 }
 void LaneDetector::on_acc_trackbar(int, void*)
 {
-        Acc_value= Acc_slider;
+        Acc_value = Acc_slider;
+}
+void LaneDetector::on_acc_filt_trackbar(int, void*)
+{
+        Acc_filt = Acc_filt_slider;
 }
 void LaneDetector::on_Rdown_trackbar(int, void*)
 {
-        R_down= R_down_slider;
+        R_down = R_down_slider;
 }
 void LaneDetector::on_Rup_trackbar(int, void*)
 {
-        R_up= R_up_slider;
+        R_up = R_up_slider;
 }
 void LaneDetector::on_Gdown_trackbar(int, void*)
 {
-        G_down= G_down_slider;
+        G_down = G_down_slider;
 }
 void LaneDetector::on_Gup_trackbar(int, void*)
 {
-        G_up= G_up_slider;
+        G_up = G_up_slider;
 }
 void LaneDetector::on_Bdown_trackbar(int, void*)
 {
-        B_down= B_down_slider;
+        B_down = B_down_slider;
 }
 void LaneDetector::on_Bup_trackbar(int, void*)
 {
-        B_up= B_up_slider;
+        B_up = B_up_slider;
 }
+void LaneDetector::on_Hdown_trackbar(int, void*)
+{
+        H_down = H_down_slider;
+}
+void LaneDetector::on_Hup_trackbar(int, void*)
+{
+        H_up = H_up_slider;
+}
+void LaneDetector::on_Sdown_trackbar(int, void*)
+{
+        S_down = S_down_slider;
+}
+void LaneDetector::on_Sup_trackbar(int, void*)
+{
+        S_up = S_up_slider;
+}
+void LaneDetector::on_Vdown_trackbar(int, void*)
+{
+        V_down = V_down_slider;
+}
+void LaneDetector::on_Vup_trackbar(int, void*)
+{
+        V_up = V_up_slider;
+}
+
+//
+void LaneDetector::on_Hdown_trackbar_white(int, void*)
+{
+        H_down_white = H_down_slider_white;
+}
+void LaneDetector::on_Hup_trackbar_white(int, void*)
+{
+        H_up_white = H_up_slider_white;
+}
+void LaneDetector::on_Sdown_trackbar_white(int, void*)
+{
+        S_down_white = S_down_slider_white;
+}
+void LaneDetector::on_Sup_trackbar_white(int, void*)
+{
+        S_up_white = S_up_slider_white;
+}
+void LaneDetector::on_Vdown_trackbar_white(int, void*)
+{
+        V_down_white = V_down_slider_white;
+}
+void LaneDetector::on_Vup_trackbar_white(int, void*)
+{
+        V_up_white = V_up_slider_white;
+}
+
 
 void LaneDetector::Hsv(cv::Mat frame_in, cv::Mat &yellow_frame_out, cv::Mat &white_frame_out, cv::Mat &yellow_canny, cv::Mat &white_canny)
 {
@@ -237,14 +319,15 @@ void LaneDetector::Hsv(cv::Mat frame_in, cv::Mat &yellow_frame_out, cv::Mat &whi
         int yel_thresh = Thresh_yellow;
         int whi_thresh = Thresh_white;
 
-        cv::Scalar yel_minHSV = cv::Scalar(yel_hsvPixel.val[0] - yel_thresh, yel_hsvPixel.val[1] - yel_thresh, yel_hsvPixel.val[2] - yel_thresh);
-        cv::Scalar yel_maxHSV = cv::Scalar(yel_hsvPixel.val[0] + yel_thresh, yel_hsvPixel.val[1] + yel_thresh, yel_hsvPixel.val[2] + yel_thresh);
+        cv::Scalar yel_minHSV = cv::Scalar(H_down, S_down, V_down);
+        cv::Scalar yel_maxHSV = cv::Scalar(H_up, S_up, V_up);
 
-        cv::Scalar whi_minHSV = cv::Scalar(whi_hsvPixel.val[0] - whi_thresh, whi_hsvPixel.val[1] - whi_thresh, whi_hsvPixel.val[2] - whi_thresh);
-        cv::Scalar whi_maxHSV = cv::Scalar(whi_hsvPixel.val[0] + whi_thresh, whi_hsvPixel.val[1] + whi_thresh, whi_hsvPixel.val[2] + whi_thresh);
+        cv::Scalar whi_minHSV = cv::Scalar(H_down_white, S_down_white, V_down_white);
+        cv::Scalar whi_maxHSV = cv::Scalar(H_up_white, S_up_white, V_up_white);
 
         cv::Mat yel_maskHSV, yel_resultHSV;
         cv::Mat whi_maskHSV, whi_resultHSV;
+
         inRange(frame_in, yel_minHSV, yel_maxHSV, yel_maskHSV);
         inRange(frame_in, whi_minHSV, whi_maxHSV, whi_maskHSV);
         bitwise_and(imageHSV, imageHSV, yel_resultHSV, yel_maskHSV);
@@ -252,15 +335,8 @@ void LaneDetector::Hsv(cv::Mat frame_in, cv::Mat &yellow_frame_out, cv::Mat &whi
 
         medianBlur(yel_resultHSV, yel_resultHSV, 5);
         medianBlur(whi_resultHSV, whi_resultHSV, 5);
-        //threshold(yel_resultHSV, yel_resultHSV, 30, 255, cv::THRESH_BINARY);
-        //threshold(whi_resultHSV, whi_resultHSV, 30, 255, cv::THRESH_BINARY);
         filter2D(yel_resultHSV, yel_Line_frame, -1, kernel_v, anchor, 0, cv::BORDER_DEFAULT);
         filter2D(whi_resultHSV, whi_Line_frame, -1, kernel_v, anchor, 0, cv::BORDER_DEFAULT);
-
-        Canny(yel_resultHSV, yel_CannyHSV, 150, 300, 3);
-        Canny(whi_resultHSV, whi_CannyHSV, 150, 300, 3);
-
-        cv::findContours(yel_CannyHSV, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
 
         yellow_frame_out = yel_resultHSV;
         yellow_canny = yel_Line_frame;
@@ -275,8 +351,6 @@ void LaneDetector::colorTransform(cv::Mat &input, cv::Mat &output)
     cv::threshold(input, output, 20, 255, 1);
 }
 
-
-
 void LaneDetector::detectLine(cv::Mat &input, std::vector<std::vector<cv::Point>> &output)
 {
     std::vector<cv::Vec4i> hierarchy;
@@ -284,7 +358,12 @@ void LaneDetector::detectLine(cv::Mat &input, std::vector<std::vector<cv::Point>
     output.clear();
 
     cv::findContours(input, output, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
-
+    for (std::vector<std::vector<cv::Point>>::iterator filt =output.begin();filt !=output.end();){
+        if (filt->size()<Acc_filt)
+            filt = output.erase(filt);
+        else
+            ++filt;
+    }
     for (int i = 0; i < output.size(); i++)
     {
         cv::approxPolyDP(cv::Mat(output[i]),output[i], Acc_value, false);

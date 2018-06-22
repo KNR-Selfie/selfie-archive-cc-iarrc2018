@@ -1,63 +1,62 @@
-#include <iostream>
-#include <opencv2/opencv.hpp>
-#include <vector>
-#include <fstream>
-#include <stdlib.h>
-
-#include "include/spline.hpp"
-#include "include/sliders.h"
-#include "include/tangent.hpp"
-#include "include/sharedmemory.hpp"
-#include "include/interpolation.h"
-#include "include/usb.hpp"
-
-//#define RACE_MODE //without display
-#define DEBUG_MODE //data display
-#define SLIDER_MODE
+#include "main.h"
 
 using namespace std;
 using namespace cv;
 
- //points number
-int left_points_num = 5;
-int right_points_num = 4;
-int middle_points_num =7;
-
+//camera params
 const int Height = 480;
-const int Length = 640;
+const int Width = 640;
 
-//poly fill variables
-Mat preview = Mat::zeros( Height, Length, CV_8UC3 ); //blank matrix
+//rectangle algorithm params
+int number_of_rec_cols =40;
+int number_of_rec_raws =10; //liczba pasów detekcji //slidery ustawiaja
 
+//main MAT
+Mat w_mat = Mat::zeros( Height, Width, CV_8UC3 ); //blank matri
+Mat y_mat = Mat::zeros(Height, Width, CV_8UC3 );
+Mat test_mat = Mat::zeros(Height, Width, CV_8UC3 );
+
+//send average angle
+uint32_t average_angle_counter = 0;
+uint32_t angle_sum = 0;
 
 int main(int argc, char** argv)
 {
-    #ifdef SLIDER_MODE
-        init_trackbars();
+
+    #if defined(TEST_MODE) || defined (DEBUG_MODE)
+    //init_trackbars();
+    namedWindow("rect_trackbars");
+    init_rect_trackbars("rect_trackbars");//trackbars for rect opt
     #endif
 
-    #if defined(SLIDER_MODE) || defined (DEBUG_MODE)
-        namedWindow("obraz",1);
-    #endif
 
-    //spline we need
-    spline_t left_spline;
-    spline_t right_spline;
-    spline_t path_planner;
+    //splines
+    spline_t y_spline;
+    spline_t y_path;
+    spline_t test_spline;
+    spline_t test_path;
 
-    //tangent we need
-    tangent styczna1;
-    tangent styczna2;
-    tangent styczna3;
+    //tangents
+    tangent y_tangent;
+    tangent test_tangent;
 
-    //distance middle of view <---> middle of trajectory
-    double dist;
+
 
     //sharedmemory
     SharedMemory shm_lane_points(50002);
+    vector<Point> w_point_vector; //vector for white line
+    vector<Point> y_point_vector; //vector for yellow line
+    vector<Point> c_point_vector; //vector for cons
     shm_lane_points.init(); //init
-    uint32_t lenght = shm_lane_points.get_lenght();//
-    std::vector<Point> point_vector;
+
+    SharedMemory shm_lidar_points(50001);
+    vector<Point> l_point_vector; //vector for lidar points
+    shm_lidar_points.init();
+
+
+    SharedMemory shm_usb_to_stm(50003);
+    vector<uint32_t> usb_from_vision(5);
+    shm_usb_to_stm.init();
 
 
 
@@ -66,183 +65,123 @@ int main(int argc, char** argv)
     data_container to_send;
     uint32_t velocity;
     uint32_t angle;
-    uint32_t lane_dist;
-    unsigned char flags[4] ={255,0,255,0};
+    USB_COM.init();//init
 
-    USB_COM.init();
+    init_trackbars();
+////////////////////////////////////////////WHILE///////////////////////////////////////////////////
+while(1)
+{
 
+    #if defined(TEST_MODE) || defined(DEBUG_MODE)
+        number_of_rec_cols = rect_slider[0];
+        number_of_rec_raws = rect_slider[1];
+    #endif
 
+    #ifdef DEBUG_MODE
+    //clear buffer which could have another size
+    w_point_vector.clear();
+    y_point_vector.clear();
+    c_point_vector.clear();
+    l_point_vector.clear();
 
+    //get new set of points
+    shm_lane_points.pull_line_data(y_point_vector,w_point_vector,c_point_vector);
+    shm_usb_to_stm.pull_usb_data(usb_from_vision);
+    //shm_lidar_points.pull_lidar_data(l_point_vector);
 
-    exp_interp exp_fit;
+    //preview of received points
+    points_preview(y_point_vector,test_mat,CV_RGB(255,255,255));
+    imshow("przychodzace", test_mat);
 
-    poly2_interp pol_fit;
+    //calculate trajectory
+    points_to_mat(y_mat,y_point_vector);
+    rectangle_optimize(y_mat,y_spline);
+    one_line_planner(y_spline,rect_slider[4],y_path);
 
-    poly3_interp pol3_fit;
-/////////////////////////////////////////////////////////
-    Mat receive_points = Mat::zeros( Height, Length, CV_8UC3 ); //blank matrix
-
-    string linia;
-    //fstream plik;
-    ofstream plik ("/home/selfie/Desktop/cpp-opencv-app/trajectory-planning/trajectory-planning/krzywa_prosta1.txt");
-
-
-
-
-
-while(1){
-
-    /*#if defined(RACE_MODE) || defined (DEBUG_MODE)
-
-
-    */
-
-
-    point_vector.clear();
-    lenght = shm_lane_points.get_lenght();
-
-    //std::cout << "LENGHT: " << lenght << std::endl;
-
-    shm_lane_points.pull_data(point_vector);
-
-    if(plik.good()==true)
-    {
-        for(int i=0;i<point_vector.size();i++){
-        plik<<point_vector[i].x;
-        plik<<endl;
-        plik<<point_vector[i].y;
-        plik<<endl;
-
-        }
-        plik.close();
-    }
-
-    for (int i=0;i<point_vector.size();i++){
-        Vec3b color;
-        Point pom;
-
-            pom.x =point_vector[i].x;
-            pom.y=point_vector[i].y;
-
-
-
-            color = receive_points.at<Vec3b>(pom);
-            color.val[0] = 255;
-            color.val[1] = 255;
-            color.val[2] = 255;
-            receive_points.at<Vec3b>(pom) = color;
-         }
-
-
-
-    imshow("odebrane",receive_points);
-    receive_points = Mat::zeros( Height, Length, CV_8UC3 );
-
-
-//    for(int i=0;i<3;i++)
-//        cout<< "Punkt nr "<<i+1<<" x :"<<point_vector[i].x<<" y :"<<point_vector[i].y<<endl;;
-
-//   cout<< "Punkt nr "<<lenght<<" x :"<<point_vector[lenght-1].x<<" y :"<<point_vector[lenght-1].y<<endl;
-
-
-
-   pol_fit.calculate_coef(point_vector,lenght);
-   pol_fit.draw(preview,CV_RGB(0,255,0));
-
-
-    vector<Point> test(5);
-
-    //check vector dimension
-    left_spline.fit_vector(left_points_num);
-    right_spline.fit_vector(right_points_num);
-    path_planner.fit_vector(middle_points_num);
-
-
-    #ifdef SLIDER_MODE
-        for(int i=0;i<left_points_num;i++){
-            test[i]=Point(Height/(left_points_num-1)*i,left_slider[i]);
-            left_spline.set_point_value(i,Height/(left_points_num-1)*i,left_slider[i]);
-            right_spline.set_point_value(i,160*i,right_slider[i]);
-        }
-        /*
-        for(int j=5;j<10;j++){
-            test[j] = Point(Height/(left_points_num-1)*(j-5),right_slider[j-5]);
-        }*/
-
-
+    //slider defines x point to derive
+    y_tangent.calculate(y_path,rect_slider[3]);
+    y_tangent.angle();
 
     #endif
 
-     left_spline.set_spline();
-     right_spline.set_spline();
-
-
-
-    styczna3.calculate_exp(exp_fit,220);
-
-    styczna3.draw(preview,CV_RGB(255,0,0));
-
-
-     //set path planner points and spline
-
-     for(int i=0;i<(middle_points_num-1);i++){
-
-         path_planner.set_point_value(i,480/(middle_points_num-1)*i,(right_spline.spline(480/(middle_points_num-1)*i)+left_spline.spline(480/(middle_points_num-1)*i))/2);
-     }
-     path_planner.set_point_value(middle_points_num-1,460,320); //middle of view
-     path_planner.set_spline();
-
-     //angle calculation
-     styczna1.calculate(path_planner,middle_points_num-3);
-     styczna2.calculate(path_planner,middle_points_num-4);
-
-     styczna1.angle(path_planner);
-     styczna2.angle(path_planner);
-
-     //calculate dist
-     dist = left_spline.spline(480) + (right_spline.spline(480) - left_spline.spline(480))/2 - 320;
+    #ifdef TEST_MODE
+        points_to_mat(test_mat,"/home/mateusz/GIT/Selfie-autonomous-car/cpp-opencv-app/trajectory-planning/trajectory-planning/selfie_testy/prosta_syf.txt");
+        rectangle_optimize(test_mat,test_spline);
+        one_line_planner(test_spline,rect_slider[4],test_path);
+        test_tangent.calculate(test_path,rect_slider[3]);
+    #endif
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-     angle = (styczna1.angle_deg+90)*1000;
-     velocity = 255;
+     #if defined(RACE_MODE) || defined(DEBUG_MODE)
 
-     //send data to STM
-     //USB_COM.data_pack(velocity,angle,flags,lane_dist,&to_send);
-     to_send.data[0]=74;
+     angle = (y_tangent.angle_deg+30)*10;
+     angle_sum+=angle;
+     average_angle_counter++;
 
-     USB_COM.send_buf(to_send);
-    // USB_COM.read_buf();
+     if(average_angle_counter == 3)
+     {
+        uint32_t angle_to_send;
+        angle_to_send = angle_sum/3;
+        velocity = left_slider[0];
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-     //display section
+        //send data to STM
+        USB_COM.data_pack(velocity,angle,usb_from_vision,&to_send);
+        USB_COM.send_buf(to_send);
+        USB_COM.read_buf(1);
 
-    #if defined(SLIDER_MODE) || defined (DEBUG_MODE)
 
-        //poly_fill(preview,CV_RGB(255,255,255),left_spline,right_spline,preview);
-         points_preview(test,preview,CV_RGB(20,100,140));
+        angle_sum = 0;
+        average_angle_counter = 0;
 
-        styczna1.draw(preview,CV_RGB(0,255,0));
-        //styczna2.draw(preview,CV_RGB(0,0,255));
-        left_spline.draw(preview,CV_RGB(240,0,0));
-        //path_planner.draw(preview,CV_RGB(240,240,0));
-        right_spline.draw(preview,CV_RGB(240,0,0));
+     }
 
-        string label = "traj_ang: "+ std::to_string(styczna1.angle_deg);
-        putText(preview, label, Point(450, 40), FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(0,255,0), 1.0);
-        label = "traj_ang: "+ std::to_string(styczna2.angle_deg);
-        putText(preview, label, Point(450, 60), FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(0,0,255), 1.0);
-        label = "distance: " + std::to_string(dist);
-        putText(preview, label, Point(450, 80), FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(250,0,255), 1.0);
 
-        imshow("obraz",preview);
-        if(waitKey(30) >= 0) break;
-        preview = Mat::zeros( 480, 640, CV_8UC3 );
 
     #endif
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+     //display section
+    string label;
+    #ifdef TEST_MODE
+
+        //test display
+        test_spline.draw(test_mat,CV_RGB(20,20,250));//draw white right line
+        test_path.draw(test_mat,CV_RGB(225,20,100));
+        test_tangent.draw(test_mat,CV_RGB(255,255,0));
+
+        label  = "traj_ang: "+ std::to_string(test_tangent.angle_deg);
+        putText(test_mat, label, Point(450, 40), FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(0,255,0), 1.0);
+
+        //show white line mat
+        imshow("tryb TEST",test_mat);
+        test_mat = Mat::zeros( 480, 640, CV_8UC3 );//zero matrix
+    #endif
+
+    #ifdef DEBUG_MODE
+        //test display
+       y_spline.draw(y_mat,CV_RGB(20,20,250));//draw white right line
+       y_path.draw(y_mat,CV_RGB(225,20,100));
+
+
+
+
+       y_tangent.draw(y_mat,CV_RGB(255,255,0));
+
+        label  = "traj_ang: "+ std::to_string(y_tangent.angle_deg);
+        putText(y_mat, label, Point(450, 40), FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(0,255,0), 1.0);
+
+        //show white line mat
+        imshow("tryb DEBUG",y_mat);
+        y_mat = Mat::zeros( 480, 640, CV_8UC3 );//zero matrix
+        test_mat = Mat::zeros( 480, 640, CV_8UC3 );//zero matrix
+    #endif
+
+
+    if(waitKey(30) >= 0) break;
 
 }
+    //shm_lane_points.close();
     return 0;
 
 }
