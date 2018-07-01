@@ -29,7 +29,7 @@ public:
     void uint32_to_char_tab(uint32_t input, unsigned char *output);
     void char_tab_to_uint32(unsigned char input[], uint32_t *output);
     void send_buf(data_container &to_send);
-    void read_buf(int buf_size);
+    void read_buf(int buf_size,float* velocity, uint16_t *tf_mini);
     void data_pack(uint32_t velo,uint32_t ang, std::vector<uint32_t>flags,data_container *container);
 };
 

@@ -1,10 +1,11 @@
+
 #include "optimization.h"
 
 using namespace std;
 using namespace cv;
 
 
-int param = 5;
+int param = 2;
 bool rectangle_optimize(Mat& point_mat,spline_t& spl)
 {
     vector<Point> spline_points;
@@ -197,21 +198,55 @@ void one_line_planner(spline_t r_line,int offset, spline_t& path_line)
 
 }
 
+void two_line_planner(spline_t y_line, spline_t w_line, int offset, spline_t& path_line)
+{
+    Point middle(Width/2,Height-1);
+    bool direction = false;
+
+    //check if direction is correct
+    if(y_line.spline(Height)<w_line.spline(Height) || y_line.spline(Height/2)<w_line.spline(Height/2))
+    {
+        direction = true;
+    }
+
+    if(direction)
+    {
+    vector<Point>pom;
+    pom.push_back(middle);
+    pom.push_back(Point((w_line.spline(Height/2) + y_line.spline(Height/2))/2 + offset, Height/2));
+    pom.push_back(Point((w_line.spline(Height/3) + y_line.spline(Height/3))/2 + offset, Height/3));
+    pom.push_back(Point((w_line.spline(1) + y_line.spline(1))/2 + offset, 1));
+    path_line.set_spline(pom);
+
+
+
+    }
+}
+
 void line_search(int previous_angle, spline_t &path_line)
 {
     vector<Point> pom;
-    //ostatni wykryty kat w lewo
-    if(previous_angle<0)
+    //last detected angle of path
+    if(previous_angle>0)
     {
-        pom.push_back(Point(Height,Width/2));
-        pom.push_back(Point (Height/2,0));
-        pom.push_back(Point(0,0));
+
+        pom.push_back(Point(Width/2,Height));
+        pom.push_back(Point (Width,Height/2));
+        pom.push_back(Point(Width,0));
+
+        path_line.set_spline(pom);
     }
     else
     {
+        pom.push_back(Point(Width/2,Height));
+        pom.push_back(Point (0,Height/2));
+        pom.push_back(Point(0,0));
 
+        path_line.set_spline(pom);
     }
 
 }
+
+
 
 
