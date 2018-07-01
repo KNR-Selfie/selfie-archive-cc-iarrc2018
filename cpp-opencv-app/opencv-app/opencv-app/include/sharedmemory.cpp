@@ -73,7 +73,7 @@ void SharedMemory::push_lane_data(std::vector<std::vector<cv::Point>> vector_yel
     }
     else
     {
-        std::cout << "Pusto - yellow" << std::endl;
+        //std::cout << "Pusto - yellow" << std::endl;
         tmp[head] = 0;
         tmp[head+1] = 5000;
         head += 2;
@@ -103,7 +103,7 @@ void SharedMemory::push_lane_data(std::vector<std::vector<cv::Point>> vector_yel
     }
     else
     {
-        std::cout << "Pusto - white" << std::endl;
+        //std::cout << "Pusto - white" << std::endl;
         tmp[head] = 0;
         tmp[head+1] = 5000;
         head += 2;
@@ -129,7 +129,7 @@ void SharedMemory::push_lane_data(std::vector<std::vector<cv::Point>> vector_yel
     }
     else
     {
-        std::cout << "Pusto - cones" << std::endl;
+        //std::cout << "Pusto - cones" << std::endl;
         tmp[head] = 0;
         head ++;
     }

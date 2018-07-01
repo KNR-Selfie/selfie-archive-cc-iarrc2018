@@ -93,7 +93,7 @@ void SharedMemory::pull_line_data(std::vector<cv::Point> &y_vector,std::vector<c
     int index = y_lenght+1;
 
 
-    if(shared_variable[index] ==5000)
+    if(shared_variable[index] == 5000)
     {
         w_length = shared_variable[index+1];
         if(w_length>0)
@@ -105,9 +105,10 @@ void SharedMemory::pull_line_data(std::vector<cv::Point> &y_vector,std::vector<c
             }
         }
     }
-    index = index + w_length+1;
 
-    if(shared_variable[index]==5000)
+    index = index + w_length+2;
+
+    if(shared_variable[index] == 5000)
     {   c_length = shared_variable[index+1];
         if(c_length>0)
         {

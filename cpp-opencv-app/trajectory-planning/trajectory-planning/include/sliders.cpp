@@ -5,7 +5,7 @@ using namespace cv;
 const int left_slider_max = 4000;
 const int right_slider_max = 640;
 
-int left_slider[5] = {2000,282,283,284,285};
+int left_slider[5] = {2000,0,283,284,285};
 int right_slider[5]= {360,360,360,360,360};
 
 const int max_num = 50;
@@ -31,8 +31,10 @@ void right_trackbar(int, void*)
 
 void init_trackbars()
 {
-       namedWindow("predkosc", WINDOW_NORMAL);
-       createTrackbar("speed", "predkosc", &left_slider[0], left_slider_max, left_trackbar );
+       namedWindow("Parametry", WINDOW_NORMAL);
+       createTrackbar("predkosc","Parametry", &left_slider[0], left_slider_max, left_trackbar );
+       createTrackbar( "kat","Parametry", &left_slider[1], left_slider_max, left_trackbar );
+
        //namedWindow("right border line", WINDOW_NORMAL);
       // for(int i=0;i<5;i++)
        //{
@@ -94,8 +96,8 @@ void points_preview(vector<Point>points,Mat& frame,const Scalar& col){
         Vec3b color;
         Point pom;
         for(int j=0;j<10;j++){
-            pom.y =points[i].y;
-            pom.x=points[i].x;
+            pom.y = points[i].y;
+            pom.x = points[i].x;
 
 
 
