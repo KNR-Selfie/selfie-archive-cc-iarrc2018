@@ -145,8 +145,8 @@ void StopLightDetector::prepare_first_image(cv::Mat &input, cv::Mat &output, int
 //methot giving and setting varaibles that there is chane in lights
 void StopLightDetector::count_pixels(cv::Mat &input) {
 	int count = cv::countNonZero(input);
-	//std::cout << count << std::endl;
-	if (count > max_dif_pixels and start_finding == true) {
+    //std::cout << count << std::endl;
+    if (count < max_dif_pixels and count > min_dif_pixels and start_finding == true) {
 		start_light = true;
 		//std::cout << "FIND GREEN LIGHT" << std::endl;
 	}
