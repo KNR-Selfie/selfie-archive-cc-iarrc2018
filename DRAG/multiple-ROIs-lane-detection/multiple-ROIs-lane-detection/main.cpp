@@ -17,7 +17,8 @@ SharedMemory shm_usb_to_send(50003, 32);
 SharedMemory shm_watchdog(50004, 32);
 
 // Frame for cv::Size info
-cv::Mat frame_ref(CAM_RES_Y, CAM_RES_X, CV_8UC1);
+cv::Mat frame_ref(2*CAM_RES_Y, CAM_RES_X, CV_8UC1);
+cv::Mat frame_inv_ref(CAM_RES_Y, CAM_RES_X, CV_8UC1);
 
 // Functions declarations
 void update_bird_eye(int, void*);
@@ -95,8 +96,13 @@ int main()
     cv::moveWindow("Data inverse", 0, 0);
     cv::namedWindow("Settings", cv::WINDOW_AUTOSIZE);
     cv::moveWindow("Settings", 600, 380);
+
+#ifndef VID_MODE
+#ifndef IDS_MODE
     cv::namedWindow("CAM Settings", cv::WINDOW_AUTOSIZE);
     cv::moveWindow("CAM Settings", 650, 380);
+#endif
+#endif
 #endif
 
 #ifdef VERBOSE_MODE
@@ -128,7 +134,7 @@ int main()
     uint32_t h_l_s = 1; // 0 -H, 1 - L, 2 - S
 
     // Bird Eye first calculation
-    lanedetector.calculate_bird_var(frame_ref);
+    lanedetector.calculate_bird_var(frame_ref, frame_inv_ref);
 
     // Detection areas, count from the bottom to the top of the cv::Mat
     DetectionArea area_line[DETECTION_NUMBER];
@@ -159,6 +165,8 @@ int main()
     kurokesu.trackbars();
     cv::createTrackbar("f", "Settings", &lanedetector.f_i, 1000, update_bird_eye);
     cv::createTrackbar("dst", "Settings", &lanedetector.dist_i, 1000, update_bird_eye);
+    cv::createTrackbar("dst inv", "Settings", &lanedetector.dist_inv_i, 1000, update_bird_eye);
+    cv::createTrackbar("cut y", "Settings", &lanedetector.cut_y, 100, update_bird_eye);
     cv::createTrackbar("alpha", "Settings", &lanedetector.alpha_i, 200, update_bird_eye);
     cv::createTrackbar("H low", "Settings", &thresh_h_low, 255, NULL);
     cv::createTrackbar("H high", "Settings", &thresh_h_high, 255, NULL);
@@ -698,5 +706,5 @@ int main()
 
 void update_bird_eye(int, void*)
 {
-    lanedetector.calculate_bird_var(frame_ref);
+    lanedetector.calculate_bird_var(frame_ref, frame_inv_ref);
 }

@@ -1,7 +1,7 @@
 #pragma once
 
-//#define VID_MODE
-#define IDS_MODE
+#define VID_MODE
+//#define IDS_MODE
 #define DEBUG_MODE
 //#define VERBOSE_MODE
 //#define AUTO_THRESH

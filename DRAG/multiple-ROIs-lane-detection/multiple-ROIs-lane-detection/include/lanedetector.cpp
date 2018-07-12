@@ -81,7 +81,7 @@ LaneDetector::LaneDetector()
     frame_stop_reduced.create(ROI_STOP_Y, 1, CV_8UC1);
 }
 
-void LaneDetector::calculate_bird_var(cv::Mat frame_ref)
+void LaneDetector::calculate_bird_var(cv::Mat &frame_ref, cv::Mat &frame_inv_ref)
 {
     alpha = ((double)alpha_i - 90.)*CV_PI / 180;
     dist = (double)dist_i;
@@ -89,6 +89,9 @@ void LaneDetector::calculate_bird_var(cv::Mat frame_ref)
 
     taille = frame_ref.size();
     w = (double)taille.width, h = (double)taille.height;
+
+    taille_inv = frame_inv_ref.size();
+    w_inv = (double)taille_inv.width, h_inv = (double)taille_inv.height;
 
     A1 = (cv::Mat_<float>(4, 3) <<
         1, 0, -w / 2,
@@ -110,29 +113,46 @@ void LaneDetector::calculate_bird_var(cv::Mat frame_ref)
         0, 0, 1, dist,
         0, 0, 0, 1);
 
-    A2 = (cv::Mat_<float>(3, 4) <<
-        f, 0, w / 2, 0,
-        0, f, h / 2, 0,
-        0, 0, 1, 0
-        );
-
     K = (cv::Mat_<float>(3, 4) <<
         f, 0, w / 2, 0,
         0, f, h / 2, 0,
         0, 0, 1, 0
         );    void pack_points();    void pack_points();
 
+    A1_inv = (cv::Mat_<float>(4, 3) <<
+        1, 0, -w_inv / 2,
+        0, 1, -h_inv / 2,
+        0, 0, 0,
+        0, 0, 1);
+
+    T_inv = (cv::Mat_<float>(4, 4) <<
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, dist_inv,
+        0, 0, 0, 1);
+
+    K_inv = (cv::Mat_<float>(3, 4) <<
+        f, 0, w_inv / 2, 0,
+        0, f, h_inv / 2, 0,
+        0, 0, 1, 0
+        );    void pack_points();    void pack_points();
+
+
+    tmp_rect = cv::Rect(0, 0, CAM_RES_X, CAM_RES_Y - cut_y);
+
     transfo = K * (T * (R * A1));
+    transfo_inv = K_inv * (T_inv * (R * A1_inv));
 }
 
 void LaneDetector::bird_eye(cv::Mat &input, cv::Mat &output)
 {
-    cv::warpPerspective(input, output, transfo, taille, cv::INTER_CUBIC | cv::WARP_INVERSE_MAP);
+    cv::warpPerspective(input, tmp_mat, transfo, taille, cv::INTER_CUBIC | cv::WARP_INVERSE_MAP);
+    tmp_mat(tmp_rect).copyTo(output);
 }
 
 void LaneDetector::bird_eye_inverse(cv::Mat &input, cv::Mat &output)
 {
-    cv::warpPerspective(input, output, transfo, taille, cv::INTER_CUBIC);
+    cv::warpPerspective(input, output, transfo_inv, taille_inv, cv::INTER_CUBIC);
 }
 
 void LaneDetector::binarize(cv::Mat &input, cv::Mat &output, int &thresh_low, int &thresh_high)
