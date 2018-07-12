@@ -315,11 +315,11 @@ void IDS::setting_auto_params() {
     is_SetAutoParameter(m_hCamera, IS_SET_ENABLE_AUTO_GAIN, &disable, 0);
     is_SetAutoParameter(m_hCamera, IS_SET_ENABLE_AUTO_SENSOR_GAIN, &disable, 0);
 
-    double min_exposure = 0.1;
-    double max_exposure = 15.0;
+    double min_exposure = 0.01;
+    double max_exposure = 3.0;
     double exposure_speed = 50.;
-    is_SetAutoParameter(m_hCamera, IS_SET_AUTO_SPEED, &exposure_speed, 0);
-    is_SetAutoParameter(m_hCamera, IS_SET_AUTO_SHUTTER_MAX, &max_exposure, 0);
+//    is_SetAutoParameter(m_hCamera, IS_SET_AUTO_SPEED, &exposure_speed, 0);
+//    is_SetAutoParameter(m_hCamera, IS_SET_AUTO_SHUTTER_MAX, &max_exposure, 0);
     is_SetAutoParameter(m_hCamera, IS_SET_ENABLE_AUTO_SHUTTER, &disable, 0);
     is_SetAutoParameter(m_hCamera, IS_SET_ENABLE_AUTO_SENSOR_SHUTTER, &disable, 0);
     is_SetAutoParameter(m_hCamera, IS_SET_ENABLE_AUTO_SENSOR_GAIN_SHUTTER, &disable, 0);
@@ -339,6 +339,9 @@ void IDS::setting_auto_params() {
     pAesConfiguration->nMode = IS_AES_MODE_PEAK;
     pPeakConfiguration->f64Minimum = min_exposure;
     pPeakConfiguration->f64Maximum = max_exposure;
+    pPeakConfiguration->nGranularity = IS_AES_GRANULARITY_PER_10000;
+    pPeakConfiguration->nHysteresis = 30;
+    pPeakConfiguration->nReference = 300;
 
     IS_RECT autoAOI;
     uint16_t autoHeight = 200;
@@ -347,7 +350,7 @@ void IDS::setting_auto_params() {
     autoAOI.s32Width = IDS_WIDTH;
     autoAOI.s32Height = autoHeight;
 
-    pPeakConfiguration->rectUserAOI = autoAOI;
+//    pPeakConfiguration->rectUserAOI = autoAOI;
 
     /* set configuration */
     nRet = is_AutoParameter(m_hCamera, IS_AES_CMD_SET_CONFIGURATION, pAesConfiguration , nSizeOfParam);
@@ -394,9 +397,13 @@ void IDS::change_params() {
 void update_suwaki(int,void*){
     ids.update_params();
 }
+void update_autoparams(int,void*){
 
+
+    is_Gamma(m_hCamera, IS_GAMMA_CMD_SET, &Gamma, sizeof(Gamma));
+}
 //Creating in debug mode trackbars
-void IDS::create_trackbars(void){
+void IDS::create_manual_trackbars(void){
     cvNamedWindow("ids", 1);
     cv::createTrackbar("Pixel", "ids", &pixelclock_slider, 40, update_suwaki);
     cv::createTrackbar("Exposure", "ids", &exposure_slider, 30*30, update_suwaki);
@@ -413,4 +420,11 @@ void IDS::create_trackbars(void){
     cv::setTrackbarMin("Sharpness", "ids", 0);
     cv::createTrackbar("Gamma", "ids", &Gamma, 300, update_suwaki);
 }
-
+void IDS::create_auto_trackbars(void){
+    cvNamedWindow("IDS Settings", 1);
+    cv::createTrackbar("Min Exposure", "ids", &min_exposure_slider, 5*100, update_autoparams);
+    cv::createTrackbar("Max Exposure", "ids", &max_exposure_slider, 30*100, update_autoparams);
+    cv::createTrackbar("Reference", "ids", &reference_slider, 100, update_autoparams);
+    cv::createTrackbar("Hysteresis", "ids", &hysteresis_slider, 300, update_autoparams);
+    cv::createTrackbar("Gamma", "ids", &Gamma, 300, update_autoparams);
+}
