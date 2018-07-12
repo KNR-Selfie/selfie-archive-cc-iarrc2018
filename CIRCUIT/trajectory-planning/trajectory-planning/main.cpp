@@ -116,7 +116,7 @@ while(1)
     l_point_vector.clear();
     //get new set of points
 
-
+/*
     if(shm_dataready.pull_signal())
     {
         shm_lidar_points.pull_lidar_data(l_point_vector);
@@ -130,7 +130,7 @@ while(1)
         usleep(500);
         continue;
     }
-
+*/
     //preview of received points
     points_preview(w_point_vector,wy_test_mat,CV_RGB(255,255,255));
     points_preview(y_point_vector,wy_test_mat,CV_RGB(255,255,0));
@@ -215,6 +215,8 @@ while(1)
         USB_COM.send_buf(to_send);
 
         USB_COM.read_buf(14,car_velocity,tf_mini_distance,taranis_3_pos,taranis_reset_gear,stm_reset,lights);
+
+        cout<<"3 pos: "<<(int)taranis_3_pos<<" reset g: "<<(int)taranis_reset_gear<<" stm reset: "<<(int)stm_reset<<" lights: "<<(int)lights<<endl;
 
         //app reset
         //if(taranis_reset_gear)
