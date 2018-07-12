@@ -109,7 +109,7 @@ void USB_STM::send_buf(data_container &to_send)
 }
 
 
-void USB_STM::read_buf(int buf_size,float& velocity, uint16_t &tf_mini,uint8_t &taranis_3_pos,uint8_t &taranis_reset_gear,uint8_t stm_reset)
+void USB_STM::read_buf(int buf_size,float& velocity, uint16_t &tf_mini,uint8_t &taranis_3_pos,uint8_t &taranis_reset_gear,uint8_t& stm_reset,uint8_t& lights)
 
 {
     unsigned char buf[buf_size];
@@ -144,6 +144,7 @@ void USB_STM::read_buf(int buf_size,float& velocity, uint16_t &tf_mini,uint8_t &
      taranis_3_pos = buf[9];
      taranis_reset_gear = buf[10];
      stm_reset = buf[11];
+     lights = buf[12];
 
     std::cout << std::endl;
     }
