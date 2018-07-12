@@ -6,8 +6,8 @@ using namespace std;
 using namespace cv;
 
 //camera params
-const int Height = 480;
-const int Width = 640;
+const int Height = 360;
+const int Width = 752;
 
 //rectangle algorithm params
 int number_of_rec_cols = 40;
@@ -84,7 +84,8 @@ int main(int argc, char** argv)
     uint16_t tf_mini_distance=0;
     uint8_t taranis_3_pos=0;
     uint8_t taranis_reset_gear=0;
-    uint8_t stm_reset=0;
+    uint8_t stm_reset = 0;
+    uint8_t lights = 0;
     USB_COM.init();//init
 
     init_trackbars();
@@ -95,6 +96,13 @@ int main(int argc, char** argv)
     //average angle
     uint32_t average_angle_counter = 0;
     uint32_t angle_sum = 0;
+
+    //offsets and wagis
+    uint8_t side_dect_flag = 1;
+    int drag_offset = 300; //default
+    float servo_weight = 0.3;
+    float tangent_weight = 0.9;
+
 ////////////////////////////////////////////WHILE///////////////////////////////////////////////////
 while(1)
 {
@@ -112,7 +120,7 @@ while(1)
 
     //get new set of points
     shm_lane_points.pull_line_data(y_point_vector,w_point_vector,c_point_vector);
-    //shm_usb_to_stm.pull_usb_data(usb_from_vision);
+    shm_usb_to_stm.pull_usb_data(usb_from_vision);
     shm_lidar_points.pull_lidar_data(l_point_vector);
 
     //preview of received points
@@ -135,15 +143,17 @@ while(1)
     {
         y_line_detect = 1;
 
-        //points_to_mat(y_mat,y_point_vector);
-        //rectangle_optimize(y_mat,y_spline);
+        //lane side - only first time
+        if(side_dect_flag)
+        {
+            drag_offset = auto_offset(y_point_vector);
+            side_dect_flag = 0;
+        }
+
     }
     if(w_point_vector.size()>1)
     {
         w_line_detect = 1;
-
-        //points_to_mat(w_mat,w_point_vector);
-        //rectangle_optimize(w_mat,w_spline);
     }
 
 
@@ -156,20 +166,8 @@ while(1)
     }
     else if(y_line_detect)
     {
-        //one_line_planner(y_spline,0,trajectory_path);
-
 /////////////////////Versja bez rect////////////
-        vector<Point> pom;
-
-        pom.push_back(Point(Width/2,Height-1));//srodek
-
-        //wstawienie punktu srodka na poczatku macierzy
-
-        //pom.push_back(y_point_vector[y_point_vector.size()-2]);
-        pom.push_back(y_point_vector[1]+Point(-300,0));
-        pom.push_back(y_point_vector.back()+Point(-300,0));
-
-        trajectory_path.set_spline(pom);//poprowadz spline
+        drag_optimization(y_point_vector,trajectory_path,drag_offset);
 /////////////////////////////////////////////////////////////////
         trajectory_tangent.calculate(trajectory_path,rect_slider[3]);
         middle_tangent.calculate(trajectory_path,Height/2);
@@ -202,7 +200,7 @@ while(1)
 ///////////////////////////////////////////////////////////////////////////////////////////
      #if defined(RACE_MODE) || defined(DEBUG_MODE)
 
-     angle = 0.3*((0.9*middle_tangent.angle_deg + 0.1*trajectory_tangent.angle_deg)+30)*10+210;
+     angle = servo_weight*((tangent_weight*middle_tangent.angle_deg + (1-tangent_weight)*trajectory_tangent.angle_deg)+30)*10+(300-servo_weight*300);
      angle_sum+=angle;
      average_angle_counter++;
 
@@ -210,22 +208,23 @@ while(1)
      {
         uint32_t angle_to_send;
         angle_to_send = angle_sum/AVG_ANGLE_COUNT;
-        //angle_to_send = left_slider[1];
-        //velocity = left_slider[0];
 
-        if(abs(trajectory_tangent.angle_deg)<20)
-        velocity_to_send =6000;
+        if(abs(trajectory_tangent.angle_deg)<10)
+            velocity_to_send =6000;
         else
-        velocity_to_send = 5000;
+            velocity_to_send = 3000;
         //send data to STM
         USB_COM.data_pack(velocity_to_send,angle_to_send,usb_from_vision,&to_send);
 
         USB_COM.send_buf(to_send);
 
-
         //read 12 byte data from stm 0-2 frame, 3-6 velocity, 7-8 tf_mini, 9-10 futaba gears
-        //
-        //USB_COM.read_buf(13,car_velocity,tf_mini_distance,taranis_3_pos,taranis_reset_gear,stm_reset);
+
+        USB_COM.read_buf(14,car_velocity,tf_mini_distance,taranis_3_pos,taranis_reset_gear,stm_reset,lights);
+
+        //app reset
+        //if(taranis_reset_gear)
+            //system("gnome-terminal --geometry 20x35+0+0 -x sh -c '~/Desktop/Selfie-autonomous-car/DRAG/DRAG.sh; bash'");
 
         //taranis to shm
         //shm_usb_to_stm.push_data(taranis_3_pos,taranis_reset_gear);

@@ -1,22 +1,6 @@
 #include "main.h"
 #include <time.h>
 
-#define TIMING
-
-#ifdef TIMING
-#include <chrono>
-#define INIT_TIMER auto start = std::chrono::high_resolution_clock::now();
-#define START_TIMER  start = std::chrono::high_resolution_clock::now();
-#define STOP_TIMER(name)  std::cout << "RUNTIME of " << name << ": " << \
-    std::chrono::duration_cast<std::chrono::microseconds>( \
-            std::chrono::high_resolution_clock::now()-start \
-    ).count() << " us " << std::endl;
-#else
-#define INIT_TIMER
-#define START_TIMER
-#define STOP_TIMER(name)
-#endif
-
 using namespace std;
 using namespace cv;
 
@@ -47,8 +31,6 @@ uint32_t angle_sum = 0;
 
 int main(int argc, char** argv)
 {
-    INIT_TIMER
-
     #if defined(TEST_MODE) || defined (DEBUG_MODE)
     //init_trackbars();
     namedWindow("rect_trackbars");
@@ -78,10 +60,6 @@ int main(int argc, char** argv)
     tangent trajectory_tangent;
     tangent middle_tangent;
 
-    //interpolation
-    poly2_interp rzad2;
-
-
     //sharedmemory
     SharedMemory shm_lane_points(50002);
     vector<Point> w_point_vector; //vector for white line
@@ -109,10 +87,13 @@ int main(int argc, char** argv)
     uint32_t angle;
 
 
+    //usb receive data
     float car_velocity;
-    uint16_t tf_mini_distance;
-    uint8_t taranis_3_pos;
-    uint8_t taranis_reset_gear;
+    uint16_t tf_mini_distance=0;
+    uint8_t taranis_3_pos=0;
+    uint8_t taranis_reset_gear=0;
+    uint8_t stm_reset = 0;
+    uint8_t lights = 0;
     USB_COM.init();//init
 
     init_trackbars();
@@ -122,7 +103,6 @@ int main(int argc, char** argv)
 ////////////////////////////////////////////WHILE///////////////////////////////////////////////////
 while(1)
 {
-    START_TIMER
     #if defined(TEST_MODE) || defined(DEBUG_MODE)
         number_of_rec_cols = rect_slider[0];
         number_of_rec_raws = rect_slider[1];
@@ -150,19 +130,15 @@ while(1)
         usleep(500);
         continue;
     }
-    STOP_TIMER("SHM PULL")
-    START_TIMER
+
     //preview of received points
     points_preview(w_point_vector,wy_test_mat,CV_RGB(255,255,255));
     points_preview(y_point_vector,wy_test_mat,CV_RGB(255,255,0));
     points_preview(c_point_vector,wy_test_mat,CV_RGB(255,0,0));
-    STOP_TIMER("POINT PREVIEW")
-    START_TIMER
+
     //preview of lidar
     points_preview(l_point_vector,lidar_mat,CV_RGB(255,0,255));
     rectangle(lidar_mat,Point(490,490),Point(510,510),CV_RGB(255,0,0));
-    STOP_TIMER("LIDAR PREVIEW")
-    START_TIMER
 
     y_line_detect = 0;
     w_line_detect = 0;
@@ -171,27 +147,12 @@ while(1)
     if(y_point_vector.size()>10)
     {
         y_line_detect = 1;
-
-//        points_to_mat(y_mat,y_point_vector);
-        STOP_TIMER("points_to_mat")
-        START_TIMER
-//        rectangle_optimize(y_mat,y_spline);
         new_optimization(y_point_vector,y_spline,y_mat);
-        rzad2.calculate_coef(y_point_vector);
-        STOP_TIMER("rectangle_optimize")
-        START_TIMER
     }
     if(w_point_vector.size()>10)
     {
         w_line_detect = 1;
-
-//        points_to_mat(w_mat,w_point_vector);
-        STOP_TIMER("points_to_mat")
-        START_TIMER
-//        rectangle_optimize(w_mat,w_spline);
         new_optimization(w_point_vector,w_spline,w_mat);
-        STOP_TIMER("rectangle_optimize")
-        START_TIMER
     }
 
 
@@ -199,43 +160,29 @@ while(1)
     if(y_line_detect == 1 && w_line_detect == 1)
     {
        two_line_planner(y_spline,w_spline,0,trajectory_path);
-       STOP_TIMER("two_line_planner")
-       START_TIMER
        trajectory_tangent.calculate(trajectory_path,rect_slider[3]);
        trajectory_tangent.angle();
-       STOP_TIMER("trajectory_tangent")
-       START_TIMER
     }
     else if(y_line_detect)
     {
         one_line_planner(y_spline,100,trajectory_path);
-        STOP_TIMER("one_line_planner")
-        START_TIMER
         trajectory_tangent.calculate(trajectory_path,rect_slider[3]);
         trajectory_tangent.angle();
 
         middle_tangent.calculate(trajectory_path,240);
         trajectory_tangent.angle();
         middle_tangent.angle();
-        STOP_TIMER("trajectory_tangent")
-        START_TIMER
     }
     else if(w_line_detect)
     {
         one_line_planner(w_spline,100,trajectory_path);
-        STOP_TIMER("one_line_planner")
-        START_TIMER
         trajectory_tangent.calculate(trajectory_path,rect_slider[3]);
         trajectory_tangent.angle();
-        STOP_TIMER("trajectory_tangent")
-        START_TIMER
     }
     else
     {
 
     }
-
-
     #endif
 
     #ifdef TEST_MODE
@@ -262,16 +209,17 @@ while(1)
         USB_COM.data_pack(velocity,angle_to_send,usb_from_vision,&to_send);
         USB_COM.send_buf(to_send);
 
+        USB_COM.read_buf(14,car_velocity,tf_mini_distance,taranis_3_pos,taranis_reset_gear,stm_reset,lights);
 
-        //read 12 byte data from stm 0-2 3-6 velocity 7-8 tf_mini 9-10 futaba gears
-        USB_COM.read_buf(12,car_velocity,tf_mini_distance,taranis_3_pos,taranis_reset_gear);
+        //app reset
+        //if(taranis_reset_gear)
+            //system("gnome-terminal --geometry 20x35+0+0 -x sh -c '~/Desktop/Selfie-autonomous-car/CIRCUIT/CIRCUIT.sh; bash'");
+
 
         //read data from STM
         angle_sum = 0;
         average_angle_counter = 0;
      }
-     STOP_TIMER("AVERAGE")
-     START_TIMER
     #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -313,13 +261,8 @@ while(1)
 
         //show white line mat
         imshow("tryb DEBUG",wy_mat);
-        STOP_TIMER("DRAWING TRAJ")
-        START_TIMER
-
         imshow("Podglad", wy_test_mat);
         imshow("Lidar",lidar_mat);
-        STOP_TIMER("2 IMSHOWs")
-        START_TIMER
 
         //clean matrixes
         wy_mat = Mat::zeros(Height,Width,CV_8UC3);
