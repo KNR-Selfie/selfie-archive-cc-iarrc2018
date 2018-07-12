@@ -286,7 +286,7 @@ void IDS::update_params() {
     is_PixelClock(m_hCamera, IS_PIXELCLOCK_CMD_SET, (void*)&PixelClock, sizeof(PixelClock));
 
     Exposure = (double)(exposure_slider/30.);
-    is_Exposure(m_hCamera, IS_EXPOSURE_CMD_SET_EXPOSURE, (void*)&Exposure, sizeof(Exposure));
+//    is_Exposure(m_hCamera, IS_EXPOSURE_CMD_SET_EXPOSURE, (void*)&Exposure, sizeof(Exposure));
 
     FPS = (double)fps_slider;
     is_SetFrameRate(m_hCamera, FPS, &NEWFPS);
@@ -312,33 +312,33 @@ void IDS::setting_auto_params() {
 
     is_SetAutoParameter(m_hCamera, IS_SET_ENABLE_AUTO_FRAMERATE, &disable, 0);
 
-    is_SetAutoParameter(m_hCamera, IS_SET_ENABLE_AUTO_GAIN, &enable, 0);
-    is_SetAutoParameter(m_hCamera, IS_SET_ENABLE_AUTO_SENSOR_GAIN, &enable, 0);
+    is_SetAutoParameter(m_hCamera, IS_SET_ENABLE_AUTO_GAIN, &disable, 0);
+    is_SetAutoParameter(m_hCamera, IS_SET_ENABLE_AUTO_SENSOR_GAIN, &disable, 0);
 
     double min_exposure = 0.1;
-    double max_exposure = 3.0;
+    double max_exposure = 15.0;
     double exposure_speed = 50.;
     is_SetAutoParameter(m_hCamera, IS_SET_AUTO_SPEED, &exposure_speed, 0);
     is_SetAutoParameter(m_hCamera, IS_SET_AUTO_SHUTTER_MAX, &max_exposure, 0);
-    is_SetAutoParameter(m_hCamera, IS_SET_ENABLE_AUTO_SHUTTER, &enable, 0);
-    is_SetAutoParameter(m_hCamera, IS_SET_ENABLE_AUTO_SENSOR_SHUTTER, &enable, 0);
-    is_SetAutoParameter(m_hCamera, IS_SET_ENABLE_AUTO_SENSOR_GAIN_SHUTTER, &enable, 0);
+    is_SetAutoParameter(m_hCamera, IS_SET_ENABLE_AUTO_SHUTTER, &disable, 0);
+    is_SetAutoParameter(m_hCamera, IS_SET_ENABLE_AUTO_SENSOR_SHUTTER, &disable, 0);
+    is_SetAutoParameter(m_hCamera, IS_SET_ENABLE_AUTO_SENSOR_GAIN_SHUTTER, &disable, 0);
 
     /* Receive configuration */
 
     UINT nSizeOfParam = sizeof(AES_CONFIGURATION) - sizeof(CHAR) + sizeof(AES_PEAK_CONFIGURATION);
     CHAR *pBuffer = new char[nSizeOfParam];
-    memset(pBuffer, 0, nSizeOf);
+    memset(pBuffer, 0, nSizeOfParam);
 
     AES_CONFIGURATION *pAesConfiguration = (AES_CONFIGURATION*)pBuffer;
     pAesConfiguration->nMode = IS_AES_MODE_PEAK;
     AES_PEAK_CONFIGURATION *pPeakConfiguration = (AES_PEAK_CONFIGURATION*)pAesConfiguration->pConfiguration;
 
     INT nRet = 0;
-    nRet = is_AutoParameter(hCam, IS_AES_CMD_GET_CONFIGURATION_DEFAULT, pAesConfiguration, nSizeOfParam);
-
-    pAesConfiguration->f64Minimum = min_exposure;
-    pAesConfiguration->f64Maximum = max_exposure;
+    nRet = is_AutoParameter(m_hCamera, IS_AES_CMD_GET_CONFIGURATION_DEFAULT, pAesConfiguration, nSizeOfParam);
+    pAesConfiguration->nMode = IS_AES_MODE_PEAK;
+    pPeakConfiguration->f64Minimum = min_exposure;
+    pPeakConfiguration->f64Maximum = max_exposure;
 
     IS_RECT autoAOI;
     uint16_t autoHeight = 200;
@@ -347,14 +347,18 @@ void IDS::setting_auto_params() {
     autoAOI.s32Width = IDS_WIDTH;
     autoAOI.s32Height = autoHeight;
 
+    pPeakConfiguration->rectUserAOI = autoAOI;
+
     /* set configuration */
-    nRet = is_AutoParameter(hCam, IS_AES_CMD_SET_CONFIGURATION, pAesConfiguration , nSizeOfParam);
+    nRet = is_AutoParameter(m_hCamera, IS_AES_CMD_SET_CONFIGURATION, pAesConfiguration , nSizeOfParam);
 
     /* Enable */
     INT nEnable = IS_AUTOPARAMETER_ENABLE;
     INT nType = IS_AES_MODE_PEAK;
-    is_AutoParameter(hCam, IS_AES_CMD_SET_TYPE, &nType, sizeof(nType));
-    is_AutoParameter(hCam, IS_AES_CMD_SET_ENABLE, &nEnable, sizeof(nEnable));
+    is_AutoParameter(m_hCamera, IS_AES_CMD_SET_TYPE, &nType, sizeof(nType));
+    is_AutoParameter(m_hCamera, IS_AES_CMD_SET_ENABLE, &nEnable, sizeof(nEnable));
+    if(nRet)
+        std::cout << "Autoparams problem" << std::endl;
 }
 
 //Changing camera setting and gettign default variables

@@ -53,7 +53,7 @@ void LaneDetector::applyBlur(cv::Mat &input, cv::Mat &output)
 
 void LaneDetector::UndistXML(cv::Mat &cameraMatrix, cv::Mat &distCoeffs)
 {
-    std::string filename = "/home/selfie/Desktop/cpp-opencv-app/opencv-app/opencv-app/out_camera_data.xml";
+    std::string filename = "./../opencv-app/out_camera_data.xml";
     std::cout << "Reading XML" << std::endl;
     cv::FileStorage fs;
     fs.open(filename, cv::FileStorage::READ);
