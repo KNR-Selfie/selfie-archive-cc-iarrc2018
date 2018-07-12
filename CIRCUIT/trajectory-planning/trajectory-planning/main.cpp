@@ -103,7 +103,6 @@ int main(int argc, char** argv)
 ////////////////////////////////////////////WHILE///////////////////////////////////////////////////
 while(1)
 {
-    cout<<"chodzę"<<endl;
     #if defined(TEST_MODE) || defined(DEBUG_MODE)
         number_of_rec_cols = rect_slider[0];
         number_of_rec_raws = rect_slider[1];
@@ -166,7 +165,7 @@ while(1)
     }
     else if(y_line_detect)
     {
-        one_line_planner(y_spline,100,trajectory_path);
+        one_line_planner(y_spline,150,trajectory_path);
         trajectory_tangent.calculate(trajectory_path,rect_slider[3]);
         trajectory_tangent.angle();
 
@@ -176,7 +175,7 @@ while(1)
     }
     else if(w_line_detect)
     {
-        one_line_planner(w_spline,100,trajectory_path);
+        one_line_planner(w_spline,-150,trajectory_path);
         trajectory_tangent.calculate(trajectory_path,rect_slider[3]);
         trajectory_tangent.angle();
     }
@@ -197,7 +196,8 @@ while(1)
 ///////////////////////////////////////////////////////////////////////////////////////////
      #if defined(RACE_MODE) || defined(DEBUG_MODE)
 
-     angle = ((0.7*middle_tangent.angle_deg + 0.3*trajectory_tangent.angle_deg)+30)*10;
+//     angle = 0.75*((0.7*middle_tangent.angle_deg + 0.3*trajectory_tangent.angle_deg)+30)*10 + 0.25*300;
+     angle = 300 + 0.8*(0.7*middle_tangent.angle_deg + 0.3*trajectory_tangent.angle_deg)*10;
      angle_sum+=angle;
      average_angle_counter++;
 
@@ -205,7 +205,11 @@ while(1)
      {
         uint32_t angle_to_send;
         angle_to_send = angle_sum/1;
-        velocity = 3000;
+        velocity = 2000;
+
+        if(abs(0.7*middle_tangent.angle_deg + 0.3*trajectory_tangent.angle_deg)>20)
+            velocity = 1000;
+
         //send data to STM
         USB_COM.data_pack(velocity,angle_to_send,usb_from_vision,&to_send);
         USB_COM.send_buf(to_send);
