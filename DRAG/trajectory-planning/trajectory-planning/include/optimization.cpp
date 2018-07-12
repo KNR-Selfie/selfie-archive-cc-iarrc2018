@@ -247,6 +247,48 @@ void line_search(int previous_angle, spline_t &path_line)
 
 }
 
+bool line_side(vector<Point> point_vector)
+{
+    int right_counter = 0;
+    int left_counter = 0;
+    for(int i=0;i<point_vector.size();i++)
+    {
+        if(point_vector[i].x>Width/2)
+            right_counter++;
+        else
+            left_counter++;
 
+    }
+
+    if(right_counter>left_counter)
+        return true;
+    else
+        return false;
+}
+
+void drag_optimization(vector<Point> y_point_vector,spline_t &trajectory_path,int drag_offset)
+{
+    vector<Point> pom;
+
+    pom.push_back(Point(Width/2,Height-1));//srodek
+
+    //pom.push_back(y_point_vector[y_point_vector.size()-2]);
+    pom.push_back(y_point_vector[1]+Point(drag_offset,0));
+    pom.push_back(y_point_vector.back()+Point(drag_offset,0));
+
+    trajectory_path.set_spline(pom);//poprowadz spline
+}
+
+
+int auto_offset(vector<Point> pts)
+{   int offset;
+    int sum;
+    for(int i = 0;i<pts.size();i++)
+    {
+        sum += pts[i].x;
+    }
+    offset = sum/pts.size() - Width/2;
+   return offset;
+}
 
 
