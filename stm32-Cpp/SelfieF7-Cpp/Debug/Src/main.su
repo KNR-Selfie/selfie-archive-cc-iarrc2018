@@ -1,0 +1,4 @@
+main.cpp:151:6:void SystemClock_Config()	232	static
+main.cpp:92:5:int main()	8	static
+main.cpp:243:6:void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef*)	0	static
+main.cpp:262:6:void _Error_Handler(char*, int)	0	static

@@ -1,0 +1,4 @@
+freertos.cpp:167:6:void StartDefaultTask(const void*)	8	static
+freertos.cpp:90:13:void configureTimerForRunTimeStats()	0	static
+freertos.cpp:95:22:long unsigned int getRunTimeCounterValue()	0	static
+freertos.cpp:103:6:void MX_FREERTOS_Init()	208	static

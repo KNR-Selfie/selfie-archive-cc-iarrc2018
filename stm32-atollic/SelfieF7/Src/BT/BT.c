@@ -1,0 +1,250 @@
+/*
+ * BT.c
+ *
+ *  Created on: 19.12.2017
+ *      Author: Michal
+ */
+
+#include "BT.h"
+
+#include "FreeRTOS.h"
+#include "task.h"
+#include "cmsis_os.h"
+
+#include "main.h"
+#include "usart.h"
+#include "gpio.h"
+
+/* Zeby miec podstawowe dane z Gyro i Baterii */
+#include "Gyro.h"
+#include "Lighting.h"
+#include "Czujniki.h"
+#include "Governor.h"
+#include "Battery.h"
+#include "Steering.h"
+
+
+#include "PID.h"
+//informacja o flagach z przerwania odroida
+extern int ParkingFlag;
+extern int CrossFlag;
+extern uint8_t challenge_select;
+
+uint8_t LastCrossFlag = 0;
+uint8_t LastParkingFlag = 0;
+
+float KpJetson = 3000.f;
+
+extern osThreadId BTTaskHandle;
+xSemaphoreHandle BTSemaphore = NULL;
+
+////////testy BT
+uint8_t choice = 0;
+int tmp = 0;
+
+uint16_t dane[4];
+uint8_t txdata[256]; // Tablica przechowujaca wysylana wiadomosc.
+uint8_t rxdata[32]; // Tablica przechowujaca odbierana wiadomosc.
+
+uint32_t size;
+uint8_t tekst[32];
+
+int nr = 0;
+uint8_t value[6];
+int speed = 0;
+float angle;
+int flag = 0;
+int flag2 = 0;
+int sendflag = 0;
+
+float r_kpPredkosc = 16.91;
+float pom = 0;
+uint8_t table[4];
+char tab[6];
+///////////KONIEC TESTY BT
+
+
+void BT_Commands(uint8_t* Buf, uint32_t length);
+
+
+void StartBTTask(void const * argument) {
+	vSemaphoreCreateBinary(BTSemaphore);
+//	osSemaphoreWait(BTSemaphore, osWaitForever);
+	MX_USART3_UART_Init();
+	HAL_UART_Receive_DMA(&huart3, rxdata, 1);
+	while (1) {
+		osSemaphoreWait(BTSemaphore, osWaitForever);
+//		osSignalWait(0x01, osWaitForever);
+//		osDelay(20);
+	}
+}
+void BT_Commands(uint8_t* Buf, uint32_t length) {
+	/* Very Simple */
+	if (Buf[0] == 'a') {
+		size = sprintf((char*) txdata,
+				"YawRate\t\t= %.5f deg/s\r\nCumulativeYaw\t= %.5f deg\r\n\r\n",
+				YawRate, CumulativeYaw);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	} else if (Buf[0] == 'b') {
+		size = sprintf((char*) txdata,
+				"GyroTemp\t= %.2f degC\r\n\r\n",
+				temperature);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	} else if (Buf[0] == 'c') {
+		size = sprintf((char*) txdata,
+				"Voltage\t\t= %.2f Volts\r\nCurrent\t= %.2f Amps\r\nFuel\t= %.1f mAh\r\n\r\n",
+				Volts_f, Amps_f, mAhs_drawn);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	} else if (Buf[0] == 'e') {
+		size = sprintf((char*) txdata,
+				"vleft = %d \r\nvright = %d \r\nvfwd = %d \r\ndistleft = %.1f \r\ndistright = %.1f\r\nfwdDist = %.1f \r\n\r\n",
+				vleft, vright, vfwd, leftRoad, rightRoad, fwdRoad);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	} else if (Buf[0] == 'v') {
+		size = 0;
+		for (int sensor = 0; sensor < VLX_SENSOR_COUNT; sensor++)
+			size += sprintf((char*) txdata + size, "vlx[%d] = %d\r\n",
+					sensor+1, range[sensor]);
+		size += sprintf((char*)txdata + size, "\r\n");
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	}else if (Buf[0] == 's') {
+		size = 0;
+		for (int sensor = 0; sensor < 3; sensor++)
+			size += sprintf((char*) txdata + size, "flags[%d] = %d\r\n",
+					sensor+1, flags[sensor]);
+		size += sprintf((char*)txdata + size, "\r\n");
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	} else if (Buf[0] == 'p') {
+		if (autonomous_task == parking)
+			autonomous_task = lanefollower;
+		else {
+			autonomous_task = parkingsearch;
+			challenge_select = 1;
+			size = sprintf((char*) txdata, "bede parkowal \r\n\r\n");
+			HAL_UART_Transmit_DMA(&huart3, txdata, size);
+		}
+	} else if (Buf[0] == '+') {
+		KpJetson += 20.f;
+		size = sprintf((char*) txdata, "Kp = %.1f \r\n\r\n", KpJetson);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	} else if (Buf[0] == '-') {
+		KpJetson -= 20.f;
+		size = sprintf((char*) txdata,"Kp = %.1f \r\n\r\n", KpJetson);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	} else if (Buf[0] == '1') {
+		servo_middle++;
+		size = sprintf((char*) txdata, "servo_middle = %d \r\n\r\n", servo_middle);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	}else if (Buf[0] == '2') {
+		servo_middle--;
+		size = sprintf((char*) txdata, "servo_middle = %d \r\n\r\n", servo_middle);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	}
+	else if (Buf[0] == '3') {
+		pid_paramsServoPos.kp = pid_paramsServoPos.kp+0.05f;
+		size = sprintf((char*) txdata, "servoPosKp = %f \r\n\r\n", pid_paramsServoPos.kp);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	}else if (Buf[0] == '4') {
+		pid_paramsServoPos.kp = pid_paramsServoPos.kp-0.05f;
+		size = sprintf((char*) txdata, "servoPosKp = %f \r\n\r\n", pid_paramsServoPos.kp);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	}else if (Buf[0] == '5') {
+			pid_paramsServoPos.kd +=0.05f;
+			size = sprintf((char*) txdata, "servoPosKd = %f \r\n\r\n", pid_paramsServoPos.kd);
+			HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	}else if (Buf[0] == '6') {
+			pid_paramsServoPos.kd-=0.05f;
+			size = sprintf((char*) txdata, "servoPosKd = %f \r\n\r\n", pid_paramsServoPos.kd);
+			HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	}else if (Buf[0] == '8') {
+		speed_freerun += 50;
+		size = sprintf((char*) txdata, "speed_freerun = %f \r\n\r\n", speed_freerun);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	}else if (Buf[0] == '9') {
+		speed_corners += 50;
+		size = sprintf((char*) txdata, "speed_corners = %f \r\n\r\n", speed_corners);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	}else if (Buf[0] == '0') {
+		speed_obstacles += 50;
+		size = sprintf((char*) txdata, "speed_obstacles = %f \r\n\r\n", speed_obstacles);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	}else if (Buf[0] == '*') {
+		speed_freerun -= 50;
+		size = sprintf((char*) txdata, "speed_freerun = %f \r\n\r\n", speed_freerun);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	}else if (Buf[0] == '(') {
+		speed_corners -= 50;
+		size = sprintf((char*) txdata, "speed_corners = %f \r\n\r\n", speed_corners);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	}else if (Buf[0] == ')') {
+		speed_obstacles -= 50;
+		size = sprintf((char*) txdata, "speed_obstacles = %f \r\n\r\n", speed_obstacles);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	}
+
+//	else if (Buf[0] == '9') {
+//		lane_change_treshold += 10;
+//		size = sprintf((char*) txdata, "lane treshold = %dmm \r\n\r\n", lane_change_treshold);
+//		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+//	} else if (Buf[0] == '0') {
+//		lane_change_treshold -= 10;
+//		size = sprintf((char*) txdata, "lane treshold = %dmm \r\n\r\n", lane_change_treshold);
+//		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+//	}
+	// PARKOWANIE
+	else if (Buf[0] == '!') {
+		parking_turn_sharpness += 1.f;
+		size = sprintf((char*) txdata, "Kat parkowania = %.1f deg \r\n\r\n",
+				parking_turn_sharpness);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	} else if (Buf[0] == '@') {
+		parking_turn_sharpness -= 1.f;
+		size = sprintf((char*) txdata, "Kat parkowania = %.1f deg \r\n\r\n",
+				parking_turn_sharpness);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	} else if (Buf[0] == '#') {
+		parking_dead_fwd += 5.f;
+		size = sprintf((char*) txdata, "Start parkowania po = %.1f mm \r\n\r\n",
+				parking_dead_fwd);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	} else if (Buf[0] == '$') {
+		parking_dead_fwd -= 5.f;
+		size = sprintf((char*) txdata, "Start parkowania po = %.1f mm \r\n\r\n",
+				parking_dead_fwd);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	} else if (Buf[0] == '%') {
+		parking_depth += 5.f;
+		size = sprintf((char*) txdata,
+				"Glebokosc parkowania = %.1f mm \r\n\r\n", parking_depth);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	} else if (Buf[0] == '^') {
+		parking_depth -= 5.f;
+		size = sprintf((char*) txdata,
+				"Glebokosc parkowania = %.1f mm \r\n\r\n", parking_depth);
+		HAL_UART_Transmit_DMA(&huart3, txdata, size);
+	}
+	else if (Buf[0] == '&') {
+		podjedz_pan_distance += 5.f;
+			size = sprintf((char*) txdata,
+					"Podjedz Pan = %.1f mm \r\n\r\n", podjedz_pan_distance);
+			HAL_UART_Transmit_DMA(&huart3, txdata, size);
+		}
+	else if (Buf[0] == '*') {
+		podjedz_pan_distance -= 5.f;
+			size = sprintf((char*) txdata,
+					"Podjedz Pan = %.1f mm \r\n\r\n", podjedz_pan_distance);
+			HAL_UART_Transmit_DMA(&huart3, txdata, size);
+		}
+
+	//RESET
+	else if (Buf[0] == 'R')
+		NVIC_SystemReset();
+}
+void BluetoothRx_Irq(void) {
+//	osSemaphoreRelease(BTSemaphore);
+//	osSignalSet(BTTaskHandle, 0x01);
+	BT_Commands(rxdata, 1);
+	HAL_UART_Receive_DMA(&huart3, rxdata, 1);
+}
+void BluetoothTx_Irq(void) {
+}

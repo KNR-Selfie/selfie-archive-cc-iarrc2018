@@ -1,0 +1,12 @@
+Allshit.cpp:22:1:TestClass::~TestClass()	0	static
+Allshit.cpp:18:1:TestClass::TestClass()	0	static
+Allshit.cpp:19:6:void TestClass::init()	0	static
+Allshit.cpp:26:6:void StartLightingTask(const void*)	8	static
+Allshit.cpp:33:6:void StartGyroTask(const void*)	16	static
+Allshit.cpp:40:6:void StartBatteryManager(const void*)	8	static
+Allshit.cpp:46:6:void StartSteeringTask(const void*)	8	static
+Allshit.cpp:52:6:void StartBTTask(const void*)	8	static
+Allshit.cpp:58:6:void StartCzujnikiTask(const void*)	8	static
+Allshit.cpp:64:6:void StartFutabaTask(const void*)	8	static
+Allshit.cpp:70:6:void StartGovernorTask(const void*)	8	static
+Allshit.cpp:75:1:cpp)	4	static
