@@ -29,6 +29,18 @@ class IDS {
     double meanfps = 0.0;
     UEYE_IMAGE m_Images[IMAGE_COUNT];
 
+    //Autoparams settings
+    double min_exposure = 0.01;
+    double max_exposure = 5.0;
+
+    int min_exposure_slider = 1;
+    int max_exposure_slider = 100;
+    int hysteresis_slider = 1;
+    int reference_slider = 2;
+    UINT nSizeOfParam;
+    AES_CONFIGURATION *pAesConfiguration;
+    AES_PEAK_CONFIGURATION *pPeakConfiguration;
+
     void ProcessFrame ();
     void updateFps (double fps);
 
@@ -65,7 +77,7 @@ public:
     int sharpness_slider=1;
     UINT Sharpness=1;
 
-    int Gamma =200;
+    int Gamma =170;
 
     char* pMem = NULL;
     int memID = 0;
@@ -83,13 +95,13 @@ public:
     void change_params();
     void setting_auto_params();
     void update_params();
-    void create_trackbars(void);
-
+    void create_manual_trackbars(void);
+    void create_auto_trackbars();
+    void update_autoparams();
 };
 extern IDS ids;
 extern pthread_cond_t algorithm_signal;
 extern pthread_mutex_t algorithm_signal_mutex;
 
 extern void sounds_init();
-void update_suwaki(int , void*);
 #endif

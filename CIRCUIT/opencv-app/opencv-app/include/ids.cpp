@@ -16,8 +16,10 @@ void IDS::init(){
     initialize_camera();
     setting_auto_params();
     change_params();
-    create_trackbars();
-    update_params();
+    create_auto_trackbars();
+    update_autoparams();
+//    create_manual_trackbars();
+//    update_params();
     pthread_mutex_init(&algorithm_signal_mutex,NULL);
 
     int x = 0;
@@ -315,8 +317,6 @@ void IDS::setting_auto_params() {
     is_SetAutoParameter(m_hCamera, IS_SET_ENABLE_AUTO_GAIN, &disable, 0);
     is_SetAutoParameter(m_hCamera, IS_SET_ENABLE_AUTO_SENSOR_GAIN, &disable, 0);
 
-    double min_exposure = 0.01;
-    double max_exposure = 3.0;
     double exposure_speed = 50.;
 //    is_SetAutoParameter(m_hCamera, IS_SET_AUTO_SPEED, &exposure_speed, 0);
 //    is_SetAutoParameter(m_hCamera, IS_SET_AUTO_SHUTTER_MAX, &max_exposure, 0);
@@ -326,22 +326,24 @@ void IDS::setting_auto_params() {
 
     /* Receive configuration */
 
-    UINT nSizeOfParam = sizeof(AES_CONFIGURATION) - sizeof(CHAR) + sizeof(AES_PEAK_CONFIGURATION);
+    nSizeOfParam = sizeof(AES_CONFIGURATION) - sizeof(CHAR) + sizeof(AES_PEAK_CONFIGURATION);
     CHAR *pBuffer = new char[nSizeOfParam];
     memset(pBuffer, 0, nSizeOfParam);
 
-    AES_CONFIGURATION *pAesConfiguration = (AES_CONFIGURATION*)pBuffer;
+    pAesConfiguration = (AES_CONFIGURATION*)pBuffer;
     pAesConfiguration->nMode = IS_AES_MODE_PEAK;
-    AES_PEAK_CONFIGURATION *pPeakConfiguration = (AES_PEAK_CONFIGURATION*)pAesConfiguration->pConfiguration;
+    pPeakConfiguration = (AES_PEAK_CONFIGURATION*)pAesConfiguration->pConfiguration;
 
     INT nRet = 0;
     nRet = is_AutoParameter(m_hCamera, IS_AES_CMD_GET_CONFIGURATION_DEFAULT, pAesConfiguration, nSizeOfParam);
     pAesConfiguration->nMode = IS_AES_MODE_PEAK;
+    min_exposure = min_exposure_slider/100.0;
+    max_exposure = max_exposure_slider/100.0;
     pPeakConfiguration->f64Minimum = min_exposure;
     pPeakConfiguration->f64Maximum = max_exposure;
     pPeakConfiguration->nGranularity = IS_AES_GRANULARITY_PER_10000;
-    pPeakConfiguration->nHysteresis = 30;
-    pPeakConfiguration->nReference = 300;
+    pPeakConfiguration->nHysteresis = 1;
+    pPeakConfiguration->nReference = 15;
 
     IS_RECT autoAOI;
     uint16_t autoHeight = 200;
@@ -350,7 +352,7 @@ void IDS::setting_auto_params() {
     autoAOI.s32Width = IDS_WIDTH;
     autoAOI.s32Height = autoHeight;
 
-//    pPeakConfiguration->rectUserAOI = autoAOI;
+    pPeakConfiguration->rectUserAOI = autoAOI;
 
     /* set configuration */
     nRet = is_AutoParameter(m_hCamera, IS_AES_CMD_SET_CONFIGURATION, pAesConfiguration , nSizeOfParam);
@@ -393,14 +395,34 @@ void IDS::change_params() {
 //    }
 
 }
-
-void update_suwaki(int,void*){
-    ids.update_params();
-}
-void update_autoparams(int,void*){
-
+void IDS::update_autoparams() {
 
     is_Gamma(m_hCamera, IS_GAMMA_CMD_SET, &Gamma, sizeof(Gamma));
+
+    min_exposure = min_exposure_slider/100.0;
+    max_exposure = max_exposure_slider/100.0;
+    pPeakConfiguration->f64Minimum = min_exposure;
+    pPeakConfiguration->f64Maximum = max_exposure;
+    pPeakConfiguration->nGranularity = IS_AES_GRANULARITY_PER_10000;
+    pPeakConfiguration->nHysteresis = (UINT)hysteresis_slider;
+    pPeakConfiguration->nReference = (UINT)reference_slider;
+
+    /* set configuration */
+    is_AutoParameter(m_hCamera, IS_AES_CMD_SET_CONFIGURATION, pAesConfiguration , nSizeOfParam);
+
+    /* Enable */
+    INT nEnable = IS_AUTOPARAMETER_ENABLE;
+    INT nType = IS_AES_MODE_PEAK;
+    is_AutoParameter(m_hCamera, IS_AES_CMD_SET_TYPE, &nType, sizeof(nType));
+    is_AutoParameter(m_hCamera, IS_AES_CMD_SET_ENABLE, &nEnable, sizeof(nEnable));
+}
+
+static void update_suwaki(int,void*){
+    ids.update_params();
+}
+static void update_auto_trackbars(int,void*){
+    ids.update_autoparams();
+
 }
 //Creating in debug mode trackbars
 void IDS::create_manual_trackbars(void){
@@ -422,9 +444,9 @@ void IDS::create_manual_trackbars(void){
 }
 void IDS::create_auto_trackbars(void){
     cvNamedWindow("IDS Settings", 1);
-    cv::createTrackbar("Min Exposure", "ids", &min_exposure_slider, 5*100, update_autoparams);
-    cv::createTrackbar("Max Exposure", "ids", &max_exposure_slider, 30*100, update_autoparams);
-    cv::createTrackbar("Reference", "ids", &reference_slider, 100, update_autoparams);
-    cv::createTrackbar("Hysteresis", "ids", &hysteresis_slider, 300, update_autoparams);
-    cv::createTrackbar("Gamma", "ids", &Gamma, 300, update_autoparams);
+    cv::createTrackbar("Min Exposure", "IDS Settings", &min_exposure_slider, 5*100, update_auto_trackbars);
+    cv::createTrackbar("Max Exposure", "IDS Settings", &max_exposure_slider, 30*100, update_auto_trackbars);
+    cv::createTrackbar("Reference", "IDS Settings", &reference_slider, 2000, update_auto_trackbars);
+    cv::createTrackbar("Hysteresis", "IDS Settings", &hysteresis_slider, 500, update_auto_trackbars);
+    cv::createTrackbar("Gamma", "IDS Settings", &Gamma, 400, update_auto_trackbars);
 }

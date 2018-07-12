@@ -103,6 +103,7 @@ int main(int argc, char** argv)
 ////////////////////////////////////////////WHILE///////////////////////////////////////////////////
 while(1)
 {
+    cout<<"chodzę"<<endl;
     #if defined(TEST_MODE) || defined(DEBUG_MODE)
         number_of_rec_cols = rect_slider[0];
         number_of_rec_raws = rect_slider[1];
