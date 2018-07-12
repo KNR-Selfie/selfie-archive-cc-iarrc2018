@@ -9,8 +9,8 @@
 
 #include <pthread.h>
 
-#include <include/def.hpp>
-
+#define IDS_WIDTH 752
+#define IDS_HEIGHT 360
 #define IMAGE_COUNT 20
 
 class IDS {
@@ -28,6 +28,18 @@ class IDS {
     bool algorithm_ready = true;
     double meanfps = 0.0;
     UEYE_IMAGE m_Images[IMAGE_COUNT];
+
+    //Autoparams settings
+    double min_exposure = 0.01;
+    double max_exposure = 5.0;
+
+    int min_exposure_slider = 1;
+    int max_exposure_slider = 100;
+    int hysteresis_slider = 1;
+    int reference_slider = 2;
+    UINT nSizeOfParam;
+    AES_CONFIGURATION *pAesConfiguration;
+    AES_PEAK_CONFIGURATION *pPeakConfiguration;
 
     void ProcessFrame ();
     void updateFps (double fps);
@@ -51,8 +63,8 @@ public:
 
     UINT PixelClock = 25;
     int pixelclock_slider = 25;
-    double Exposure = 0.2;
-    int exposure_slider = 4;
+    double Exposure = 0.5;
+    int exposure_slider = 15;
     double FPS = 100, NEWFPS;
     int fps_slider = 100;
 
@@ -60,12 +72,12 @@ public:
     int Red_GAIN_Factor;//=112;
     int Green_GAIN_Factor;//=100;
     int Blue_GAIN_Factor;//=158;
-	
-	int nRange[3];
+
+    int nRange[3];
     int sharpness_slider=1;
     UINT Sharpness=1;
 
-    int Gamma =200;
+    int Gamma =170;
 
     char* pMem = NULL;
     int memID = 0;
@@ -83,13 +95,13 @@ public:
     void change_params();
     void setting_auto_params();
     void update_params();
-    void create_trackbars(void);
-
+    void create_manual_trackbars(void);
+    void create_auto_trackbars();
+    void update_autoparams();
 };
 extern IDS ids;
 extern pthread_cond_t algorithm_signal;
 extern pthread_mutex_t algorithm_signal_mutex;
 
 extern void sounds_init();
-void update_suwaki(int , void*);
 #endif

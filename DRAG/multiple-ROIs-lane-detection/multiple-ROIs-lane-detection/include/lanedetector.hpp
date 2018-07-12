@@ -37,16 +37,24 @@ class LaneDetector
     // Birdeye
 public:
     int f_i = 200;
-    int dist_i = 265;
-    int alpha_i = 55;
+    int alpha_i = 60;
+
+    int dist_i = 60;
+    int dist_inv_i = 260;
+    int cut_y = 0;
 
 private:
-    double f = (double)f_i;
-    double dist = (double)dist_i;
+    double f = (double)f_i;    
     double alpha = ((double)alpha_i - 90.)*CV_PI / 180;
+
+    double dist = (double)dist_i;
+    double dist_inv = (double)dist_inv_i;
 
     cv::Size taille;
     double w, h;
+
+    cv::Size taille_inv;
+    double w_inv, h_inv;
 
     cv::Mat A1;
     cv::Mat A2;
@@ -54,6 +62,13 @@ private:
     cv::Mat R;
     cv::Mat T;
     cv::Mat K;
+
+    cv::Mat A1_inv;
+    cv::Mat T_inv;
+    cv::Mat K_inv;
+
+    cv::Rect tmp_rect = cv::Rect(0, 0, CAM_RES_X, CAM_RES_Y - cut_y);
+
     cv::Mat transfo;
     cv::Mat transfo_inv;
 
@@ -90,7 +105,7 @@ private:
     // Methods
 public:
     LaneDetector();
-    void calculate_bird_var(cv::Mat frame_ref);
+    void calculate_bird_var(cv::Mat &frame_ref, cv::Mat &frame_inv_ref);
     void bird_eye(cv::Mat &input, cv::Mat &output);
     void bird_eye_inverse(cv::Mat &input, cv::Mat &output);
     void binarize(cv::Mat &input, cv::Mat &output, int &thresh_low, int &thresh_high);
