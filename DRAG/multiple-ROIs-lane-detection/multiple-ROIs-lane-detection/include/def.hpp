@@ -1,12 +1,12 @@
 #pragma once
 
-#define VID_MODE
-//#define IDS_MODE
+//#define VID_MODE
+#define IDS_MODE
 #define DEBUG_MODE
 //#define VERBOSE_MODE
 //#define AUTO_THRESH
 #define FPS_COUNT
-#define TEST_SHM
+//#define TEST_SHM
 
 #define FRAME_TIME 1
 #define FPS_AMOUNT 5000

@@ -13,8 +13,8 @@
 Kurokesu kurokesu;
 LaneDetector lanedetector;
 SharedMemory shm_lane_points(50002, 5000);
-SharedMemory shm_usb_to_send(50003, 32);
-SharedMemory shm_watchdog(50004, 32);
+SharedMemory shm_usb_to_send(50003, 64);
+SharedMemory shm_watchdog(50004, 64);
 
 // Frame for cv::Size info
 cv::Mat frame_ref(2*CAM_RES_Y, CAM_RES_X, CV_8UC1);
@@ -151,9 +151,12 @@ int main()
     std::vector<cv::Point> cones_points;
 
     // Scene variables
-    bool reset_stm = false;
-    bool red_light_visible = false;
-    bool green_light_visible = false;
+    uint32_t red_light_visible= 1;
+    uint32_t green_light_visible= 0;
+    uint32_t reset_stop = 0;
+    uint32_t reset_lane = 0;
+    uint32_t light_3_pos = 0;
+    uint32_t ping = 1;
 
 #ifdef DEBUG_MODE
     // UI variables
@@ -317,7 +320,7 @@ int main()
 
     // Push output data to SHM
     shm_lane_points.push_lane_data(left_points, right_points, cones_points);
-    shm_usb_to_send.push_scene_data(reset_stm, red_light_visible, green_light_visible, lanedetector.stop_detected, lanedetector.stop_distance);
+    shm_usb_to_send.push_scene_data(red_light_visible, green_light_visible);
     // End of first scan
 
      // ========================Main loop ==================================
@@ -466,11 +469,17 @@ int main()
 
         // Push output data to SHM
         shm_lane_points.push_lane_data(left_points, right_points, cones_points);
-        shm_usb_to_send.push_scene_data(reset_stm, red_light_visible, green_light_visible, lanedetector.stop_detected, lanedetector.stop_distance);
+        shm_usb_to_send.push_scene_data(red_light_visible, green_light_visible);
+
+        shm_usb_to_send.pull_scene_data(reset_stop, reset_lane, light_3_pos,  ping);
+
+        std::cout << "RESET STOP: " << reset_stop << std::endl;
+        std::cout << "RESET LANE: " << reset_lane << std::endl;
+        std::cout << "3 POS: " << light_3_pos << std::endl;
+        std::cout << "PING: " << ping << std::endl;
 
 #ifdef TEST_SHM
         shm_lane_points.pull_lane_data(frame_test_shm);
-        shm_usb_to_send.pull_scene_data();
 #endif
 
 #ifdef DEBUG_MODE
@@ -645,7 +654,7 @@ int main()
 
             // Push output data to SHM
             shm_lane_points.push_lane_data(left_points, right_points, cones_points);
-            shm_usb_to_send.push_scene_data(reset_stm, red_light_visible, green_light_visible, lanedetector.stop_detected, lanedetector.stop_distance);
+            shm_usb_to_send.push_scene_data(red_light_visible, green_light_visible);
             // End of first scan
 
             break;

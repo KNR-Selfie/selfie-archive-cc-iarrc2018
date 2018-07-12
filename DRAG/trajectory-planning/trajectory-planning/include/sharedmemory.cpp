@@ -51,20 +51,21 @@ bool SharedMemory::get_access()
     return 1;
 }
 
-void SharedMemory::push_data(uint8_t taranis_3_pos, uint8_t taranis_reset_gear)
+void SharedMemory::push_data(uint8_t taranis_3_pos, uint8_t taranis_reset_gear,uint8_t stm_reset)
 {
-    uint32_t tmp[5000];
+
+    uint32_t tmp[7];
+
     tmp[0] = 6;
-    tmp[1] = taranis_reset_gear;
-    tmp[2] = 0;
-    tmp[3] = 0;
-    tmp[4] = 0;
-    tmp[5] = 0;
-    tmp[6] = taranis_3_pos;
-
-
+    tmp[1] = shared_variable[1];
+    tmp[2] = shared_variable[2];
+    tmp[3] = taranis_reset_gear;
+    tmp[4] = stm_reset;
+    tmp[5] = taranis_3_pos;
+    tmp[6] = 1;
     // Copy data to shm
-    memcpy(shared_variable, &tmp[0], 7);
+
+    memcpy(shared_variable, &tmp[0], 28);
 }
 
 
@@ -131,15 +132,16 @@ void SharedMemory::pull_usb_data(std::vector<uint32_t>&data)
 {
     if(mem_id>0)
     {
-        if(shared_variable[0] == 5)
+        if(shared_variable[0] == 6)
         {
-            for(int i=0;i<5;i++)
+            for(int i=0;i<6;i++)
             {
                 data[i]=shared_variable[i+1];
             }
         }
     }
 }
+
 
 void SharedMemory::close()
 {

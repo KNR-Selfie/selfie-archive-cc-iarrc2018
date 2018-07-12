@@ -67,7 +67,7 @@ int main(int argc, char** argv)
 
 
     SharedMemory shm_usb_to_stm(50003,32);
-    vector<uint32_t> usb_from_vision(5);
+    vector<uint32_t> usb_from_vision(6);
     shm_usb_to_stm.init();
 
 
@@ -227,9 +227,9 @@ while(1)
             //system("gnome-terminal --geometry 20x35+0+0 -x sh -c '~/Desktop/Selfie-autonomous-car/DRAG/DRAG.sh; bash'");
 
         //taranis to shm
-        //shm_usb_to_stm.push_data(taranis_3_pos,taranis_reset_gear);
+        shm_usb_to_stm.push_data(lights,taranis_reset_gear,stm_reset);
 
-      // cout<<"3 pos: "<<int(taranis_3_pos)<<"\t"<<"reset "<<int(taranis_reset_gear)<<"\t"<<"stm_reset "<<stm_reset<<endl;
+       //cout<<"3 pos: "<<int(taranis_3_pos)<<" reset "<<int(taranis_reset_gear)<<" stm_reset "<<(int)stm_reset<<" ligths "<<(int)lights<<endl;
 
 
         //read data from STM

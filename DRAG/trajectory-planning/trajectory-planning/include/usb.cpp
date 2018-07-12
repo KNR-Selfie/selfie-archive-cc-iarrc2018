@@ -172,10 +172,11 @@ void USB_STM::data_pack(uint32_t velo,uint32_t ang,std::vector<uint32_t>flags,da
         container->data[i+4] = pom[i];
     }
 
-    container->data[8] = char_flags[0];
+    //flags from vision
+    container->data[8] = 5;
     container->data[9] = char_flags[1];
     container->data[10] = char_flags[2];
-    container->data[11]= char_flags[3];
+    container->data[11]= 0;
 
     uint32_to_char_tab(flags[4],pom);
     for(int i=0;i<4;i++){
