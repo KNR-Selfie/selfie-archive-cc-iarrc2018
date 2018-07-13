@@ -65,10 +65,11 @@ uint32_t reset_lane = 0;
 uint32_t light_3_pos = 0;
 uint32_t ping = 1;
 uint8_t find_light = false;
-cv::Mat frame_ref(CAM_RES_Y, CAM_RES_X, CV_8UC1);
+cv::Mat frame_ref(2*CAM_RES_Y, CAM_RES_X, CV_8UC1);
+cv::Mat frame_inv_ref(CAM_RES_Y, CAM_RES_X, CV_8UC1);
 void update_trackbar(int, void*)
 {
-    laneDetector.calculate_bird_var(frame_ref);
+    laneDetector.calculate_bird_var(frame_ref, frame_inv_ref);
 }
 // Variables for communication between threads
 bool close_app = false;
@@ -158,10 +159,13 @@ int main()
 
     cv::createTrackbar("f", "3.1 Yellow Bird Eye", &laneDetector.f_i, 1000, update_trackbar);
     cv::createTrackbar("dst", "3.1 Yellow Bird Eye", &laneDetector.dist_i, 1000, update_trackbar);
+    cv::createTrackbar("dst inv", "3.1 Yellow Bird Eye", &laneDetector.dist_inv_i, 1000, update_trackbar);
+    cv::createTrackbar("cut y", "3.1 Yellow Bird Eye", &laneDetector.cut_y, 100, update_trackbar);
     cv::createTrackbar("alpha", "3.1 Yellow Bird Eye", &laneDetector.alpha_i, 100, update_trackbar);
 
+
     // Bird Eye first calculation
-    laneDetector.calculate_bird_var(frame_ref);
+    laneDetector.calculate_bird_var(frame_ref, frame_inv_ref);
 
     while(true)
     {
@@ -242,6 +246,7 @@ int main()
 #endif //STOPLIGHTS_MODE
 
         laneDetector.bird_eye(ids_image, undist_frame);
+        cv::imshow("BIRD", undist_frame);
         STOP_TIMER("BIRD EYE")
         START_TIMER
         cv::cvtColor(undist_frame, HSV_frame, cv::COLOR_BGR2HSV);

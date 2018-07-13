@@ -85,6 +85,7 @@ void LaneDetector::calculate_bird_var(cv::Mat &frame_ref, cv::Mat &frame_inv_ref
 {
     alpha = ((double)alpha_i - 90.)*CV_PI / 180;
     dist = (double)dist_i;
+    dist_inv = (double)dist_inv_i;
     f = (double)f_i;
 
     taille = frame_ref.size();
