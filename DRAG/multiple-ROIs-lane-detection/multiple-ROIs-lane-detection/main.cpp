@@ -7,11 +7,13 @@
 #include <include/ids.h>
 #include <include/kurokesu.hpp>
 #include <include/lanedetector.hpp>
+#include <include/stoplights.h>
 #include <include/sharedmemory.hpp>
 
 // Custom handlers
 Kurokesu kurokesu;
 LaneDetector lanedetector;
+StopLightDetector lightDetector;
 SharedMemory shm_lane_points(50002, 5000);
 SharedMemory shm_usb_to_send(50003, 64);
 SharedMemory shm_watchdog(50004, 64);
@@ -45,7 +47,6 @@ int main()
         return 0;
     }
 #endif
-
 
     // Init shm
     shm_lane_points.init();
@@ -157,6 +158,15 @@ int main()
     uint32_t reset_lane = 0;
     uint32_t light_3_pos = 0;
     uint32_t ping = 1;
+
+#ifdef STOPLIGHTS_MODE
+    //cv::Mats used in stoplight algorythm
+    cv::Mat ids_image(CAM_RES_Y,CAM_RES_X,CV_8UC3);
+    cv::Mat old_frame(CAM_RES_Y,CAM_RES_X,CV_8UC1);
+    cv::Mat display(CAM_RES_Y,CAM_RES_X,CV_8UC4);
+    cv::Mat difference(CAM_RES_Y,CAM_RES_X,CV_8UC1);
+#endif
+
 
 #ifdef DEBUG_MODE
     // UI variables
@@ -347,6 +357,48 @@ int main()
 #else
         //video >> frame;
 #endif
+
+#ifdef STOPLIGHTS_MODE
+        if(light_3_pos == 1)
+        {
+            static uint8_t light_var = 5;
+            if (light_var)
+            {
+                lightDetector.prepare_first_image(ids_image,old_frame,lightDetector.roi_number);
+                light_var--;
+            }
+            else if (lightDetector.start_light == false)
+            {
+#ifdef DEBUG_MODE
+                lightDetector.test_roi(ids_image,display);
+#endif //DEBUG_MODE
+                lightDetector.find_start(ids_image,difference,old_frame,lightDetector.roi_number);
+                if (lightDetector.start_light == true)
+                {
+    //              std::cout<<"START"<<std::endl;
+                    red_light_visible = false;
+                    green_light_visible = true;
+                }
+                else
+                {
+    //              std::cout<<"WAIT"<<std::endl;
+                }
+
+            }
+
+            cv::imshow("Light detection", difference);
+            cv::imshow("ROI", display);
+        }
+
+        if(light_3_pos != 1)
+        {
+            red_light_visible = true;
+            green_light_visible = false;
+            lightDetector.start_light == false;
+        }
+
+#endif //STOPLIGHTS_MODE
+
         // Change perspective
         //cv::GaussianBlur(frame, frame_blur, cv::Size(3,3), 0, 0);
         lanedetector.bird_eye(frame, frame_bird);
@@ -473,10 +525,17 @@ int main()
 
         shm_usb_to_send.pull_scene_data(reset_stop, reset_lane, light_3_pos,  ping);
 
+#ifdef VERBOSE_MODE
         std::cout << "RESET STOP: " << reset_stop << std::endl;
         std::cout << "RESET LANE: " << reset_lane << std::endl;
         std::cout << "3 POS: " << light_3_pos << std::endl;
         std::cout << "PING: " << ping << std::endl;
+#endif
+
+        if(reset_lane)
+        {
+            goto RESET;
+        }
 
 #ifdef TEST_SHM
         shm_lane_points.pull_lane_data(frame_test_shm);
@@ -520,6 +579,7 @@ int main()
         // Reset ROI positions
         case 'r':
         {
+            RESET:
             // Reset
             for(int i = 0; i < DETECTION_NUMBER; i++)
             {
@@ -670,15 +730,17 @@ int main()
             }
             break;
         }
-
-        case'q':
-        {
-            system("v4l2-ctl -d /dev/video1 --set-ctrl=gamma=500");
-            break;
-        }
         case 'u':
         {
             kurokesu.update();
+            break;
+        }
+        case 'q':
+        {
+            red_light_visible = true;
+            green_light_visible = false;
+            lightDetector.start_light == false;
+            break;
         }
         }
 #endif

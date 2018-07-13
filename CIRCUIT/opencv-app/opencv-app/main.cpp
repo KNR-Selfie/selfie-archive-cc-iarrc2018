@@ -202,7 +202,9 @@ int main()
 //              std::cout<<"WAIT"<<std::endl;
             }
 
+
         }
+
 
 #endif //STOPLIGHTS_MODE
 

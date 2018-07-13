@@ -63,8 +63,8 @@ void SharedMemory::push_data(uint8_t taranis_3_pos, uint8_t taranis_reset_gear,u
     tmp[4] = stm_reset;
     tmp[5] = taranis_3_pos;
     tmp[6] = 1;
-    // Copy data to shm
 
+    // Copy data to shm
     memcpy(shared_variable, &tmp[0], 28);
 }
 

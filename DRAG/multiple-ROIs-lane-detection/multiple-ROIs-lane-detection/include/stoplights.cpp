@@ -115,14 +115,13 @@ void StopLightDetector::find_start(cv::Mat &input, cv::Mat &output, cv::Mat &old
 		input.copyTo(roi);
 	}
 	//getting only bright image
-    split_bright(roi, new_output);
-    //returning where bright object have changed
+	split_bright(roi, new_output);
+	//returning where bright object have changed
 	give_difference(new_output, old_input, output);
-    prepare_image(output, output);
+	prepare_image(output, output);
 	//giving info if there is sudden change in brightness
-    count_pixels(output);
+	count_pixels(output);
 	//needed for next loop
-
 	new_output.copyTo(old_input);
 	
 	//because from first roi there is always change somehow

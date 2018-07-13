@@ -5,6 +5,7 @@
 #define DEBUG_MODE
 //#define VERBOSE_MODE
 //#define AUTO_THRESH
+#define STOPLIGHTS_MODE
 #define FPS_COUNT
 //#define TEST_SHM
 
