@@ -38,7 +38,7 @@ public:
 	//flag not to analize first frame
 	bool start_finding = false;
 	//storing roi number
-    int roi_number = 0;
+    int roi_number = 6;
 	//prepare first image
 	void prepare_first_image(cv::Mat &input, cv::Mat &output, int number);
 	//showing roi rectangles

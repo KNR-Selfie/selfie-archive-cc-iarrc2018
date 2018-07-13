@@ -24,10 +24,9 @@ Mat lidar_mat = Mat::zeros(600, 1000, CV_8UC3 );
 
 float car_velocity;
 uint16_t tf_mini_distance;
-
-//send average angle
-uint32_t average_angle_counter = 0;
-uint32_t angle_sum = 0;
+float servo_weigth;
+float ang_div;
+float far_tg_fac;
 
 int main(int argc, char** argv)
 {
@@ -72,8 +71,8 @@ int main(int argc, char** argv)
     shm_lidar_points.init();
 
 
-    SharedMemory shm_usb_to_stm(50003);
-    vector<uint32_t> usb_from_vision(5);
+    SharedMemory shm_usb_to_stm(50003,32);
+    vector<uint32_t> usb_from_vision(6);
     shm_usb_to_stm.init();
 
     SharedMemory shm_dataready(50005,4);
@@ -85,6 +84,7 @@ int main(int argc, char** argv)
     data_container to_send;
     uint32_t velocity;
     uint32_t angle;
+    uint32_t angle_to_send;
 
 
     //usb receive data
@@ -113,13 +113,13 @@ while(1)
     w_point_vector.clear();
     y_point_vector.clear();
     c_point_vector.clear();
-    l_point_vector.clear();
+    //l_point_vector.clear();
     //get new set of points
 
-/*
+
     if(shm_dataready.pull_signal())
     {
-        shm_lidar_points.pull_lidar_data(l_point_vector);
+        //shm_lidar_points.pull_lidar_data(l_point_vector);
         shm_lane_points.pull_line_data(y_point_vector,w_point_vector,c_point_vector);
         shm_usb_to_stm.pull_usb_data(usb_from_vision);
 
@@ -127,18 +127,30 @@ while(1)
     }
     else
     {
-        usleep(500);
+        shm_usb_to_stm.pull_usb_data(usb_from_vision);
+
+        USB_COM.data_pack(velocity,angle_to_send,usb_from_vision,&to_send);
+        USB_COM.send_buf(to_send);
+
+        //cout<<"red: "<<usb_from_vision[1]<<"green: "<<usb_from_vision[2]<<endl;
+
+        USB_COM.read_buf(14,car_velocity,tf_mini_distance,taranis_3_pos,taranis_reset_gear,stm_reset,lights);
+        shm_usb_to_stm.push_data(lights,taranis_reset_gear,stm_reset);
+
+        //cout<<"wait "<<"3 pos: "<<(int)taranis_3_pos<<" reset g: "<<(int)taranis_reset_gear<<" stm reset: "<<(int)stm_reset<<" lights: "<<(int)lights<<endl;
+
+        waitKey(20);
         continue;
     }
-*/
+
     //preview of received points
     points_preview(w_point_vector,wy_test_mat,CV_RGB(255,255,255));
     points_preview(y_point_vector,wy_test_mat,CV_RGB(255,255,0));
     points_preview(c_point_vector,wy_test_mat,CV_RGB(255,0,0));
 
     //preview of lidar
-    points_preview(l_point_vector,lidar_mat,CV_RGB(255,0,255));
-    rectangle(lidar_mat,Point(490,490),Point(510,510),CV_RGB(255,0,0));
+    //points_preview(l_point_vector,lidar_mat,CV_RGB(255,0,255));
+    //rectangle(lidar_mat,Point(490,490),Point(510,510),CV_RGB(255,0,0));
 
     y_line_detect = 0;
     w_line_detect = 0;
@@ -165,17 +177,17 @@ while(1)
     }
     else if(y_line_detect)
     {
-        one_line_planner(y_spline,150,trajectory_path);
+        one_line_planner(y_spline,-90,trajectory_path);
         trajectory_tangent.calculate(trajectory_path,rect_slider[3]);
         trajectory_tangent.angle();
 
-        middle_tangent.calculate(trajectory_path,240);
+        middle_tangent.calculate(trajectory_path,200);
         trajectory_tangent.angle();
         middle_tangent.angle();
     }
     else if(w_line_detect)
     {
-        one_line_planner(w_spline,-150,trajectory_path);
+        one_line_planner(w_spline,-90,trajectory_path);
         trajectory_tangent.calculate(trajectory_path,rect_slider[3]);
         trajectory_tangent.angle();
     }
@@ -195,38 +207,39 @@ while(1)
 
 ///////////////////////////////////////////////////////////////////////////////////////////
      #if defined(RACE_MODE) || defined(DEBUG_MODE)
+    //nominal values
+        velocity = 4000;
+        servo_weigth = 0.9;
+        ang_div = abs(middle_tangent.angle_deg - trajectory_tangent.angle_deg);
+        far_tg_fac = 0.8;
 
-//     angle = 0.75*((0.7*middle_tangent.angle_deg + 0.3*trajectory_tangent.angle_deg)+30)*10 + 0.25*300;
-     angle = 300 + 0.8*(0.7*middle_tangent.angle_deg + 0.3*trajectory_tangent.angle_deg)*10;
-     angle_sum+=angle;
-     average_angle_counter++;
+        //first condition
+        if(ang_div>10)
+        {
+            velocity = 10/ang_div*velocity;
+            servo_weigth = 1;
+            far_tg_fac = 0.9;
+        }
 
-     if(average_angle_counter == 1)
-     {
-        uint32_t angle_to_send;
-        angle_to_send = angle_sum/1;
-        velocity = 2000;
+        angle = 300 + servo_weigth*(far_tg_fac*middle_tangent.angle_deg + (1.0-far_tg_fac)*trajectory_tangent.angle_deg)*10;
 
-        if(abs(0.7*middle_tangent.angle_deg + 0.3*trajectory_tangent.angle_deg)>20)
-            velocity = 1000;
+        angle_to_send = angle;
 
-        //send data to STM
+        //cout<<"red: "<<usb_from_vision[1]<<"green: "<<usb_from_vision[2]<<endl;
         USB_COM.data_pack(velocity,angle_to_send,usb_from_vision,&to_send);
         USB_COM.send_buf(to_send);
 
         USB_COM.read_buf(14,car_velocity,tf_mini_distance,taranis_3_pos,taranis_reset_gear,stm_reset,lights);
 
-        cout<<"3 pos: "<<(int)taranis_3_pos<<" reset g: "<<(int)taranis_reset_gear<<" stm reset: "<<(int)stm_reset<<" lights: "<<(int)lights<<endl;
+        //cout<<"loop "<<"3 pos: "<<(int)taranis_3_pos<<" reset g: "<<(int)taranis_reset_gear<<" stm reset: "<<(int)stm_reset<<" lights: "<<(int)lights<<endl;
 
         //app reset
         //if(taranis_reset_gear)
             //system("gnome-terminal --geometry 20x35+0+0 -x sh -c '~/Desktop/Selfie-autonomous-car/CIRCUIT/CIRCUIT.sh; bash'");
 
+        shm_usb_to_stm.push_data(lights,taranis_reset_gear,stm_reset);
 
-        //read data from STM
-        angle_sum = 0;
-        average_angle_counter = 0;
-     }
+
     #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -269,16 +282,16 @@ while(1)
         //show white line mat
         imshow("tryb DEBUG",wy_mat);
         imshow("Podglad", wy_test_mat);
-        imshow("Lidar",lidar_mat);
+        //imshow("Lidar",lidar_mat);
 
         //clean matrixes
         wy_mat = Mat::zeros(Height,Width,CV_8UC3);
         w_mat = Mat::zeros(Height,Width,CV_8UC3);
         y_mat = Mat::zeros(Height,Width,CV_8UC3);
         wy_test_mat = Mat::zeros( Height, Width, CV_8UC3 );//zero matrix
-        lidar_mat = Mat::zeros(600,1000, CV_8UC3 );
+        //lidar_mat = Mat::zeros(600,1000, CV_8UC3 );
 
-        if(waitKey(1)>=0)
+        if(waitKey(2)=='q')
             break;
     #endif
 }//end of while(1)

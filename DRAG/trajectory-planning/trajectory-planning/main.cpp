@@ -22,6 +22,9 @@ Mat wy_mat = Mat::zeros(Height, Width, CV_8UC3 );
 Mat lidar_mat = Mat::zeros(600, 1000, CV_8UC3 );
 
 
+uint32_t angle_to_send;
+uint32_t velocity;
+
 int main(int argc, char** argv)
 {
 
@@ -52,6 +55,9 @@ int main(int argc, char** argv)
     tangent w_tangent;
     tangent trajectory_tangent;
     tangent middle_tangent;
+
+
+    tangent tangents[5];
 
 
     //sharedmemory
@@ -99,9 +105,10 @@ int main(int argc, char** argv)
 
     //offsets and wagis
     uint8_t side_dect_flag = 1;
+    float ang_div = 0;
     int drag_offset = 300; //default
-    float servo_weight = 0.4;
-    float tangent_weight = 0.7;
+    float servo_weight = 0.5;
+    float far_tg_fac = 0.9;
 
 ////////////////////////////////////////////WHILE///////////////////////////////////////////////////
 while(1)
@@ -116,7 +123,7 @@ while(1)
     w_point_vector.clear();
     y_point_vector.clear();
     c_point_vector.clear();
-    l_point_vector.clear();
+    //l_point_vector.clear();
 
     //get new set of points
     shm_lane_points.pull_line_data(y_point_vector,w_point_vector,c_point_vector);
@@ -129,11 +136,10 @@ while(1)
     points_preview(c_point_vector,wy_test_mat,CV_RGB(255,0,0));
 
     //preview of lidar
-    points_preview(l_point_vector,lidar_mat,CV_RGB(255,0,255));
-    rectangle(lidar_mat,Point(490,490),Point(510,510),CV_RGB(255,0,0));
+    //points_preview(l_point_vector,lidar_mat,CV_RGB(255,0,255));
+    //rectangle(lidar_mat,Point(490,490),Point(510,510),CV_RGB(255,0,0));
 
     imshow("Podglad", wy_test_mat);
-    imshow("Lidar",lidar_mat);
 
     y_line_detect = 0;
     w_line_detect = 0;
@@ -170,8 +176,17 @@ while(1)
 /////////////////////Versja bez rect////////////
         drag_optimization(y_point_vector,trajectory_path,drag_offset);
 /////////////////////////////////////////////////////////////////
+
+        //5 tangents
+
+        for(int i =0;i<5;i++)
+        {
+            tangents[i].calculate(trajectory_path,Height/5*(i+1));
+            tangents[i].angle();
+        }
+        //5 tangents end
         trajectory_tangent.calculate(trajectory_path,rect_slider[3]);
-        middle_tangent.calculate(trajectory_path,Height/2);
+        middle_tangent.calculate(trajectory_path,50);
         trajectory_tangent.angle();
         middle_tangent.angle();
     }
@@ -201,19 +216,22 @@ while(1)
 ///////////////////////////////////////////////////////////////////////////////////////////
      #if defined(RACE_MODE) || defined(DEBUG_MODE)
 
-     angle = servo_weight*((tangent_weight*middle_tangent.angle_deg + (1-tangent_weight)*trajectory_tangent.angle_deg)+30)*10+(300-servo_weight*300);
-     angle_sum+=angle;
-     average_angle_counter++;
+        velocity = 2000;
+        servo_weight = 1.3;
+        ang_div = abs(middle_tangent.angle_deg - trajectory_tangent.angle_deg);
+        far_tg_fac = 0.7;
 
-     if(average_angle_counter == AVG_ANGLE_COUNT)
-     {
-        uint32_t angle_to_send;
-        angle_to_send = angle_sum/AVG_ANGLE_COUNT;
-
-        if(abs(trajectory_tangent.angle_deg)<10)
-            velocity_to_send =6000;
+        if(abs(trajectory_tangent.angle_deg)<20)
+            velocity_to_send =8000;
         else
-            velocity_to_send = 3000;
+            velocity_to_send = 5xxxx000;
+
+        //angle = 300 + servo_weight*((far_tg_fac*middle_tangent.angle_deg + (1.0-far_tg_fac)*trajectory_tangent.angle_deg))*10;
+        //5 tangents
+        angle = 300 + servo_weight*(0.3*trajectory_tangent.angle_deg + 0.2*tangents[0].angle_deg +  0.2*tangents[1].angle_deg + 0.2*tangents[2].angle_deg + 0.2*tangents[3].angle_deg + 0.2*tangents[4].angle_deg);
+
+
+        angle_to_send = angle;
         //send data to STM
         USB_COM.data_pack(velocity_to_send,angle_to_send,usb_from_vision,&to_send);
 
@@ -236,7 +254,6 @@ while(1)
         //read data from STM
         angle_sum = 0;
         average_angle_counter = 0;
-     }
 
     #endif
 
@@ -290,7 +307,7 @@ while(1)
         wy_test_mat = Mat::zeros( Height, Width, CV_8UC3 );//zero matrix
         lidar_mat = Mat::zeros(600,1000, CV_8UC3 );
 
-        if(waitKey(30)>=0)
+        if(waitKey(30)=='q')
             break;
     #endif
 }//end of while(1)

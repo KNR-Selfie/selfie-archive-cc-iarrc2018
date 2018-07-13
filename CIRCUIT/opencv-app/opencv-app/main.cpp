@@ -31,10 +31,14 @@
 
 // Race mode ---> fps boost
 // Debug mode --> display data
-//#define RACE_MODE
+
+
+
+
+#define RACE_MODE
 #define IMSHOW_RATE 1
-#define DEBUG_MODE
-#define PREVIEW_MODE
+//#define DEBUG_MODE
+//#define PREVIEW_MODE
 #define NO_USB
 #define STOPLIGHTS_MODE
 #define IDS_MODE

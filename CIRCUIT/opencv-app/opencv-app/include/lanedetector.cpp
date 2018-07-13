@@ -36,7 +36,7 @@ static int Acc_filt_slider = 40;
 static int R_down = 89, G_down = 0, B_down = 0;
 static int R_up = 112, G_up = 255, B_up = 255;
 
-static int H_down = 20, S_down = 90, V_down = 60;
+static int H_down = 20, S_down = 40, V_down = 90;
 static int H_up = 40, S_up = 255, V_up = 255;
 
 static int H_down_white = 48, S_down_white = 104, V_down_white = 94;
