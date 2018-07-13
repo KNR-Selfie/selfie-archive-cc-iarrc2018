@@ -42,6 +42,8 @@ static int H_up = 40, S_up = 255, V_up = 255;
 static int H_down_white = 48, S_down_white = 104, V_down_white = 94;
 static int H_up_white = 143, S_up_white = 207, V_up_white = 183;
 
+cv::Mat tmp_mat(IDS_HEIGHT, IDS_WIDTH, CV_8UC3);
+
 LaneDetector::LaneDetector()
 {
 }
@@ -72,14 +74,18 @@ void LaneDetector::Undist(cv::Mat frame_in, cv::Mat &frame_out, cv::Mat cameraMa
     cv::undistort(frame_in, frame_out, cameraMatrix, distCoeffs);
 }
 
-void LaneDetector::calculate_bird_var(cv::Mat frame_ref)
+void LaneDetector::calculate_bird_var(cv::Mat frame_ref, cv::Mat frame_inv_ref)
 {
     alpha = ((double)alpha_i - 90.)*CV_PI / 180;
     dist = (double)dist_i;
+    dist_inv = (double)dist_inv_i;
     f = (double)f_i;
 
     taille = frame_ref.size();
     w = (double)taille.width, h = (double)taille.height;
+
+    taille_inv = frame_inv_ref.size();
+    w_inv = (double)taille_inv.width, h_inv = (double)taille_inv.height;
 
     A1 = (cv::Mat_<float>(4, 3) <<
         1, 0, -w / 2,
@@ -113,12 +119,34 @@ void LaneDetector::calculate_bird_var(cv::Mat frame_ref)
         0, 0, 1, 0
         );
 
+    A1_inv = (cv::Mat_<float>(4, 3) <<
+        1, 0, -w_inv / 2,
+        0, 1, -h_inv / 2,
+        0, 0, 0,
+        0, 0, 1);
+
+    T_inv = (cv::Mat_<float>(4, 4) <<
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, dist_inv,
+        0, 0, 0, 1);
+
+    K_inv = (cv::Mat_<float>(3, 4) <<
+        f, 0, w_inv / 2, 0,
+        0, f, h_inv / 2, 0,
+        0, 0, 1, 0
+        );    void pack_points();    void pack_points();
+
+    tmp_rect = cv::Rect(0, 0, IDS_WIDTH, IDS_HEIGHT - cut_y);
+
     transfo = K * (T * (R * A1));
+    transfo_inv = K_inv * (T_inv * (R * A1_inv));
 }
 
 void LaneDetector::bird_eye(cv::Mat &input, cv::Mat &output)
 {
-    cv::warpPerspective(input, output, transfo, taille, cv::INTER_CUBIC | cv::WARP_INVERSE_MAP);
+    cv::warpPerspective(input, tmp_mat, transfo, taille, cv::INTER_CUBIC | cv::WARP_INVERSE_MAP);
+    tmp_mat(tmp_rect).copyTo(output);
 }
 
 void LaneDetector::CreateTrackbars()

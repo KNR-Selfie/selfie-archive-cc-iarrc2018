@@ -13,6 +13,9 @@
 //#define CAM_RES_Y 480
 //#endif
 
+#define IDS_WIDTH 752
+#define IDS_HEIGHT 360
+
 #define PI 3.1415926
 
 class LaneDetector
@@ -22,7 +25,7 @@ public:
     void applyBlur(cv::Mat &input, cv::Mat &output);
     void UndistXML(cv::Mat &cameraMatrix, cv::Mat &distCoeffs);
     void Undist(cv::Mat frame_in, cv::Mat &frame_out, cv::Mat cameraMatrix, cv::Mat distCoeffs);
-    void calculate_bird_var(cv::Mat frame_ref);
+    void calculate_bird_var(cv::Mat frame_ref, cv::Mat frame_inv_ref);
     void bird_eye(cv::Mat &input, cv::Mat &output);
     void CreateTrackbars();
     static void on_yellow_H_trackbar(int, void*);
@@ -76,16 +79,22 @@ public:
     // Birdeye
     public:
     int f_i = 400;
-    int dist_i = 390;
-    int alpha_i = 18;
+    int dist_i = 85;
+    int dist_inv_i = 260;
+    int cut_y = 0;
+    int alpha_i = 40;
 
 private:
     double f = (double)f_i;
     double dist = (double)dist_i;
+    double dist_inv = (double)dist_inv_i;
     double alpha = ((double)alpha_i - 90.)*CV_PI / 180;
 
      cv::Size taille;
      double w, h;
+
+     cv::Size taille_inv;
+     double w_inv, h_inv;
 
      cv::Mat A1;
      cv::Mat A2;
@@ -93,7 +102,15 @@ private:
      cv::Mat R;
      cv::Mat T;
      cv::Mat K;
+
+     cv::Mat A1_inv;
+     cv::Mat T_inv;
+     cv::Mat K_inv;
+
+     cv::Rect tmp_rect = cv::Rect(0, 0, IDS_WIDTH, IDS_HEIGHT - cut_y);
+
      cv::Mat transfo;
+     cv::Mat transfo_inv;
 
     //hsv variables
     cv::Mat imageHSV, yel_CannyHSV, whi_CannyHSV;
