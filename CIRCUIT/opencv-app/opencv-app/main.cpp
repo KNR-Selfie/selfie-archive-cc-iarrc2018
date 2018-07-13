@@ -38,11 +38,11 @@
 #define RACE_MODE
 #define IMSHOW_RATE 1
 //#define DEBUG_MODE
-//#define PREVIEW_MODE
+#define PREVIEW_MODE
 #define NO_USB
 #define STOPLIGHTS_MODE
 #define IDS_MODE
-
+int preview_enabled = 0;
 
 #define CAMERA_INDEX 0
 
@@ -80,10 +80,11 @@ bool close_app = false;
 std::mutex mu;
 
 cv :: Mat rect;
-
 int main()
 {
 //    sounds_init();
+    cvNamedWindow("PREVIEW", 1);
+    cv::createTrackbar("Enabled?", "PREVIEW", &preview_enabled, 1, NULL);
     laneDetector.CreateTrackbars();
     INIT_TIMER
     INIT_TIMER2
@@ -250,7 +251,6 @@ int main()
 #endif //STOPLIGHTS_MODE
 
         laneDetector.bird_eye(ids_image, undist_frame);
-        cv::imshow("BIRD", undist_frame);
         STOP_TIMER("BIRD EYE")
         START_TIMER
         cv::cvtColor(undist_frame, HSV_frame, cv::COLOR_BGR2HSV);
@@ -270,12 +270,12 @@ int main()
         STOP_TIMER("Draw points")
         START_TIMER
 #endif //DEBUG_MODE
-        // Stop line
-        if (lightDetector.start_light == true){
-            laneDetector.StopLine_v2(HSV_frame, hsv_frame, stop_line_detected);
-            STOP_TIMER("STOP LINE")
-            START_TIMER
-        }
+//        // Stop line
+//        if (lightDetector.start_light == true){
+//            laneDetector.StopLine_v2(HSV_frame, hsv_frame, stop_line_detected);
+//            STOP_TIMER("STOP LINE")
+//            START_TIMER
+//        }
         // Push data
         shm_lane_points.push_lane_data(yellow_vector, white_vector, laneDetector.cones_vector);
 
@@ -305,25 +305,24 @@ int main()
            }
 #endif
             cv::imshow("0 Frame", ids_image);
-            if (lightDetector.start_light == true){
-                //cv::imshow("Hist frame", hist_frame);
+            //cv::imshow("Hist frame", hist_frame);
 //              cv::imshow("Hsv frame", hsv_frame);
-                cv::imshow("1.1 Yellow Line", frame_out_yellow);
-//              cv::imshow("1.2 White Line", frame_out_white);
+            cv::imshow("1.1 Yellow Line", frame_out_yellow);
+            cv::imshow("1.2 White Line", frame_out_white);
 //              cv::imshow("2.1 Yellow Edges", frame_out_edge_yellow);
 //              cv::imshow("2.2 White Edges", frame_out_edge_white);
-            //  cv::imshow("BirdEyeTtransform", bird_eye_frame_tr);
-                cv::imshow("3.1 Yellow Bird Eye", yellow_bird_eye_frame);
+        //  cv::imshow("BirdEyeTtransform", bird_eye_frame_tr);
+//            cv::imshow("3.1 Yellow Bird Eye", yellow_bird_eye_frame);
 //              cv::imshow("3.2 White Bird Eye", white_bird_eye_frame);
-                cv::imshow("4.1 Yellow Vector", yellow_vector_frame);
-            //  cv::imshow("4.2 White Vector", white_vector_frame);
-            //  cv::imshow("5 Cone Detect", cone_frame_out);
-            //  cv::imshow("Hist frame", hist_frame);
-            //  cv::imshow("Hsv frame", hsv_frame);
+            cv::imshow("4.1 Yellow Vector", yellow_vector_frame);
+          cv::imshow("4.2 White Vector", white_vector_frame);
+        //  cv::imshow("5 Cone Detect", cone_frame_out);
+        //  cv::imshow("Hist frame", hist_frame);
+        //  cv::imshow("Hsv frame", hsv_frame);
 
-            //  cv::imshow("TEST", test);
-            //  test = cv::Mat::zeros(CAM_RES_Y, CAM_RES_X, CV_8UC3);
-            }
+        //  cv::imshow("TEST", test);
+        //  test = cv::Mat::zeros(CAM_RES_Y, CAM_RES_X, CV_8UC3);
+
             yellow_vector_frame = cv::Mat::zeros(CAM_RES_Y, CAM_RES_X, CV_8UC3);
             white_vector_frame = cv::Mat::zeros(CAM_RES_Y, CAM_RES_X, CV_8UC3);
             test_lane = cv::Mat::zeros(CAM_RES_Y, CAM_RES_X, CV_8UC3);
@@ -374,13 +373,21 @@ int main()
         }
 #endif
 #ifdef PREVIEW_MODE
-        if(++denom >= IMSHOW_RATE){
-            denom = 0;
-//            cv::imshow("0 Frame", ids_image);
-            cv::imshow("1.1 Yellow Line", frame_out_yellow);
-            //cv::imshow("4.1 Yellow Vector", yellow_vector_frame);
-            cv::waitKey(1);
+        if(preview_enabled){
+            if(++denom >= IMSHOW_RATE){
+                denom = 0;
+                laneDetector.drawPoints_both(white_vector, white_vector_frame,yellow_vector, yellow_vector_frame);
+                cv::imshow("0 Frame", ids_image);
+
+                cv::imshow("1.1 Yellow Line", frame_out_yellow);
+                cv::imshow("4.1 Yellow Vector", yellow_vector_frame);
+                cv::imshow("1.2 White Line", frame_out_white);
+                cv::imshow("4.2 White Vector", white_vector_frame);
+
+//                cv::waitKey(1);
+            }
         }
+        cv::waitKey(1);
 #endif //PREVIEW_MODE
 
         if(licznik_czas > 200)

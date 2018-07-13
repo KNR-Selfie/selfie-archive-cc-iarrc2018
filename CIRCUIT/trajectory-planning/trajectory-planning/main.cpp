@@ -156,12 +156,12 @@ while(1)
     w_line_detect = 0;
 
     //begin y condition
-    if(y_point_vector.size()>10)
+    if(y_point_vector.size()>2)
     {
         y_line_detect = 1;
         new_optimization(y_point_vector,y_spline,y_mat);
     }
-    if(w_point_vector.size()>10)
+    if(w_point_vector.size()>2)
     {
         w_line_detect = 1;
         new_optimization(w_point_vector,w_spline,w_mat);

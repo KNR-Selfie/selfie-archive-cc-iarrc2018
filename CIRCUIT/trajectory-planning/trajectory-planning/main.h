@@ -20,8 +20,8 @@
 #include <opencv2/opencv.hpp>
 #include <vector>
 
-#define RACE_MODE //without display
-//#define DEBUG_MODE //data display
+//#define RACE_MODE //without display
+#define DEBUG_MODE //data display
 //#define TEST_MODE //load data from file
 
 extern const int Height;
