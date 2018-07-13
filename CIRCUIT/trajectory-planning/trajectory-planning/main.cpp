@@ -156,14 +156,32 @@ while(1)
     w_line_detect = 0;
 
     //begin y condition
-    if(y_point_vector.size()>10)
+    if(y_point_vector.size()>2)
     {
         y_line_detect = 1;
         new_optimization(y_point_vector,y_spline,y_mat);
     }
-    if(w_point_vector.size()>10)
+    if(w_point_vector.size()>2)
     {
         w_line_detect = 1;
+        new_optimization(w_point_vector,w_spline,w_mat);
+    }
+    else if(y_point_vector.size() ==2)
+    {
+        y_line_detect = 1;
+        int avg_x = (y_point_vector[0].x+y_point_vector[1].x/2);
+        int avg_y = (y_point_vector[0].y+y_point_vector[1].y/2);
+        y_point_vector.push_back(Point(avg_x,avg_y));
+
+        new_optimization(y_point_vector,y_spline,y_mat);
+    }
+    else if(w_point_vector.size() == 2)
+    {
+        w_line_detect = 1;
+        int avg_x = (w_point_vector[0].x+w_point_vector[1].x/2);
+        int avg_y = (w_point_vector[0].y+w_point_vector[1].y/2);
+        w_point_vector.push_back(Point(avg_x,avg_y));
+
         new_optimization(w_point_vector,w_spline,w_mat);
     }
 
@@ -174,15 +192,18 @@ while(1)
        two_line_planner(y_spline,w_spline,0,trajectory_path);
        trajectory_tangent.calculate(trajectory_path,rect_slider[3]);
        trajectory_tangent.angle();
+
+       middle_tangent.calculate(trajectory_path,200);
+       middle_tangent.angle();
     }
     else if(y_line_detect)
     {
-        one_line_planner(y_spline,-90,trajectory_path);
+        one_line_planner(y_spline,90,trajectory_path);
+
         trajectory_tangent.calculate(trajectory_path,rect_slider[3]);
         trajectory_tangent.angle();
 
         middle_tangent.calculate(trajectory_path,200);
-        trajectory_tangent.angle();
         middle_tangent.angle();
     }
     else if(w_line_detect)
@@ -190,6 +211,9 @@ while(1)
         one_line_planner(w_spline,-90,trajectory_path);
         trajectory_tangent.calculate(trajectory_path,rect_slider[3]);
         trajectory_tangent.angle();
+
+        middle_tangent.calculate(trajectory_path,200);
+        middle_tangent.angle();
     }
     else
     {
