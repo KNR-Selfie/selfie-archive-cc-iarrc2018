@@ -32,7 +32,7 @@ public:
     SharedMemory(key_t  k = 50000, int m_size = 100000);
     bool init();
     bool get_access();
-    void push_data(std::vector<std::vector<cv::Point>> vector);
+    void push_data(uint8_t taranis_3_pos, uint8_t taranis_reset_gear,uint8_t stm_reset);
     void pull_line_data(std::vector<cv::Point> &y_vector,std::vector<cv::Point> &w_vector,std::vector<cv::Point> &c_vector);
     void pull_lidar_data(std::vector<cv::Point>&l_vector);
     void pull_usb_data(std::vector<uint32_t>&data);

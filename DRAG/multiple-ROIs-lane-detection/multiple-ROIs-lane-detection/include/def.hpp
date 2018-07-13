@@ -16,8 +16,8 @@
 
 #define DETECTION_NUMBER 7
 
-#define ROI_X_SEARCH 600
-#define ROI_X 100
+#define ROI_X_SEARCH 500
+#define ROI_X 80
 #define ROI_Y 40
 
 #define MAX_STOP_ANGLE 50

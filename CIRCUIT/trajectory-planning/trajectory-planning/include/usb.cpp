@@ -149,12 +149,6 @@ void USB_STM::read_buf(int buf_size,float& velocity, uint16_t &tf_mini,uint8_t &
 
 void USB_STM::data_pack(uint32_t velo,uint32_t ang,std::vector<uint32_t>flags,data_container *container)
 {
-    unsigned char char_flags[4]; //convert uint32_flags to unsigned char
-    for(int i=0;i<4;i++)
-    {
-        char_flags[i]=flags[i];
-    }
-
     unsigned char pom[4];
     uint32_to_char_tab(velo,pom);
 
@@ -168,15 +162,20 @@ void USB_STM::data_pack(uint32_t velo,uint32_t ang,std::vector<uint32_t>flags,da
     {
         container->data[i+4] = pom[i];
     }
+    unsigned char char_flags[4]; //convert uint32_flags to unsigned char
+    for(int i=0;i<4;i++)
+    {
+        char_flags[i]=flags[i];
+    }
 
-    container->data[8] = char_flags[0];
-    container->data[9] = char_flags[1];
-    container->data[10] = char_flags[2];
-    container->data[11]= char_flags[3];
+    //flags from vision
+    container->data[8] = 0;
+    container->data[9] = char_flags[0];
+    container->data[10] = char_flags[1];
+    container->data[11]= 0;
 
-    uint32_to_char_tab(flags[4],pom);
     for(int i=0;i<4;i++){
-        container->data[i+12] = pom[i];
+        container->data[i+12] = 0;
     }
 
 }

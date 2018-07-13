@@ -20,7 +20,7 @@ Declaration of StopLightDetector class
 class StopLightDetector {
 private:
     int max_dif_pixels = 4000;
-    int min_dif_pixels = 1000;
+    int min_dif_pixels = 400;//1000
 	//makes roi on input image
 	void make_roi(cv::Mat &input, cv::Mat &output, int number);
 	//find bright

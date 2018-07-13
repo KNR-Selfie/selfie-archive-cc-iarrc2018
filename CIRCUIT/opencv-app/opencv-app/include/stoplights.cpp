@@ -13,23 +13,24 @@ Fle include methods definition that can be used with StopLightDetector class
 
 #define FRAME_WIDTH 752 //1280
 #define FRAME_HEIGHT 400 //720
+#define IDS_HEIGHT_ROI 360
 #define THRESH_LEVEL 35
 #define BLUR_SIZE 15
 
 //methode is making roi from input and returning it to output, number tells method with roi, you can test it with test_roi
 void StopLightDetector::make_roi(cv::Mat &input, cv::Mat &output, int number) {
-    int upper_roi = FRAME_HEIGHT / 10;
-	int middle_roi = FRAME_WIDTH / 2;
-	int width_roi = FRAME_WIDTH / 3;
-    int height_roi = FRAME_HEIGHT / 2;
-	cv::Rect roi_rectangle1 = cv::Rect(middle_roi - width_roi, upper_roi, width_roi, height_roi);
-	cv::Rect roi_rectangle2 = cv::Rect(middle_roi, upper_roi, width_roi, height_roi);
-	cv::Rect roi_rectangle3 = cv::Rect(0, upper_roi, width_roi, height_roi);
-	cv::Rect roi_rectangle4 = cv::Rect(FRAME_WIDTH - width_roi, upper_roi, width_roi, height_roi);
-	cv::Rect roi_rectangle5 = cv::Rect(0, 0, middle_roi, FRAME_HEIGHT);
-	cv::Rect roi_rectangle6 = cv::Rect(middle_roi, 0, middle_roi, FRAME_HEIGHT);
-	
-	switch (number) {
+    int upper_roi = 0;//IDS_HEIGHT_ROI/2;
+    int middle_roi = FRAME_WIDTH / 2;
+    int width_roi = FRAME_WIDTH / 3;
+    int height_roi = IDS_HEIGHT_ROI/2;
+    cv::Rect roi_rectangle1 = cv::Rect(middle_roi - width_roi, upper_roi, width_roi, height_roi);
+    cv::Rect roi_rectangle2 = cv::Rect(middle_roi, upper_roi, width_roi, height_roi);
+    cv::Rect roi_rectangle3 = cv::Rect(0, upper_roi, width_roi, height_roi);
+    cv::Rect roi_rectangle4 = cv::Rect(FRAME_WIDTH - width_roi, upper_roi, width_roi, height_roi);
+    cv::Rect roi_rectangle5 = cv::Rect(0, upper_roi, middle_roi, height_roi);
+    cv::Rect roi_rectangle6 = cv::Rect(middle_roi,  upper_roi, middle_roi, height_roi);
+
+    switch (number) {
 	case 1:
 		output = input(roi_rectangle1);
 		break;
@@ -54,16 +55,17 @@ void StopLightDetector::make_roi(cv::Mat &input, cv::Mat &output, int number) {
 //methode that tells us which roi is which
 void StopLightDetector::test_roi(cv::Mat &input, cv::Mat &output) {
     start_finding = true;
-    int upper_roi = FRAME_HEIGHT / 10;
-	int middle_roi = FRAME_WIDTH / 2;
-	int width_roi = FRAME_WIDTH / 3;
-    int height_roi = FRAME_HEIGHT / 2;
-	cv::Rect roi_rectangle1 = cv::Rect(middle_roi - width_roi, upper_roi, width_roi, height_roi);
-	cv::Rect roi_rectangle2 = cv::Rect(middle_roi, upper_roi, width_roi, height_roi);
-	cv::Rect roi_rectangle3 = cv::Rect(0, upper_roi, width_roi, height_roi);
-	cv::Rect roi_rectangle4 = cv::Rect(FRAME_WIDTH - width_roi, upper_roi, width_roi, height_roi);
-	cv::Rect roi_rectangle5 = cv::Rect(0, 0, middle_roi, FRAME_HEIGHT);
-	cv::Rect roi_rectangle6 = cv::Rect(middle_roi, 0, middle_roi, FRAME_HEIGHT);
+    int upper_roi = 0;//IDS_HEIGHT_ROI/2;
+    int middle_roi = FRAME_WIDTH / 2;
+    int width_roi = FRAME_WIDTH / 3;
+    int height_roi = IDS_HEIGHT_ROI/2;
+    cv::Rect roi_rectangle1 = cv::Rect(middle_roi - width_roi, upper_roi, width_roi, height_roi);
+    cv::Rect roi_rectangle2 = cv::Rect(middle_roi, upper_roi, width_roi, height_roi);
+    cv::Rect roi_rectangle3 = cv::Rect(0, upper_roi, width_roi, height_roi);
+    cv::Rect roi_rectangle4 = cv::Rect(FRAME_WIDTH - width_roi, upper_roi, width_roi, height_roi);
+    cv::Rect roi_rectangle5 = cv::Rect(0, upper_roi, middle_roi, height_roi);
+    cv::Rect roi_rectangle6 = cv::Rect(middle_roi,  upper_roi, middle_roi, height_roi);
+
 	input.copyTo(output);
 	rectangle(output, roi_rectangle1, cv::Scalar(100, 0, 0), 5, 8, 0);
 	putText(output, "1", cv::Point(middle_roi - width_roi, 100), cv::FONT_HERSHEY_SIMPLEX, 2, cv::Scalar(100, 0, 0), 9, 8, false);
@@ -146,7 +148,9 @@ void StopLightDetector::prepare_first_image(cv::Mat &input, cv::Mat &output, int
 //methot giving and setting varaibles that there is chane in lights
 void StopLightDetector::count_pixels(cv::Mat &input) {
 	int count = cv::countNonZero(input);
-    //std::cout << count << std::endl;
+    //if (count > 0){
+    //    std::cout << count << std::endl;
+    //}
     if (count < max_dif_pixels and count > min_dif_pixels and start_finding == true) {
 		start_light = true;
 		//std::cout << "FIND GREEN LIGHT" << std::endl;

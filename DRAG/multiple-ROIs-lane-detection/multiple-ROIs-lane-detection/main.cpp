@@ -126,7 +126,7 @@ int main()
     int thresh_h_low = 24;
     int thresh_h_high = 28;
     int thresh_l_low = 0;
-    int thresh_l_high = 100;
+    int thresh_l_high = 190;
     int thresh_s_low = 50;
     int thresh_s_high = 255;
     int thresh_hist = 100;
@@ -157,6 +157,7 @@ int main()
     uint32_t reset_stop = 0;
     uint32_t reset_lane = 0;
     uint32_t light_3_pos = 0;
+    uint8_t find_light = false;
     uint32_t ping = 1;
 
 #ifdef STOPLIGHTS_MODE
@@ -359,42 +360,55 @@ int main()
 #endif
 
 #ifdef STOPLIGHTS_MODE
+        std::cout<<"red"<<red_light_visible<<" green"<<green_light_visible<<"Light"<<lightDetector.start_light<<std::endl;
+
         if(light_3_pos == 1)
         {
             static uint8_t light_var = 5;
-            if (light_var)
-            {
-                lightDetector.prepare_first_image(ids_image,old_frame,lightDetector.roi_number);
+
+            if (light_var){
+                lightDetector.prepare_first_image(frame,old_frame,lightDetector.roi_number);
                 light_var--;
             }
-            else if (lightDetector.start_light == false)
-            {
+            else if (lightDetector.start_light == false && find_light == true){
 #ifdef DEBUG_MODE
-                lightDetector.test_roi(ids_image,display);
+                lightDetector.test_roi(frame,display);
 #endif //DEBUG_MODE
-                lightDetector.find_start(ids_image,difference,old_frame,lightDetector.roi_number);
+                lightDetector.find_start(frame,difference,old_frame,lightDetector.roi_number);
                 if (lightDetector.start_light == true)
                 {
-    //              std::cout<<"START"<<std::endl;
+//                  std::cout<<"START"<<std::endl;
                     red_light_visible = false;
                     green_light_visible = true;
                 }
-                else
-                {
-    //              std::cout<<"WAIT"<<std::endl;
+                else{
+                    red_light_visible = true;
+                    green_light_visible = false;
+//                  std::cout<<"WAIT"<<std::endl;
                 }
 
             }
-
-            cv::imshow("Light detection", difference);
-            cv::imshow("ROI", display);
+            if (find_light ==false){
+                lightDetector.prepare_first_image(frame,old_frame,lightDetector.roi_number);
+                red_light_visible = true;
+                green_light_visible = false;
+                find_light = true;
+            }
         }
 
-        if(light_3_pos != 1)
+        if(light_3_pos == 0)
         {
             red_light_visible = true;
             green_light_visible = false;
-            lightDetector.start_light == false;
+            lightDetector.start_light = false;
+            find_light = false;
+        }
+        if(light_3_pos == 2)
+        {
+            red_light_visible = false;
+            green_light_visible = true;
+            lightDetector.start_light = false;
+            find_light = false;
         }
 
 #endif //STOPLIGHTS_MODE

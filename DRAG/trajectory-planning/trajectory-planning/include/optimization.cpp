@@ -281,8 +281,8 @@ void drag_optimization(vector<Point> y_point_vector,spline_t &trajectory_path,in
 
 
 int auto_offset(vector<Point> pts)
-{   int offset;
-    int sum;
+{   int offset=0;
+    int sum=0;;
     for(int i = 0;i<pts.size();i++)
     {
         sum += pts[i].x;

@@ -13,71 +13,74 @@ Fle include methods definition that can be used with StopLightDetector class
 
 #define FRAME_WIDTH 752 //1280
 #define FRAME_HEIGHT 400 //720
+#define IDS_HEIGHT_ROI 360
 #define THRESH_LEVEL 35
 #define BLUR_SIZE 15
 
 //methode is making roi from input and returning it to output, number tells method with roi, you can test it with test_roi
+//methode is making roi from input and returning it to output, number tells method with roi, you can test it with test_roi
 void StopLightDetector::make_roi(cv::Mat &input, cv::Mat &output, int number) {
-    int upper_roi = FRAME_HEIGHT / 10;
-	int middle_roi = FRAME_WIDTH / 2;
-	int width_roi = FRAME_WIDTH / 3;
-    int height_roi = FRAME_HEIGHT / 2;
-	cv::Rect roi_rectangle1 = cv::Rect(middle_roi - width_roi, upper_roi, width_roi, height_roi);
-	cv::Rect roi_rectangle2 = cv::Rect(middle_roi, upper_roi, width_roi, height_roi);
-	cv::Rect roi_rectangle3 = cv::Rect(0, upper_roi, width_roi, height_roi);
-	cv::Rect roi_rectangle4 = cv::Rect(FRAME_WIDTH - width_roi, upper_roi, width_roi, height_roi);
-	cv::Rect roi_rectangle5 = cv::Rect(0, 0, middle_roi, FRAME_HEIGHT);
-	cv::Rect roi_rectangle6 = cv::Rect(middle_roi, 0, middle_roi, FRAME_HEIGHT);
-	
-	switch (number) {
-	case 1:
-		output = input(roi_rectangle1);
-		break;
-	case 2:
-		output = input(roi_rectangle2);
-		break;
-	case 3:
-		output = input(roi_rectangle3);
-		break;
-	case 4:
-		output = input(roi_rectangle4);
-		break;
-	case 5:
-		output = input(roi_rectangle5);
-		break;
-	case 6:
-		output = input(roi_rectangle6);
-		break;
-	}
+    int upper_roi = 0;//IDS_HEIGHT_ROI/2;
+    int middle_roi = FRAME_WIDTH / 2;
+    int width_roi = FRAME_WIDTH / 3;
+    int height_roi = IDS_HEIGHT_ROI/2;
+    cv::Rect roi_rectangle1 = cv::Rect(middle_roi - width_roi, upper_roi, width_roi, height_roi);
+    cv::Rect roi_rectangle2 = cv::Rect(middle_roi, upper_roi, width_roi, height_roi);
+    cv::Rect roi_rectangle3 = cv::Rect(0, upper_roi, width_roi, height_roi);
+    cv::Rect roi_rectangle4 = cv::Rect(FRAME_WIDTH - width_roi, upper_roi, width_roi, height_roi);
+    cv::Rect roi_rectangle5 = cv::Rect(0, upper_roi, middle_roi, height_roi);
+    cv::Rect roi_rectangle6 = cv::Rect(middle_roi,  upper_roi, middle_roi, height_roi);
+
+    switch (number) {
+    case 1:
+        output = input(roi_rectangle1);
+        break;
+    case 2:
+        output = input(roi_rectangle2);
+        break;
+    case 3:
+        output = input(roi_rectangle3);
+        break;
+    case 4:
+        output = input(roi_rectangle4);
+        break;
+    case 5:
+        output = input(roi_rectangle5);
+        break;
+    case 6:
+        output = input(roi_rectangle6);
+        break;
+    }
 }
 
 //methode that tells us which roi is which
 void StopLightDetector::test_roi(cv::Mat &input, cv::Mat &output) {
     start_finding = true;
-    int upper_roi = FRAME_HEIGHT / 10;
-	int middle_roi = FRAME_WIDTH / 2;
-	int width_roi = FRAME_WIDTH / 3;
-    int height_roi = FRAME_HEIGHT / 2;
-	cv::Rect roi_rectangle1 = cv::Rect(middle_roi - width_roi, upper_roi, width_roi, height_roi);
-	cv::Rect roi_rectangle2 = cv::Rect(middle_roi, upper_roi, width_roi, height_roi);
-	cv::Rect roi_rectangle3 = cv::Rect(0, upper_roi, width_roi, height_roi);
-	cv::Rect roi_rectangle4 = cv::Rect(FRAME_WIDTH - width_roi, upper_roi, width_roi, height_roi);
-	cv::Rect roi_rectangle5 = cv::Rect(0, 0, middle_roi, FRAME_HEIGHT);
-	cv::Rect roi_rectangle6 = cv::Rect(middle_roi, 0, middle_roi, FRAME_HEIGHT);
-	input.copyTo(output);
-	rectangle(output, roi_rectangle1, cv::Scalar(100, 0, 0), 5, 8, 0);
-	putText(output, "1", cv::Point(middle_roi - width_roi, 100), cv::FONT_HERSHEY_SIMPLEX, 2, cv::Scalar(100, 0, 0), 9, 8, false);
-	rectangle(output, roi_rectangle2, cv::Scalar(0, 100, 0), 5, 18, 0);
-	putText(output, "2", cv::Point(middle_roi, 100), cv::FONT_HERSHEY_SIMPLEX, 2, cv::Scalar(0, 100, 0), 9, 8, false);
-	rectangle(output, roi_rectangle3, cv::Scalar(0, 0, 100), 5, 18, 0);
-	putText(output, "3", cv::Point(0, 100), cv::FONT_HERSHEY_SIMPLEX, 2, cv::Scalar(0, 0, 100), 9, 8, false);
-	rectangle(output, roi_rectangle4, cv::Scalar(100, 100, 0), 5, 18, 0);
-	putText(output, "4", cv::Point(FRAME_WIDTH - width_roi, 100), cv::FONT_HERSHEY_SIMPLEX, 2, cv::Scalar(100, 100, 0), 9, 8, false);
-	rectangle(output, roi_rectangle5, cv::Scalar(100, 0, 100), 5, 18, 0);
-	putText(output, "5", cv::Point(0, 200), cv::FONT_HERSHEY_SIMPLEX, 2, cv::Scalar(100, 0, 100), 9, 8, false);
-	rectangle(output, roi_rectangle6, cv::Scalar(0, 100, 100), 5, 18, 0);
-	putText(output, "6", cv::Point(middle_roi, 200), cv::FONT_HERSHEY_SIMPLEX, 2, cv::Scalar(0, 100, 100), 9, 8, false);
-	
+    int upper_roi = 0;//IDS_HEIGHT_ROI/2;
+    int middle_roi = FRAME_WIDTH / 2;
+    int width_roi = FRAME_WIDTH / 3;
+    int height_roi = IDS_HEIGHT_ROI/2;
+    cv::Rect roi_rectangle1 = cv::Rect(middle_roi - width_roi, upper_roi, width_roi, height_roi);
+    cv::Rect roi_rectangle2 = cv::Rect(middle_roi, upper_roi, width_roi, height_roi);
+    cv::Rect roi_rectangle3 = cv::Rect(0, upper_roi, width_roi, height_roi);
+    cv::Rect roi_rectangle4 = cv::Rect(FRAME_WIDTH - width_roi, upper_roi, width_roi, height_roi);
+    cv::Rect roi_rectangle5 = cv::Rect(0, upper_roi, middle_roi, height_roi);
+    cv::Rect roi_rectangle6 = cv::Rect(middle_roi,  upper_roi, middle_roi, height_roi);
+
+    input.copyTo(output);
+    rectangle(output, roi_rectangle1, cv::Scalar(100, 0, 0), 5, 8, 0);
+    putText(output, "1", cv::Point(middle_roi - width_roi, 100), cv::FONT_HERSHEY_SIMPLEX, 2, cv::Scalar(100, 0, 0), 9, 8, false);
+    rectangle(output, roi_rectangle2, cv::Scalar(0, 100, 0), 5, 18, 0);
+    putText(output, "2", cv::Point(middle_roi, 100), cv::FONT_HERSHEY_SIMPLEX, 2, cv::Scalar(0, 100, 0), 9, 8, false);
+    rectangle(output, roi_rectangle3, cv::Scalar(0, 0, 100), 5, 18, 0);
+    putText(output, "3", cv::Point(0, 100), cv::FONT_HERSHEY_SIMPLEX, 2, cv::Scalar(0, 0, 100), 9, 8, false);
+    rectangle(output, roi_rectangle4, cv::Scalar(100, 100, 0), 5, 18, 0);
+    putText(output, "4", cv::Point(FRAME_WIDTH - width_roi, 100), cv::FONT_HERSHEY_SIMPLEX, 2, cv::Scalar(100, 100, 0), 9, 8, false);
+    rectangle(output, roi_rectangle5, cv::Scalar(100, 0, 100), 5, 18, 0);
+    putText(output, "5", cv::Point(0, 200), cv::FONT_HERSHEY_SIMPLEX, 2, cv::Scalar(100, 0, 100), 9, 8, false);
+    rectangle(output, roi_rectangle6, cv::Scalar(0, 100, 100), 5, 18, 0);
+    putText(output, "6", cv::Point(middle_roi, 200), cv::FONT_HERSHEY_SIMPLEX, 2, cv::Scalar(0, 100, 100), 9, 8, false);
+
 }
 
 //methode returns Mat with value (hsv) from input image

@@ -34,7 +34,7 @@
 //#define RACE_MODE
 #define IMSHOW_RATE 1
 #define DEBUG_MODE
-//#define PREVIEW_MODE
+#define PREVIEW_MODE
 #define NO_USB
 #define STOPLIGHTS_MODE
 #define IDS_MODE
@@ -57,6 +57,14 @@ SharedMemory shm_usb_to_send(50003);
 SharedMemory shm_watchdog(50004);
 SharedMemory shm_dataready(50005,4);
 
+// Scene variables
+uint32_t red_light_visible= 1;
+uint32_t green_light_visible= 0;
+uint32_t reset_stop = 0;
+uint32_t reset_lane = 0;
+uint32_t light_3_pos = 0;
+uint32_t ping = 1;
+uint8_t find_light = false;
 cv::Mat frame_ref(CAM_RES_Y, CAM_RES_X, CV_8UC1);
 void update_trackbar(int, void*)
 {
@@ -182,29 +190,54 @@ int main()
 //        STOP_TIMER("Distort")
 //        START_TIMER
 #ifdef STOPLIGHTS_MODE
-        static uint8_t light_var = 5;
-        if (light_var){
-            lightDetector.prepare_first_image(ids_image,old_frame,lightDetector.roi_number);
-            light_var--;
-        }
-        else if (lightDetector.start_light == false){
+        if(light_3_pos == 1)
+        {
+            static uint8_t light_var = 5;
+
+            if (light_var){
+                lightDetector.prepare_first_image(ids_image,old_frame,lightDetector.roi_number);
+                light_var--;
+            }
+            else if (lightDetector.start_light == false && find_light == true){
 #ifdef DEBUG_MODE
-            lightDetector.test_roi(ids_image,display);
+                lightDetector.test_roi(ids_image,display);
 #endif //DEBUG_MODE
-            lightDetector.find_start(ids_image,difference,old_frame,lightDetector.roi_number);
-            if (lightDetector.start_light == true)
-            {
-//              std::cout<<"START"<<std::endl;
-                red_light_visible = false;
-                green_light_visible = true;
-            }
-            else{
-//              std::cout<<"WAIT"<<std::endl;
-            }
+                lightDetector.find_start(ids_image,difference,old_frame,lightDetector.roi_number);
+                if (lightDetector.start_light == true)
+                {
+//                  std::cout<<"START"<<std::endl;
+                    red_light_visible = false;
+                    green_light_visible = true;
+                }
+                else{
+                    red_light_visible = true;
+                    green_light_visible = false;
+//                  std::cout<<"WAIT"<<std::endl;
+                }
 
-
+            }
+            if (find_light ==false){
+                lightDetector.prepare_first_image(ids_image,old_frame,lightDetector.roi_number);
+                find_light = true;
+                red_light_visible = true;
+                green_light_visible = false;
+            }
         }
 
+        if(light_3_pos == 0)
+        {
+            red_light_visible = true;
+            green_light_visible = false;
+            lightDetector.start_light = false;
+            find_light = false;
+        }
+        if(light_3_pos == 2)
+        {
+            red_light_visible = false;
+            green_light_visible = true;
+            lightDetector.start_light = false;
+            find_light = false;
+        }
 
 #endif //STOPLIGHTS_MODE
 
@@ -238,11 +271,14 @@ int main()
         shm_lane_points.push_lane_data(yellow_vector, white_vector, laneDetector.cones_vector);
 
         // Push data
-        shm_usb_to_send.push_scene_data(reset_stm, red_light_visible, green_light_visible, stop_line_detected, stop_line_distance);
+        //std::cout<<"red"<<red_light_visible<<" green"<<green_light_visible<<"Light"<<lightDetector.start_light<<std::endl;
+        shm_usb_to_send.push_scene_data(red_light_visible, green_light_visible);
 
         // Data ready
         shm_dataready.push_signal(1u);
 
+        //pull data
+        shm_usb_to_send.pull_scene_data(reset_stop, reset_lane, light_3_pos,  ping);
         STOP_TIMER("SHMEM")
         START_TIMER
 

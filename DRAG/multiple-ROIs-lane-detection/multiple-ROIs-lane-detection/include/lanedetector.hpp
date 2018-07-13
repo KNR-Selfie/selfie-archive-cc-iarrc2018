@@ -37,9 +37,9 @@ class LaneDetector
     // Birdeye
 public:
     int f_i = 200;
-    int alpha_i = 60;
+    int alpha_i = 64;
 
-    int dist_i = 60;
+    int dist_i = 40;
     int dist_inv_i = 260;
     int cut_y = 0;
 

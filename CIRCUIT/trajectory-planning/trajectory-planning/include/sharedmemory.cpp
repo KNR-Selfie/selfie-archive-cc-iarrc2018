@@ -51,30 +51,22 @@ bool SharedMemory::get_access()
     return 1;
 }
 
-void SharedMemory::push_data(std::vector<std::vector<cv::Point>> vector)
+void SharedMemory::push_data(uint8_t taranis_3_pos, uint8_t taranis_reset_gear,uint8_t stm_reset)
 {
-    uint32_t tmp[25000];
-    int j = 1;
 
-    // Data vector to int[]
-    for(uint32_t i = 0; i < vector.size(); i++)
-    {
-        for(uint32_t k = 0; k < vector[i].size(); k++)
-        {
-            tmp[j] = vector[i][k].x;
-            tmp[j+1] = vector[i][k].y;
+    uint32_t tmp[7];
 
-            j+= 2;
-        }
-    }
-    tmp[0] = j;
-    std::cout << "Wykryto: " << j << std::endl;
+    tmp[0] = 6;
+    tmp[1] = shared_variable[1];
+    tmp[2] = shared_variable[2];
+    tmp[3] = taranis_reset_gear;
+    tmp[4] = stm_reset;
+    tmp[5] = taranis_3_pos;
+    tmp[6] = 1;
 
     // Copy data to shm
-    memcpy(shared_variable, &tmp[0], 4*j);
+    memcpy(shared_variable, &tmp[0], 28);
 }
-
-
 
 void SharedMemory::pull_line_data(std::vector<cv::Point> &y_vector,std::vector<cv::Point> &w_vector,std::vector<cv::Point> &c_vector)
 {   uint32_t y_lenght = shared_variable[0];
@@ -135,11 +127,14 @@ void SharedMemory::pull_lidar_data(std::vector<cv::Point>&l_vector)
 }
 void SharedMemory::pull_usb_data(std::vector<uint32_t>&data)
 {
-    if(shared_variable[0] == 5)
+    if(mem_id>0)
     {
-        for(int i=0;i<5;i++)
+        if(shared_variable[0] == 6)
         {
-            data[i]=shared_variable[i+1];
+            for(int i=0;i<6;i++)
+            {
+                data[i]=shared_variable[i+1];
+            }
         }
     }
 }

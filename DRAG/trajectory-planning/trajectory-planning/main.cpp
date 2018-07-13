@@ -100,8 +100,8 @@ int main(int argc, char** argv)
     //offsets and wagis
     uint8_t side_dect_flag = 1;
     int drag_offset = 300; //default
-    float servo_weight = 0.3;
-    float tangent_weight = 0.9;
+    float servo_weight = 0.4;
+    float tangent_weight = 0.7;
 
 ////////////////////////////////////////////WHILE///////////////////////////////////////////////////
 while(1)
@@ -148,6 +148,7 @@ while(1)
         {
             drag_offset = auto_offset(y_point_vector);
             side_dect_flag = 0;
+            cout<<"drag offset: "<<drag_offset;
         }
 
     }
@@ -165,7 +166,7 @@ while(1)
        trajectory_tangent.angle();
     }
     else if(y_line_detect)
-    {
+    {   drag_offset =-50;
 /////////////////////Versja bez rect////////////
         drag_optimization(y_point_vector,trajectory_path,drag_offset);
 /////////////////////////////////////////////////////////////////

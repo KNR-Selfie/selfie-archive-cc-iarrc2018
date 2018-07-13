@@ -211,30 +211,37 @@ void SharedMemory::pull_lane_data(cv::Mat &test)
 
 }
 
-void SharedMemory::push_scene_data(bool reset_stm, bool red_light_visible, bool green_light_visible, bool stop_line_detected, uint32_t stop_line_distance)
+void SharedMemory::push_scene_data(uint32_t red_light_visible, uint32_t green_light_visible)
 {
-    uint32_t tmp[8];
+    uint32_t tmp[7];
 
     tmp[0] = 5;
-    tmp[1] = reset_stm;
-    tmp[2] = red_light_visible;
-    tmp[3] = green_light_visible;
-    tmp[4] = stop_line_detected;
-    tmp[5] = stop_line_distance;
+    tmp[1] = red_light_visible;
+    tmp[2] = green_light_visible;
+    tmp[3] = shared_variable[3];
+    tmp[4] = shared_variable[4];
+    tmp[5] = shared_variable[5];
+    tmp[6] = 1;
 
     // Copy data to shm
-    memcpy(shared_variable, &tmp[0], 24);
+    memcpy(shared_variable, &tmp[0], 28);
 }
 
-void SharedMemory::pull_scene_data()
+void SharedMemory::pull_scene_data(uint32_t &reset_stop, uint32_t &reset_lane, uint32_t &light_3_pos, uint32_t &ping)
 {
+    reset_stop = shared_variable[3];
+    reset_lane= shared_variable[4];
+    light_3_pos= shared_variable[5];
+    //ping = shared_variable[6];
+#ifdef VERBOSE_MODE
     std::cout << std::endl << "SCENE SHM: " << std::endl;
     std::cout << "Length:    " << shared_variable[0] << std::endl;
-    std::cout << "Reset STM: " << shared_variable[1] << std::endl;
-    std::cout << "Red vis:   " << shared_variable[2] << std::endl;
-    std::cout << "Green vis: " << shared_variable[3] << std::endl;
-    std::cout << "Stop vis:  " << shared_variable[4] << std::endl;
-    std::cout << "Stop dist: " << shared_variable[5] << std::endl;
+    std::cout << "Red vis:   " << shared_variable[1] << std::endl;
+    std::cout << "Green vis: " << shared_variable[2] << std::endl;
+    std::cout << "Reset stop:  " << shared_variable[3] << std::endl;
+    std::cout << "Reset lane:  " << shared_variable[4] << std::endl;
+    std::cout << "Ping:  " << shared_variable[5] << std::endl;
+#endif
 }
 void SharedMemory::push_signal(uint32_t signal)
 {
