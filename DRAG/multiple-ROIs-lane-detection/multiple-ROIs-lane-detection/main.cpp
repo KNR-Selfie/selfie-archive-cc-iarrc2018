@@ -338,7 +338,7 @@ int main()
 #ifndef VID_MODE
     while(true)
 #else
-    for(int i = 1; i < video.get(cv::CAP_PROP_FRAME_COUNT); )
+    for(int i = 1; i < video.get(cv::CAP_PROP_FRAME_COUNT); i++)
 #endif
     {
 #ifdef FPS_COUNT
@@ -356,7 +356,7 @@ int main()
         ids.get_frame_to(frame);
 #endif
 #else
-        //video >> frame;
+        video >> frame;
 #endif
 
 #ifdef STOPLIGHTS_MODE
