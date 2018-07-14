@@ -13,14 +13,18 @@ Declaration of StopLightDetector class
 #include "opencv2/opencv.hpp"
 #include "opencv2/core/core.hpp"
 
+#include "ids.h"
+
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 
+
+
 class StopLightDetector {
 private:
     int max_dif_pixels = 4000;
-    int min_dif_pixels = 400;//1000;
+    int min_dif_pixels = 150;//1000;
 	//makes roi on input image
 	void make_roi(cv::Mat &input, cv::Mat &output, int number);
 	//find bright
@@ -38,7 +42,9 @@ public:
 	//flag not to analize first frame
 	bool start_finding = false;
 	//storing roi number
-    int roi_number = 6;
+    int roi_number = 7;
+    //adjusted roi params
+    int adj_roi[4]={IDS_WIDTH /2,0,IDS_WIDTH /4,IDS_HEIGHT/5};
 	//prepare first image
 	void prepare_first_image(cv::Mat &input, cv::Mat &output, int number);
 	//showing roi rectangles

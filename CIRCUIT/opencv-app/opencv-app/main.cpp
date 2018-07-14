@@ -83,8 +83,7 @@ cv :: Mat rect;
 int main()
 {
 //    sounds_init();
-    cvNamedWindow("PREVIEW", 1);
-    cv::createTrackbar("Enabled?", "PREVIEW", &preview_enabled, 1, NULL);
+
     laneDetector.CreateTrackbars();
     INIT_TIMER
     INIT_TIMER2
@@ -131,7 +130,7 @@ int main()
 
 
     ids.init();
-
+    cv::createTrackbar("Enabled?", ids.ids_windowname, &preview_enabled, 1, NULL);
     //Read XML file
     laneDetector.UndistXML(cameraMatrix, distCoeffs);
 #ifdef DEBUG_MODE
@@ -157,16 +156,22 @@ int main()
 
 
 // Main loop
+    // STOPLIGHTS
     cv::namedWindow("0.2 Light detection",1);
     cv::namedWindow("0.1 ROI",1);
-    cv::namedWindow("3.1 Yellow Bird Eye", 1);
-    cv::namedWindow("3.2 White Bird Eye", 1);
+    cv::createTrackbar("ROI_x", "0.1 ROI", lightDetector.adj_roi, IDS_WIDTH, NULL);
+    cv::createTrackbar("ROI_y", "0.1 ROI", lightDetector.adj_roi+1, IDS_HEIGHT, NULL);
+    cv::createTrackbar("ROI_width", "0.1 ROI", lightDetector.adj_roi+2, IDS_WIDTH, NULL);
+    cv::createTrackbar("ROI_height", "0.1 ROI", lightDetector.adj_roi+3, IDS_HEIGHT, NULL);
+    //
+//    cv::namedWindow("3.1 Yellow Bird Eye", 1);
+//    cv::namedWindow("3.2 White Bird Eye", 1);
 
-    cv::createTrackbar("f", "3.1 Yellow Bird Eye", &laneDetector.f_i, 1000, update_trackbar);
-    cv::createTrackbar("dst", "3.1 Yellow Bird Eye", &laneDetector.dist_i, 1000, update_trackbar);
-    cv::createTrackbar("dst inv", "3.1 Yellow Bird Eye", &laneDetector.dist_inv_i, 1000, update_trackbar);
-    cv::createTrackbar("cut y", "3.1 Yellow Bird Eye", &laneDetector.cut_y, 100, update_trackbar);
-    cv::createTrackbar("alpha", "3.1 Yellow Bird Eye", &laneDetector.alpha_i, 100, update_trackbar);
+//    cv::createTrackbar("f", "3.1 Yellow Bird Eye", &laneDetector.f_i, 1000, update_trackbar);
+//    cv::createTrackbar("dst", "3.1 Yellow Bird Eye", &laneDetector.dist_i, 1000, update_trackbar);
+//    cv::createTrackbar("dst inv", "3.1 Yellow Bird Eye", &laneDetector.dist_inv_i, 1000, update_trackbar);
+//    cv::createTrackbar("cut y", "3.1 Yellow Bird Eye", &laneDetector.cut_y, 100, update_trackbar);
+//    cv::createTrackbar("alpha", "3.1 Yellow Bird Eye", &laneDetector.alpha_i, 100, update_trackbar);
 
 
     // Bird Eye first calculation
@@ -280,7 +285,7 @@ int main()
         shm_lane_points.push_lane_data(yellow_vector, white_vector, laneDetector.cones_vector);
 
         // Push data
-        //std::cout<<"red"<<red_light_visible<<" green"<<green_light_visible<<"Light"<<lightDetector.start_light<<std::endl;
+//        std::cout<<light_3_pos<<"red"<<red_light_visible<<" green"<<green_light_visible<<"Light"<<lightDetector.start_light<<std::endl;
         shm_usb_to_send.push_scene_data(red_light_visible, green_light_visible);
 
         // Data ready
@@ -304,7 +309,7 @@ int main()
                 cv::imshow("0.1 ROI", display);
            }
 #endif
-            cv::imshow("0 Frame", ids_image);
+            cv::imshow(ids.ids_windowname, ids_image);
             //cv::imshow("Hist frame", hist_frame);
 //              cv::imshow("Hsv frame", hsv_frame);
             cv::imshow("1.1 Yellow Line", frame_out_yellow);
@@ -377,13 +382,17 @@ int main()
             if(++denom >= IMSHOW_RATE){
                 denom = 0;
                 laneDetector.drawPoints_both(white_vector, white_vector_frame,yellow_vector, yellow_vector_frame);
-                cv::imshow("0 Frame", ids_image);
+                cv::imshow(ids.ids_windowname, ids_image);
 
                 cv::imshow("1.1 Yellow Line", frame_out_yellow);
                 cv::imshow("4.1 Yellow Vector", yellow_vector_frame);
                 cv::imshow("1.2 White Line", frame_out_white);
                 cv::imshow("4.2 White Vector", white_vector_frame);
-
+                if (lightDetector.start_light == false){
+                    lightDetector.test_roi(ids_image,display);
+                     cv::imshow("0.2 Light detection", difference);
+                     cv::imshow("0.1 ROI", display);
+                }
 //                cv::waitKey(1);
             }
         }

@@ -426,27 +426,27 @@ static void update_auto_trackbars(int,void*){
 }
 //Creating in debug mode trackbars
 void IDS::create_manual_trackbars(void){
-    cvNamedWindow("ids", 1);
-    cv::createTrackbar("Pixel", "ids", &pixelclock_slider, 40, update_suwaki);
-    cv::createTrackbar("Exposure", "ids", &exposure_slider, 30*30, update_suwaki);
-    cv::createTrackbar("FPS", "ids", &fps_slider, 100, update_suwaki);
-    cv::createTrackbar("Master", "ids", &Master_GAIN_Factor, 300, update_suwaki);
-    cv::setTrackbarMin("Master", "ids", 100);
-    cv::createTrackbar("Green", "ids", &Green_GAIN_Factor, 300, update_suwaki);
-    cv::setTrackbarMin("Green", "ids",100);
-    cv::createTrackbar("Red", "ids", &Red_GAIN_Factor, 300, update_suwaki);
-    cv::setTrackbarMin("Red", "ids", 100);
-    cv::createTrackbar("Blue", "ids", &Blue_GAIN_Factor, 300, update_suwaki);
-    cv::setTrackbarMin("Blue", "ids", 100);
-    cv::createTrackbar("Sharpness", "ids", &sharpness_slider, 9, update_suwaki);
-    cv::setTrackbarMin("Sharpness", "ids", 0);
-    cv::createTrackbar("Gamma", "ids", &Gamma, 300, update_suwaki);
+    cvNamedWindow(ids_windowname, 1);
+    cv::createTrackbar("Pixel", ids_windowname, &pixelclock_slider, 40, update_suwaki);
+    cv::createTrackbar("Exposure", ids_windowname, &exposure_slider, 30*30, update_suwaki);
+    cv::createTrackbar("FPS", ids_windowname, &fps_slider, 100, update_suwaki);
+    cv::createTrackbar("Master", ids_windowname, &Master_GAIN_Factor, 300, update_suwaki);
+    cv::setTrackbarMin("Master", ids_windowname, 100);
+    cv::createTrackbar("Green", ids_windowname, &Green_GAIN_Factor, 300, update_suwaki);
+    cv::setTrackbarMin("Green", ids_windowname,100);
+    cv::createTrackbar("Red", ids_windowname, &Red_GAIN_Factor, 300, update_suwaki);
+    cv::setTrackbarMin("Red", ids_windowname, 100);
+    cv::createTrackbar("Blue", ids_windowname, &Blue_GAIN_Factor, 300, update_suwaki);
+    cv::setTrackbarMin("Blue", ids_windowname, 100);
+    cv::createTrackbar("Sharpness", ids_windowname, &sharpness_slider, 9, update_suwaki);
+    cv::setTrackbarMin("Sharpness", ids_windowname, 0);
+    cv::createTrackbar("Gamma", ids_windowname, &Gamma, 300, update_suwaki);
 }
 void IDS::create_auto_trackbars(void){
-    cvNamedWindow("IDS Settings", 1);
-    cv::createTrackbar("Min Exposure", "IDS Settings", &min_exposure_slider, 5*100, update_auto_trackbars);
-    cv::createTrackbar("Max Exposure", "IDS Settings", &max_exposure_slider, 30*100, update_auto_trackbars);
-    cv::createTrackbar("Reference", "IDS Settings", &reference_slider, 2000, update_auto_trackbars);
-    cv::createTrackbar("Hysteresis", "IDS Settings", &hysteresis_slider, 500, update_auto_trackbars);
-    cv::createTrackbar("Gamma", "IDS Settings", &Gamma, 400, update_auto_trackbars);
+    cvNamedWindow(ids_windowname, 1);
+    cv::createTrackbar("Min Exposure", ids_windowname, &min_exposure_slider, 5*100, update_auto_trackbars);
+    cv::createTrackbar("Max Exposure", ids_windowname, &max_exposure_slider, 30*100, update_auto_trackbars);
+    cv::createTrackbar("Reference", ids_windowname, &reference_slider, 2000, update_auto_trackbars);
+    cv::createTrackbar("Hysteresis", ids_windowname, &hysteresis_slider, 500, update_auto_trackbars);
+    cv::createTrackbar("Gamma", ids_windowname, &Gamma, 400, update_auto_trackbars);
 }

@@ -34,9 +34,9 @@ class IDS {
     double max_exposure = 5.0;
 
     int min_exposure_slider = 1;
-    int max_exposure_slider = 100;
-    int hysteresis_slider = 1;
-    int reference_slider = 2;
+    int max_exposure_slider = 200;
+    int hysteresis_slider = 10;
+    int reference_slider = 40;
     UINT nSizeOfParam;
     AES_CONFIGURATION *pAesConfiguration;
     AES_PEAK_CONFIGURATION *pPeakConfiguration;
@@ -57,7 +57,7 @@ class IDS {
     pthread_mutex_t signal_mutex = PTHREAD_MUTEX_INITIALIZER;
     pthread_cond_t frame_signal = PTHREAD_COND_INITIALIZER;
 public:
-
+    char ids_windowname[11] = {'I','D','S',' ','O','U','T','P','U','T'};
     cv::Mat ids_frame = cv::Mat(IDS_HEIGHT, IDS_WIDTH, CV_8UC3);
     pthread_mutex_t frame_mutex = PTHREAD_MUTEX_INITIALIZER;
 

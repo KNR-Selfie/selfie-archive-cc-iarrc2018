@@ -153,19 +153,19 @@ void LaneDetector::CreateTrackbars()
 {
     cv::namedWindow("1.1 Yellow Line", 1);
     cv::namedWindow("1.2 White Line", 1);
-    cv::namedWindow("3.1 Yellow Bird Eye", 1);
-    cv::namedWindow("3.2 White Bird Eye", 1);
-    cv::namedWindow("3.3 Line Accuracy",1);
-    cv::namedWindow("5 Cone Detect", 1);
-
-    cv::createTrackbar("Acc", "3.3 Line Accuracy", &Acc_value, 255, NULL);
-    cv::createTrackbar("Acc_filt", "3.3 Line Accuracy", &Acc_filt, 50, NULL);
-    cv::createTrackbar("Rdown", "5 Cone Detect", &R_down, 255, NULL);
-    cv::createTrackbar("Rup", "5 Cone Detect", &R_up, 255, NULL);
-    cv::createTrackbar("Gdown", "5 Cone Detect", &G_down, 255, NULL);
-    cv::createTrackbar("Gup", "5 Cone Detect", &G_up, 255, NULL);
-    cv::createTrackbar("Bdown", "5 Cone Detect", &B_down, 255, NULL);
-    cv::createTrackbar("Bup", "5 Cone Detect", &B_up, 255, NULL);
+//    cv::namedWindow("3.1 Yellow Bird Eye", 1);
+//    cv::namedWindow("3.2 White Bird Eye", 1);
+//    cv::namedWindow("3.3 Line Accuracy",1);
+//    cv::namedWindow("5 Cone Detect", 1);
+    cv::namedWindow("4.1 Yellow Vector", 1);
+    cv::createTrackbar("Acc", "4.1 Yellow Vector", &Acc_value, 255, NULL);
+    cv::createTrackbar("Acc_filt", "4.1 Yellow Vector", &Acc_filt, 50, NULL);
+//    cv::createTrackbar("Rdown", "5 Cone Detect", &R_down, 255, NULL);
+//    cv::createTrackbar("Rup", "5 Cone Detect", &R_up, 255, NULL);
+//    cv::createTrackbar("Gdown", "5 Cone Detect", &G_down, 255, NULL);
+//    cv::createTrackbar("Gup", "5 Cone Detect", &G_up, 255, NULL);
+//    cv::createTrackbar("Bdown", "5 Cone Detect", &B_down, 255, NULL);
+//    cv::createTrackbar("Bup", "5 Cone Detect", &B_up, 255, NULL);
     cv::createTrackbar("Hdown", "1.1 Yellow Line", &H_down, 255, NULL);
     cv::createTrackbar("Hup", "1.1 Yellow Line", &H_up, 255, NULL);
     cv::createTrackbar("Sdown", "1.1 Yellow Line", &S_down, 255, NULL);
