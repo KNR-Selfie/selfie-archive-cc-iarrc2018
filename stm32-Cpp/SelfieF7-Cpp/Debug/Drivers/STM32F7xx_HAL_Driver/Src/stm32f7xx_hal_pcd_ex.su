@@ -1,5 +1,0 @@
-stm32f7xx_hal_pcd_ex.c:85:19:HAL_PCDEx_SetTxFiFo	12	static
-stm32f7xx_hal_pcd_ex.c:127:19:HAL_PCDEx_SetRxFiFo	0	static
-stm32f7xx_hal_pcd_ex.c:139:19:HAL_PCDEx_ActivateLPM	8	static
-stm32f7xx_hal_pcd_ex.c:156:19:HAL_PCDEx_DeActivateLPM	4	static
-stm32f7xx_hal_pcd_ex.c:292:13:HAL_PCDEx_LPM_Callback	0	static
