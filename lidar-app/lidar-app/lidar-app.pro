@@ -6,11 +6,15 @@ CONFIG -= qt
 QMAKE_CXXFLAGS += -std=c++11
 
 SOURCES += main.cpp \
-    include/urg.cpp
+    include/urg.cpp \
+    include/sharedmemory.cpp \
+    include/process.cpp
 
 HEADERS += \
     include/def.hpp \
-    include/urg.hpp
+    include/urg.hpp \
+    include/sharedmemory.hpp \
+    include/process.hpp
 
 # OpenCV
 INCLUDEPATH += /usr/local/include/opencv

@@ -1,16 +1,29 @@
 #include <iostream>
 
 #include <include/urg.hpp>
+#include <include/process.hpp>
+#include <include/sharedmemory.hpp>
 
-//USB usb;
 URG urg;
+Process process;
+SharedMemory shm_left(50001, 12000);
+SharedMemory shm_right(50002, 12000);
+SharedMemory shm_additional_data(50003, 32);
 
 void clean_up();
 
 int main()
 {
     // USB communication with Lidar
-    if(urg.init() != 1)
+    if(!urg.init())
+    {
+        std::cout << "Closing app!" << std::endl;
+        clean_up();
+        return -1;
+    }
+
+    // Shared Memory
+    if(!shm_left.init() || !shm_right.init() || !shm_additional_data.init())
     {
         std::cout << "Closing app!" << std::endl;
         clean_up();
@@ -22,6 +35,10 @@ int main()
     cv::Mat frame_raw(HEIGHT, WIDTH, CV_8UC3);
     cv::Mat frame_data(HEIGHT, WIDTH, CV_8UC3);
     cv::Mat frame_settings(1, 580, CV_8UC1);
+#ifdef SHM_TEST
+    cv::Mat frame_l(HEIGHT, WIDTH, CV_8UC3);
+    cv::Mat frame_r(HEIGHT, WIDTH, CV_8UC3);
+#endif
 
     // OpenCV UI
     char keypressed;
@@ -60,19 +77,35 @@ int main()
             return -3;
         }
 
+        // Preprocess data
         urg.polar_to_cartesian();
         urg.filter_distance(urg.raw_data, urg.filtered_data[0]);
         urg.filter_Y(urg.filtered_data[0], urg.filtered_data[1]);
 
-#ifdef DEBUG_MODE
-        frame_data = cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC3);
-        frame_data = cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC3);
+        // Send data to Shared Memory
+        shm_left.push_point_data(urg.filtered_data[1].pos);
+        shm_right.push_point_data(urg.filtered_data[1].pos);
+        shm_additional_data.push_additional_data(cv::Point(WIDTH/2, HEIGHT/2), urg.scale, process.gap_pos_left, process.gap_pos_right);
+
+        // Draw lidar data
         urg.draw_data_raw(frame_raw);
         urg.draw_boundaries(frame_data, urg.filtered_data[1]);
         urg.draw_data_filtered(frame_data, urg.filtered_data[1]);
 
+#ifdef SHM_TEST
+        // Read data from Shared Memory
+        shm_left.pull_points_data(frame_l, cv::Scalar(0,255,200));
+        shm_right.pull_points_data(frame_r, cv::Scalar(200,0,200));
+        shm_additional_data.pull_additional_data();
+#endif
+        // Update windows
         cv::imshow("Data", frame_data);
         cv::imshow("Settings", frame_settings);
+#ifdef SHM_TEST
+        cv::imshow("SHM_L", frame_l);
+        cv::imshow("SHM_R", frame_r);
+#endif
+
 #ifdef VERBOSE_MODE
         cv::imshow("Raw", frame_raw);
 #endif
@@ -83,6 +116,15 @@ int main()
         // Process given input
         if( keypressed == 27 )
             break;
+
+        // Clear cv::Mat's for the next frame
+#ifdef DEBUG_MODE
+        frame_data = cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC3);
+        frame_data = cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC3);
+#ifdef SHM_TEST
+        frame_l = cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC3);
+        frame_r = cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC3);
+#endif
 #endif
     }
 
@@ -93,4 +135,7 @@ int main()
 void clean_up()
 {
     urg.close();
+    shm_left.close();
+    shm_right.close();
+    shm_additional_data.close();
 }

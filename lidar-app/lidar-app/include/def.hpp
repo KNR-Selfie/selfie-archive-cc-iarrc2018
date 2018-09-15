@@ -2,6 +2,7 @@
 
 #define DEBUG_MODE
 //#define VERBOSE_MODE
+#define SHM_TEST
 #define FPS_COUNT
 
 #define FRAME_TIME 1
