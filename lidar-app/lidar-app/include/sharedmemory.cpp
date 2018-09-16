@@ -27,7 +27,7 @@ bool SharedMemory::init()
     return 1;
 }
 
-void SharedMemory::push_point_data(std::vector<cv::Point> points)
+void SharedMemory::push_point_data(std::vector<cv::Point> &points)
 {
     uint32_t j = 0;
     std::vector<uint32_t> tmp;
@@ -51,7 +51,7 @@ void SharedMemory::push_point_data(std::vector<cv::Point> points)
     memcpy(shared_variable, &tmp[0], 4*(j+1));
 }
 
-void SharedMemory::pull_points_data(cv::Mat &out, cv::Scalar color)
+void SharedMemory::pull_points_data(cv::Mat &out, cv::Scalar &color)
 {
     cv::Point tmp;
     std::vector<cv::Point> vector_points;

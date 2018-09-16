@@ -37,11 +37,11 @@ public:
     int x_left = 0;
     int x_right = WIDTH;
     int y_up = 0;
-    int y_down = 1020;
+    int y_down = 875;
     int thresh = 10;
 
     LidarReading raw_data;
-    LidarReading filtered_data[5];
+    LidarReading filtered_data[3];
 
 public:
     URG();

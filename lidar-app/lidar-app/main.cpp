@@ -87,14 +87,17 @@ int main()
         shm_right.push_point_data(urg.filtered_data[1].pos);
         shm_additional_data.push_additional_data(cv::Point(WIDTH/2, HEIGHT/2), urg.scale, process.gap_pos_left, process.gap_pos_right);
 
+#ifdef DEBUG_MODE
         // Draw lidar data
+#ifdef VERBOSE_MODE
         urg.draw_data_raw(frame_raw);
+#endif
         urg.draw_boundaries(frame_data, urg.filtered_data[1]);
-        urg.draw_data_filtered(frame_data, urg.filtered_data[1]);
+        process.draw_data(frame_data);
 
 #ifdef SHM_TEST
         // Read data from Shared Memory
-        shm_left.pull_points_data(frame_l, cv::Scalar(0,255,200));
+        shm_left.pull_points_data(frame_l, cv::Scalar(0,200,200));
         shm_right.pull_points_data(frame_r, cv::Scalar(200,0,200));
         shm_additional_data.pull_additional_data();
 #endif
@@ -118,8 +121,6 @@ int main()
             break;
 
         // Clear cv::Mat's for the next frame
-#ifdef DEBUG_MODE
-        frame_data = cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC3);
         frame_data = cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC3);
 #ifdef SHM_TEST
         frame_l = cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC3);

@@ -152,7 +152,7 @@ void URG::filter_single_points(LidarReading &input, LidarReading &output)
     for(uint32_t i = 0; i < input.pos.size() - 1; i++)
     {
         tmp = input.pos[i] - input.pos[i+1];
-        if(cv::sqrt(tmp.x*tmp.x + tmp.y*tmp.y) < thresh)
+        if(sqrt(tmp.x*tmp.x + tmp.y*tmp.y) < thresh)
         {
             last = true;
             output.pos.push_back(input.pos[i]);

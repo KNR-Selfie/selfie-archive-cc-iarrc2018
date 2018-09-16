@@ -17,8 +17,8 @@ HEADERS += \
     include/process.hpp
 
 # OpenCV
-INCLUDEPATH += /usr/local/include/opencv
-LIBS += -L/usr/local/lib -lopencv_stitching -lopencv_superres -lopencv_videostab -lopencv_xfeatures2d -lopencv_shape -lopencv_img_hash -lopencv_dpm -lopencv_optflow -lopencv_rgbd -lopencv_xphoto -lopencv_ximgproc -lopencv_line_descriptor -lopencv_fuzzy -lopencv_saliency -lopencv_stereo -lopencv_reg -lopencv_bgsegm -lopencv_freetype -lopencv_structured_light -lopencv_phase_unwrapping -lopencv_bioinspired -lopencv_aruco -lopencv_ccalib -lopencv_calib3d -lopencv_face -lopencv_tracking -lopencv_datasets -lopencv_text -lopencv_features2d -lopencv_highgui -lopencv_videoio -lopencv_dnn -lopencv_video -lopencv_plot -lopencv_photo -lopencv_ml -lopencv_xobjdetect -lopencv_imgcodecs -lopencv_objdetect -lopencv_imgproc -lopencv_surface_matching -lopencv_flann -lopencv_core
+INCLUDEPATH += /usr/local/include
+LIBS += -L/usr/local/lib -lopencv_stitching -lopencv_videostab -lopencv_superres -lopencv_hfs -lopencv_dnn_objdetect -lopencv_freetype -lopencv_img_hash -lopencv_face -lopencv_photo -lopencv_structured_light -lopencv_line_descriptor -lopencv_bioinspired -lopencv_tracking -lopencv_reg -lopencv_saliency -lopencv_rgbd -lopencv_optflow -lopencv_ximgproc -lopencv_aruco -lopencv_xfeatures2d -lopencv_shape -lopencv_ccalib -lopencv_dpm -lopencv_surface_matching -lopencv_stereo -lopencv_xphoto -lopencv_fuzzy -lopencv_bgsegm -lopencv_calib3d -lopencv_video -lopencv_datasets -lopencv_text -lopencv_features2d -lopencv_highgui -lopencv_videoio -lopencv_dnn -lopencv_ml -lopencv_flann -lopencv_plot -lopencv_xobjdetect -lopencv_imgcodecs -lopencv_objdetect -lopencv_phase_unwrapping -lopencv_imgproc -lopencv_core
 
 # URG
 unix:!macx: LIBS += -L$$PWD/../../../../_Biblioteki/urg_library-1.2.2/src/ -lurg_c

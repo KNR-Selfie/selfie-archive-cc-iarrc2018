@@ -23,8 +23,8 @@ class SharedMemory
 public:
     SharedMemory(key_t  k = 50000, int m_size = 12000);
     bool init();
-    void push_point_data(std::vector<cv::Point> points);
-    void pull_points_data(cv::Mat &out, cv::Scalar color);
+    void push_point_data(std::vector<cv::Point> &points);
+    void pull_points_data(cv::Mat &out, cv::Scalar &color);
     void push_additional_data(cv::Point lidar_pos, int scale, cv::Point gap_pos_left, cv::Point gap_pos_right);
     void pull_additional_data();
 
