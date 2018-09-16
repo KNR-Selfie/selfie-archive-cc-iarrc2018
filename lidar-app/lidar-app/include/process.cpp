@@ -70,4 +70,21 @@ void Process::split_poins(std::vector<cv::Point> &points)
     }
 
 }
+
+void Process::draw_data(cv::Mat &out)
+{
+#ifdef VERBOSE_MODE
+    std::cout << "Left:     " << left_points.size() << std::endl;
+    std::cout << "Right:    " << right_points.size() << std::endl;
+    std::cout << "Rejected: " << rejected_points.size() << std::endl;
+#endif
+
+    for(uint32_t i = 0; i < left_points.size(); i++)
+        cv::circle(out, left_points[i], 2, cv::Scalar(0, 0, 255), 2, 8, 0);
+
+    for(uint32_t i = 0; i < right_points.size(); i++)
+        cv::circle(out, right_points[i], 2, cv::Scalar(0, 255, 0), 2, 8, 0);
+
+    for(uint32_t i = 0; i < rejected_points.size(); i++)
+        cv::circle(out, rejected_points[i], 2, cv::Scalar(255, 0, 0), 2, 8, 0);
 }

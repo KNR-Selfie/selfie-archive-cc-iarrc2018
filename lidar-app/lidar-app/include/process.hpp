@@ -26,4 +26,5 @@ public:
     Process();
     void simplify_data(std::vector<cv::Point> &points);
     void split_poins(std::vector<cv::Point> &points);
+    void draw_data(cv::Mat &out);
 };
