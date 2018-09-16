@@ -64,6 +64,7 @@ int main()
     cv::createTrackbar("Y up", "Settings", &urg.y_up, HEIGHT/2, NULL);
     cv::createTrackbar("Y down", "Settings", &urg.y_down, HEIGHT, NULL);
     cv::createTrackbar("Thresh", "Settings", &urg.thresh, 100, NULL);
+    cv::createTrackbar("Simplify", "Settings", &process.thresh_simplify, 50, NULL);
 #endif
 
     // Main loop
@@ -82,6 +83,8 @@ int main()
         urg.filter_distance(urg.raw_data, urg.filtered_data[0]);
         urg.filter_Y(urg.filtered_data[0], urg.filtered_data[1]);
 
+        // Process data
+        process.simplify_data(urg.filtered_data[1].pos);
         // Send data to Shared Memory
         shm_left.push_point_data(urg.filtered_data[1].pos);
         shm_right.push_point_data(urg.filtered_data[1].pos);
