@@ -71,20 +71,102 @@ void Process::split_poins(std::vector<cv::Point> &points)
 
 }
 
+void Process::split_poins_equally(std::vector<cv::Point> &points)
+{
+    left_points.clear();
+    right_points.clear();
+    rejected_points.clear();
+
+    uint32_t i;
+    uint32_t j;
+
+    bool left_continous = true;
+    bool right_continous = true;
+
+    if(points.size() >= 4)
+    {
+        left_points.push_back(points[points.size()-1]);
+        right_points.push_back(points[0]);
+
+        for(i = 1; i < points.size()-1; i++)
+        {
+            if(right_continous)
+            {
+                if(sqrt((points[i].x - points[i-1].x)*(points[i].x - points[i-1].x) + (points[i].y - points[i-1].y)*(points[i].y - points[i-1].y)) < max_dist)
+                    right_points.push_back(points[i]);
+                else
+                    right_continous = false;
+            }
+
+            if(left_continous)
+            {
+                j = points.size()-1-i;
+                if(sqrt((points[j].x - points[j+1].x)*(points[j].x - points[j+1].x) + (points[j].y - points[j+1].y)*(points[j].y - points[j+1].y)) < max_dist)
+                    left_points.push_back(points[j]);
+                else
+                    left_continous = false;
+            }
+
+            if(points.size()-1-i < i || (!left_continous && !right_continous))
+                break;
+        }
+
+        int i_int = i;
+        int j_int= j;
+
+        if(j_int - i_int >= 0)
+        {
+            for(uint32_t k = i; k <= j; k++)
+                rejected_points.push_back(points[k]);
+        }
+    }
+
+}
+
+void Process::search_gap()
+{
+    gap_pos_left = left_points[left_points.size()-1];
+    gap_pos_right = right_points[right_points.size()-1];
+}
+
+void Process::filter_enemies()
+{
+    int Px, Py, alpha;
+    int Vx = gap_pos_left.x - gap_pos_right.x;
+    int Vy = gap_pos_left.y - gap_pos_right.y;
+
+    enemies_points.clear();
+    trash_points.clear();
+
+    for(uint32_t i = 0; i < rejected_points.size(); i++)
+    {
+        Px = rejected_points[i].x - gap_pos_right.x;
+        Py = rejected_points[i].y - gap_pos_right.y;
+
+        alpha = Vx*Py - Vy*Px;
+
+        if(alpha < 0)
+            enemies_points.push_back(rejected_points[i]);
+        else
+            trash_points.push_back(rejected_points[i]);
+    }
+}
+
 void Process::draw_data(cv::Mat &out)
 {
-#ifdef VERBOSE_MODE
-    std::cout << "Left:     " << left_points.size() << std::endl;
-    std::cout << "Right:    " << right_points.size() << std::endl;
-    std::cout << "Rejected: " << rejected_points.size() << std::endl;
-#endif
-
     for(uint32_t i = 0; i < left_points.size(); i++)
-        cv::circle(out, left_points[i], 2, cv::Scalar(0, 0, 255), 2, 8, 0);
+        cv::circle(out, left_points[i], 2, cv::Scalar(255, 0, 0), 2, 8, 0);
 
     for(uint32_t i = 0; i < right_points.size(); i++)
         cv::circle(out, right_points[i], 2, cv::Scalar(0, 255, 0), 2, 8, 0);
 
-    for(uint32_t i = 0; i < rejected_points.size(); i++)
-        cv::circle(out, rejected_points[i], 2, cv::Scalar(255, 0, 0), 2, 8, 0);
+    for(uint32_t i = 0; i < enemies_points.size(); i++)
+        cv::circle(out, enemies_points[i], 2, cv::Scalar(0, 255, 255), 2, 8, 0);
+
+    for(uint32_t i = 0; i < trash_points.size(); i++)
+        cv::circle(out, trash_points[i], 2, cv::Scalar(255, 0, 255), 2, 8, 0);
+
+    cv::circle(out, gap_pos_left, 4, cv::Scalar(255, 255, 255), 2, 8, 0);
+    cv::circle(out, gap_pos_right, 4, cv::Scalar(255, 255, 255), 2, 8, 0);
+    cv::line(out, gap_pos_left, gap_pos_right, cv::Scalar(255,255,255), 2, cv::LINE_8, 0);
 }

@@ -6,12 +6,12 @@ using namespace std;
 using namespace cv;
 
 
-#define LIDAR_MAT_HIGH 600
-#define LIDAR_MAT_WIDTH 1000
+#define LIDAR_MAT_HIGH 1200
+#define LIDAR_MAT_WIDTH 1300
 
 //rectangle algorithm params
 int number_of_rec_cols = 40;
-int number_of_rec_raws = 10; //liczba pasów detekcji //s
+int number_of_rec_raws = 30; //liczba pasów detekcji //s
 
 //mats
 Mat test_mat = Mat::zeros(LIDAR_MAT_HIGH, LIDAR_MAT_WIDTH, CV_8UC3 );
@@ -49,11 +49,11 @@ int main(int argc, char** argv)
     tangent trajectory_tangent;
 
     //sharedmemory
-    SharedMemory left_lidar_points_shm(50001);
+    SharedMemory left_lidar_points_shm(50001, 12000);
     vector<Point>left_lidar_vec;
     left_lidar_points_shm.init(); //init
 
-    SharedMemory right_lidar_points_shm(50002);
+    SharedMemory right_lidar_points_shm(50002, 12000);
     vector<Point>right_lidar_vec;
     right_lidar_points_shm.init(); //init
 
@@ -117,9 +117,10 @@ while(1)
     additional_data_shm.pull_add_data(add_data_container);
 
     //preview of received points
-    points_preview(right_lidar_vec,test_mat,CV_RGB(255,255,255));
-    points_preview(left_lidar_vec,test_mat,CV_RGB(255,255,0));
+    points_preview(right_lidar_vec,lidar_right_mat,CV_RGB(255,255,255));
+    points_preview(left_lidar_vec,lidar_left_mat,CV_RGB(255,255,0));
 
+    add(lidar_right_mat,lidar_left_mat,lidar_left_mat);
     #endif
 
     //detection flags
@@ -242,9 +243,9 @@ while(1)
     #endif
 }//end of while(1)
 
-   left_lidar_points_shm.close();
-   right_lidar_points_shm.close();
-   additional_data_shm.close();
+   //left_lidar_points_shm.close();
+   //right_lidar_points_shm.close();
+   //additional_data_shm.close();
 
     return 0;
 

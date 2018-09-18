@@ -249,7 +249,7 @@ void line_search(int previous_angle, spline_t &path_line)
 
 
 
-void optimization(vector<Point2i> input_vector,spline_t &spl)
+void optimization(vector<Point> input_vector,spline_t &spl)
 {
     int rec_height = LIDAR_MAT_HEIGHT/number_of_rec_raws;
     int rec_width = LIDAR_MAT_WIDTH/number_of_rec_cols;//szerokość prostokąta wykrywania
@@ -362,8 +362,6 @@ void new_optimization(vector<Point> pts_vector,spline_t& spl,Mat &preview)
             grid[c][r] = 0;
         }
     }
-
-
 
     for(int i = 0;i<pts_vector.size();i++)
     {
