@@ -71,6 +71,59 @@ void Process::split_poins(std::vector<cv::Point> &points)
 
 }
 
+void Process::split_poins_equally(std::vector<cv::Point> &points)
+{
+    left_points.clear();
+    right_points.clear();
+    rejected_points.clear();
+
+    uint32_t i;
+    uint32_t j;
+
+    bool left_continous = true;
+    bool right_continous = true;
+
+    if(points.size() >= 4)
+    {
+        left_points.push_back(points[points.size()-1]);
+        right_points.push_back(points[0]);
+
+        for(i = 1; i < points.size()-1; i++)
+        {
+            if(points.size()-1-i < i || (!left_continous && !right_continous))
+                break;
+
+            if(right_continous)
+            {
+                if(sqrt((points[i].x - points[i-1].x)*(points[i].x - points[i-1].x) + (points[i].y - points[i-1].y)*(points[i].y - points[i-1].y)) < max_dist)
+                    right_points.push_back(points[i]);
+                else
+                    right_continous = false;
+            }
+
+            if(left_continous)
+            {
+                j = points.size()-1-i;
+                if(sqrt((points[j].x - points[j+1].x)*(points[j].x - points[j+1].x) + (points[j].y - points[j+1].y)*(points[j].y - points[j+1].y)) < max_dist)
+                    left_points.push_back(points[j]);
+                else
+                    left_continous = false;
+            }
+
+        }
+
+        int i_int = i;
+        int j_int= j;
+
+        if(j_int - i_int >= 0)
+        {
+            for(uint32_t k = i; k <= j; k++)
+                rejected_points.push_back(points[k]);
+        }
+    }
+
+}
+
 void Process::draw_data(cv::Mat &out)
 {
 #ifdef VERBOSE_MODE
