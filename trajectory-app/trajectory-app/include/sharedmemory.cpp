@@ -121,10 +121,14 @@ void SharedMemory::pull_lidar_data(std::vector<cv::Point>&l_vector)
     {
         for(int i=0;i<l_length;i++)
         {
-            l_vector.push_back(cv::Point(shared_variable[2*i+1],shared_variable[2*i+2]));
+            l_vector.push_back(cv::Point(shared_variable[2*i+1],shared_variable[2*i+2]-300));
+
+            if(l_vector.back().y<0)
+                l_vector.pop_back();
         }
     }
 }
+
 void SharedMemory::pull_add_data(std::vector<uint32_t>&data)
 {
     if(mem_id>0)
