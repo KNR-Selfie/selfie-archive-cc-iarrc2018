@@ -90,9 +90,6 @@ void Process::split_poins_equally(std::vector<cv::Point> &points)
 
         for(i = 1; i < points.size()-1; i++)
         {
-            if(points.size()-1-i < i || (!left_continous && !right_continous))
-                break;
-
             if(right_continous)
             {
                 if(sqrt((points[i].x - points[i-1].x)*(points[i].x - points[i-1].x) + (points[i].y - points[i-1].y)*(points[i].y - points[i-1].y)) < max_dist)
@@ -110,6 +107,8 @@ void Process::split_poins_equally(std::vector<cv::Point> &points)
                     left_continous = false;
             }
 
+            if(points.size()-1-i < i || (!left_continous && !right_continous))
+                break;
         }
 
         int i_int = i;
@@ -124,13 +123,12 @@ void Process::split_poins_equally(std::vector<cv::Point> &points)
 
 }
 
-void Process::draw_data(cv::Mat &out)
+void Process::search_gap()
 {
-#ifdef VERBOSE_MODE
-    std::cout << "Left:     " << left_points.size() << std::endl;
-    std::cout << "Right:    " << right_points.size() << std::endl;
-    std::cout << "Rejected: " << rejected_points.size() << std::endl;
-#endif
+    gap_pos_left = left_points[left_points.size()-1];
+    gap_pos_right = right_points[right_points.size()-1];
+}
+
 
     for(uint32_t i = 0; i < left_points.size(); i++)
         cv::circle(out, left_points[i], 2, cv::Scalar(0, 0, 255), 2, 8, 0);

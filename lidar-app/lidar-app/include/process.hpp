@@ -15,7 +15,7 @@ private:
     std::vector<cv::Point> rejected_points;
 
 public:
-    int max_dist = 30;
+    int max_dist = 35;
     int thresh_simplify = 7;
     std::vector<cv::Point> left_points;
     std::vector<cv::Point> right_points;
@@ -27,5 +27,6 @@ public:
     void simplify_data(std::vector<cv::Point> &points);
     void split_poins(std::vector<cv::Point> &points);
     void split_poins_equally(std::vector<cv::Point> &points);
+    void search_gap();
     void draw_data(cv::Mat &out);
 };

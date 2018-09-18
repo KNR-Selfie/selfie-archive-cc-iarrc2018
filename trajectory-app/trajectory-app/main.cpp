@@ -6,7 +6,7 @@ using namespace std;
 using namespace cv;
 
 
-#define LIDAR_MAT_HIGH 1000
+#define LIDAR_MAT_HIGH 1200
 #define LIDAR_MAT_WIDTH 1300
 
 //rectangle algorithm params
