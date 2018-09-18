@@ -129,7 +129,28 @@ void Process::search_gap()
     gap_pos_right = right_points[right_points.size()-1];
 }
 
+void Process::filter_enemies()
+{
+    int Px, Py, alpha;
+    int Vx = gap_pos_left.x - gap_pos_right.x;
+    int Vy = gap_pos_left.y - gap_pos_right.y;
 
+    enemies_points.clear();
+    trash_points.clear();
+
+    for(uint32_t i = 0; i < rejected_points.size(); i++)
+    {
+        Px = rejected_points[i].x - gap_pos_right.x;
+        Py = rejected_points[i].y - gap_pos_right.y;
+
+        alpha = Vx*Py - Vy*Px;
+
+        if(alpha < 0)
+            enemies_points.push_back(rejected_points[i]);
+        else
+            trash_points.push_back(rejected_points[i]);
+    }
+}
     for(uint32_t i = 0; i < left_points.size(); i++)
         cv::circle(out, left_points[i], 2, cv::Scalar(0, 0, 255), 2, 8, 0);
 

@@ -88,6 +88,7 @@ int main()
         process.simplify_data(urg.filtered_data[1].pos);
         process.split_poins_equally(urg.filtered_data[1].pos);
         process.search_gap();
+        process.filter_enemies();
 
         // Send data to Shared Memory
         shm_left.push_point_data(process.left_points);

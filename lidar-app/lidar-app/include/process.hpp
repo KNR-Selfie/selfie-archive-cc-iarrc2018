@@ -13,6 +13,8 @@ class Process
 {
 private:
     std::vector<cv::Point> rejected_points;
+    std::vector<cv::Point> enemies_points;
+    std::vector<cv::Point> trash_points;
 
 public:
     int max_dist = 35;
@@ -28,5 +30,6 @@ public:
     void split_poins(std::vector<cv::Point> &points);
     void split_poins_equally(std::vector<cv::Point> &points);
     void search_gap();
+    void filter_enemies();
     void draw_data(cv::Mat &out);
 };
