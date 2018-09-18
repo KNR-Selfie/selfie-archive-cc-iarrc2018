@@ -151,12 +151,22 @@ void Process::filter_enemies()
             trash_points.push_back(rejected_points[i]);
     }
 }
+
+void Process::draw_data(cv::Mat &out)
+{
     for(uint32_t i = 0; i < left_points.size(); i++)
-        cv::circle(out, left_points[i], 2, cv::Scalar(0, 0, 255), 2, 8, 0);
+        cv::circle(out, left_points[i], 2, cv::Scalar(255, 0, 0), 2, 8, 0);
 
     for(uint32_t i = 0; i < right_points.size(); i++)
         cv::circle(out, right_points[i], 2, cv::Scalar(0, 255, 0), 2, 8, 0);
 
-    for(uint32_t i = 0; i < rejected_points.size(); i++)
-        cv::circle(out, rejected_points[i], 2, cv::Scalar(255, 0, 0), 2, 8, 0);
+    for(uint32_t i = 0; i < enemies_points.size(); i++)
+        cv::circle(out, enemies_points[i], 2, cv::Scalar(0, 255, 255), 2, 8, 0);
+
+    for(uint32_t i = 0; i < trash_points.size(); i++)
+        cv::circle(out, trash_points[i], 2, cv::Scalar(255, 0, 255), 2, 8, 0);
+
+    cv::circle(out, gap_pos_left, 4, cv::Scalar(255, 255, 255), 2, 8, 0);
+    cv::circle(out, gap_pos_right, 4, cv::Scalar(255, 255, 255), 2, 8, 0);
+    cv::line(out, gap_pos_left, gap_pos_right, cv::Scalar(255,255,255), 2, cv::LINE_8, 0);
 }
