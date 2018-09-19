@@ -70,11 +70,6 @@ void spline_t::draw(Mat& frame,const Scalar& col)
       pom.y = i;
       pom.x=spline(i);//a*i*i+b*i+c+200;
 
-      if(pom.x<0)
-          pom.x=0;
-      else if (pom.x>640)
-          pom.x=640;
-
       color = frame.at<Vec3b>(pom);
       color.val[0] = col[0];
       color.val[1] = col[1];
