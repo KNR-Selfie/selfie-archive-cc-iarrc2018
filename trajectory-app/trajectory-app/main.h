@@ -26,7 +26,7 @@
 //#define TEST_MODE //load data from file
 
 #define LIDAR_MAT_HEIGHT 900
-#define LIDAR_MAT_WIDTH 1800
+#define LIDAR_MAT_WIDTH 1600
 
 extern int number_of_rec_cols;
 extern int number_of_rec_raws;

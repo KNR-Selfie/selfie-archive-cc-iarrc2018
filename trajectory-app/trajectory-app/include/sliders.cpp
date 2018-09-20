@@ -13,7 +13,7 @@ const int max_off = 200;
 const int max_derive = LIDAR_MAT_HEIGHT;
 const int max_pixel = 100;
 
-int rect_slider[5]={80,10,20,LIDAR_MAT_HEIGHT,0};
+int rect_slider[5]={72,39,20,LIDAR_MAT_HEIGHT,0};
 
 
 void left_trackbar( int, void* )
