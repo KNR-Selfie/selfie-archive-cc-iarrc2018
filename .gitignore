@@ -16,6 +16,7 @@ build-d/
 build-p/
 build-r/
 *.user*
+*.pro*
 *.md~
 *.cpp~
 *.h~
