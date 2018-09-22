@@ -6,19 +6,17 @@ using namespace std;
 using namespace cv;
 
 
-#define LIDAR_MAT_HIGH 1200
-#define LIDAR_MAT_WIDTH 1300
-
 //rectangle algorithm params
 int number_of_rec_cols = 40;
 int number_of_rec_raws = 30; //liczba pasów detekcji //s
 
 //mats
-Mat test_mat = Mat::zeros(LIDAR_MAT_HIGH, LIDAR_MAT_WIDTH, CV_8UC3 );
-Mat output_mat = Mat::zeros(LIDAR_MAT_HIGH, LIDAR_MAT_WIDTH, CV_8UC3 );
+Mat test_mat = Mat::zeros(LIDAR_MAT_HEIGHT, LIDAR_MAT_WIDTH, CV_8UC3 );
+Mat output_mat = Mat::zeros(LIDAR_MAT_HEIGHT, LIDAR_MAT_WIDTH, CV_8UC3 );
 
-Mat  lidar_left_mat = Mat::zeros(LIDAR_MAT_HIGH,LIDAR_MAT_WIDTH,CV_8UC3);
-Mat  lidar_right_mat = Mat::zeros(LIDAR_MAT_HIGH,LIDAR_MAT_WIDTH,CV_8UC3);
+Mat  lidar_left_mat = Mat::zeros(LIDAR_MAT_HEIGHT,LIDAR_MAT_WIDTH,CV_8UC3);
+Mat  lidar_right_mat = Mat::zeros(LIDAR_MAT_HEIGHT,LIDAR_MAT_WIDTH,CV_8UC3);
+
 
 int main(int argc, char** argv)
 {
@@ -26,6 +24,8 @@ int main(int argc, char** argv)
     //init_trackbars();
     namedWindow("rect_trackbars");
     init_rect_trackbars("rect_trackbars");//trackbars for rect opt
+    namedWindow("tryb DEBUG",WINDOW_NORMAL);
+    resizeWindow("tryb DEBUG",1000,600);
     #endif
 
     //splines
@@ -39,12 +39,11 @@ int main(int argc, char** argv)
     straight_vector.push_back(Point(LIDAR_MAT_WIDTH/2,LIDAR_MAT_HEIGHT/2));
     straight_vector.push_back(Point(LIDAR_MAT_WIDTH/2,0));
 
-    left_lidar_spline.set_spline(straight_vector);
-    right_lidar_spline.set_spline(straight_vector);
-    trajectory_path_spline.set_spline(straight_vector);
+    left_lidar_spline.set_spline(straight_vector,false);
+    right_lidar_spline.set_spline(straight_vector,false);
+    trajectory_path_spline.set_spline(straight_vector,true);
 
     //tangents
-    tangent tangents[5];
     tangent middle_tangent;
     tangent trajectory_tangent;
 
@@ -64,8 +63,8 @@ int main(int argc, char** argv)
     //usb communication
     USB_STM USB_COM;
     data_container to_send;
-    uint32_t velocity_to_send;
-    uint32_t angle;
+    uint16_t velocity_to_send;
+    uint16_t angle;
 
     USB_COM.init();//init
 
@@ -74,18 +73,23 @@ int main(int argc, char** argv)
     bool left_line_detect = 0;
     bool right_line_detect = 0;
 
-    //average angle
-    uint32_t average_angle_counter = 0;
-    uint32_t angle_sum = 0;
 
-    uint32_t angle_to_send;
-    uint32_t velocity;
 
-    //offsets and wagis
-    float ang_div = 0;
-    int drag_offset = 300; //default
-    float servo_weight = 0.5;
-    float far_tg_fac = 0.9;
+    uint16_t angle_to_send;
+    uint16_t velocity;
+
+    //offets and wagis
+    float servo_weigth;
+    float ang_div;
+    float far_tg_fac;
+
+    left_lidar_vec.push_back(Point(300,800));
+    left_lidar_vec.push_back(Point(350,700));
+    left_lidar_vec.push_back(Point(200,600));
+
+    right_lidar_vec.push_back(Point(500,800));
+    right_lidar_vec.push_back(Point(450,700));
+    right_lidar_vec.push_back(Point(480,600));
 
 ////////////////////////////////////////////WHILE///////////////////////////////////////////////////
 while(1)
@@ -102,16 +106,17 @@ while(1)
 
     #ifdef DEBUG_MODE
 
-    test_mat = Mat::zeros(LIDAR_MAT_HIGH, LIDAR_MAT_WIDTH, CV_8UC3 );
-    output_mat = Mat::zeros(LIDAR_MAT_HIGH, LIDAR_MAT_WIDTH, CV_8UC3 );
+    test_mat = Mat::zeros(LIDAR_MAT_HEIGHT, LIDAR_MAT_WIDTH, CV_8UC3 );
+    output_mat = Mat::zeros(LIDAR_MAT_HEIGHT, LIDAR_MAT_WIDTH, CV_8UC3 );
 
-    lidar_left_mat = Mat::zeros(LIDAR_MAT_HIGH,LIDAR_MAT_WIDTH,CV_8UC3);
-    lidar_right_mat = Mat::zeros(LIDAR_MAT_HIGH,LIDAR_MAT_WIDTH,CV_8UC3);
+    lidar_left_mat = Mat::zeros(LIDAR_MAT_HEIGHT,LIDAR_MAT_WIDTH,CV_8UC3);
+    lidar_right_mat = Mat::zeros(LIDAR_MAT_HEIGHT,LIDAR_MAT_WIDTH,CV_8UC3);
 
 
     //get new set of points
-    right_lidar_points_shm.pull_lidar_data(right_lidar_vec);
     left_lidar_points_shm.pull_lidar_data(left_lidar_vec);
+    right_lidar_points_shm.pull_lidar_data(right_lidar_vec);
+
 
     //get additional data
     additional_data_shm.pull_add_data(add_data_container);
@@ -128,21 +133,22 @@ while(1)
     right_line_detect = 0;
 
     //begin y condition
+    if(right_lidar_vec.size()>2)
+    {
+        new_optimization(right_lidar_vec,right_lidar_spline,lidar_right_mat);
+        right_line_detect = 1;
+    }
     if(left_lidar_vec.size()>2)
     {
         new_optimization(left_lidar_vec,left_lidar_spline,lidar_left_mat);
         left_line_detect = 1;
     }
-    if(right_lidar_vec.size()>1)
-    {
-        new_optimization(right_lidar_vec,right_lidar_spline,lidar_right_mat);
-        right_line_detect = 1;        
-    }
+
 
     //set path according to lines
     if(left_line_detect == 1 && right_line_detect == 1)
     {
-       two_line_planner(left_lidar_spline,right_lidar_spline,0,trajectory_path_spline);
+       two_wall_planner(left_lidar_spline,right_lidar_spline,trajectory_path_spline);
        trajectory_tangent.calculate(trajectory_path_spline,rect_slider[3]);
        trajectory_tangent.angle();
 
@@ -151,62 +157,55 @@ while(1)
     }
     else if(right_line_detect)
     {
-         one_line_planner(right_lidar_spline,-90,trajectory_path_spline);
-         trajectory_tangent.calculate(trajectory_path_spline,rect_slider[3]);
-         trajectory_tangent.angle();
+       one_line_planner(right_lidar_spline,0,trajectory_path_spline);
+       trajectory_tangent.calculate(trajectory_path_spline,rect_slider[3]);
+       trajectory_tangent.angle();
 
-         middle_tangent.calculate(trajectory_path_spline,200);
-         middle_tangent.angle();
+       middle_tangent.calculate(trajectory_path_spline,200);
+       middle_tangent.angle();
     }
     else if(left_line_detect)
     {
-        one_line_planner(left_lidar_spline,-90,trajectory_path_spline);
-        trajectory_tangent.calculate(trajectory_path_spline,rect_slider[3]);
-        trajectory_tangent.angle();
+       one_line_planner(left_lidar_spline,0,trajectory_path_spline);
+       trajectory_tangent.calculate(trajectory_path_spline,rect_slider[3]);
+       trajectory_tangent.angle();
 
-        middle_tangent.calculate(trajectory_path_spline,200);
-        middle_tangent.angle();
+       middle_tangent.calculate(trajectory_path_spline,200);
+       middle_tangent.angle();
     }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
      #if defined(RACE_MODE) || defined(DEBUG_MODE)
 
-        velocity = 2000;
-        servo_weight = 1.3;
-        ang_div = abs(middle_tangent.angle_deg - trajectory_tangent.angle_deg);
-        far_tg_fac = 0.7;
+    static uint32_t previous_velocity = 2500;
+    servo_weigth = 0.9;
+    ang_div = abs(middle_tangent.angle_deg - trajectory_tangent.angle_deg);
+    far_tg_fac = 0.8;
 
-        if(abs(trajectory_tangent.angle_deg)<20)
-            velocity_to_send =8000;
-        else
-            velocity_to_send = 5000;
+    //first condition
+    if(ang_div>10)
+    {
+        velocity = 10/ang_div*2500; //*velocity
+        servo_weigth = 1;
+        far_tg_fac = 0.9;
+    }
+    else
+    {
+        uint32_t acceleration = 20;
+        velocity = previous_velocity + acceleration;
 
-        //angle = 300 + servo_weight*((far_tg_fac*middle_tangent.angle_deg + (1.0-far_tg_fac)*trajectory_tangent.angle_deg))*10;
-        //5 tangents
-        angle = 300 + servo_weight*(0.3*trajectory_tangent.angle_deg + 0.2*tangents[0].angle_deg +  0.2*tangents[1].angle_deg + 0.2*tangents[2].angle_deg + 0.2*tangents[3].angle_deg + 0.2*tangents[4].angle_deg);
+        if(velocity>5000)
+            velocity = 5000;
+    }
+    previous_velocity = velocity;
+    angle = 300 + servo_weigth*(far_tg_fac*middle_tangent.angle_deg + (1.0-far_tg_fac)*trajectory_tangent.angle_deg)*10;
 
-        angle_to_send = angle;
-        //send data to STM
-        //USB_COM.data_pack(velocity_to_send,angle_to_send,usb_from_vision,&to_send);
+    angle_to_send = angle;
+        //pack data
+    USB_COM.data_pack(velocity_to_send,angle_to_send,&to_send);
 
-        //USB_COM.send_buf(to_send);
-
-        //read 12 byte data from stm 0-2 frame, 3-6 velocity, 7-8 tf_mini, 9-10 futaba gears
-
-        //USB_COM.read_buf(14,car_velocity,tf_mini_distance,taranis_3_pos,taranis_reset_gear,stm_reset,lights);
-
-        //app reset
-        //if(taranis_reset_gear)
-            //system("gnome-terminal --geometry 20x35+0+0 -x sh -c '~/Desktop/Selfie-autonomous-car/DRAG/DRAG.sh; bash'");
-
-
-       //cout<<"3 pos: "<<int(taranis_3_pos)<<" reset "<<int(taranis_reset_gear)<<" stm_reset "<<(int)stm_reset<<" ligths "<<(int)lights<<endl;
-
-
-        //read data from STM
-        angle_sum = 0;
-        average_angle_counter = 0;
-
+    //send data to stm
+    USB_COM.send_buf(to_send);
     #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -226,13 +225,14 @@ while(1)
         trajectory_tangent.draw(output_mat,CV_RGB(100,100,100));
         middle_tangent.draw(output_mat,CV_RGB(255,0,255));
 
-
-        label  = "traj_ang: "+ std::to_string(trajectory_tangent.angle_deg);
-
+        //display send angle
+        label  = "send_angle: "+ std::to_string(far_tg_fac*middle_tangent.angle_deg + (1.0-far_tg_fac)*trajectory_tangent.angle_deg);
         putText(output_mat, label, Point(450, 40), FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(0,255,0), 1.0);
 
-        label = std::to_string(middle_tangent.angle_deg);
+        //display send speed
+        label = "send speed:" + std::to_string(velocity);
         putText(output_mat, label, Point(450, 80), FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(0,255,0), 1.0);
+
         //show white line mat
         imshow("tryb DEBUG",output_mat);
 

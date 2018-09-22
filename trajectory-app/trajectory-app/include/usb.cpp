@@ -97,17 +97,12 @@ void USB_STM::send_buf(data_container &to_send)
     for(int i=0;i<to_send.length;i++)
     to_send_packed[i+3] = to_send.data[i];
 
-    to_send_packed[to_send.length+3] = to_send.length;
-    to_send_packed[to_send.length+4] = to_send.code;
     to_send_packed[to_send.length+5] = to_send.stop;
 
-    //unsigned char test = 'F';
-    //send
-   //write(fd,&test,1);
-    write(fd,&to_send_packed,22);
+
+    write(fd,&to_send_packed,18);
 
 }
-
 
 void USB_STM::read_buf(int buf_size,float& velocity, uint16_t &tf_mini,uint8_t &taranis_3_pos,uint8_t &taranis_reset_gear,uint8_t& stm_reset,uint8_t& lights)
 {
@@ -147,35 +142,42 @@ void USB_STM::read_buf(int buf_size,float& velocity, uint16_t &tf_mini,uint8_t &
     }
 }
 
-void USB_STM::data_pack(uint32_t velo,uint32_t ang,std::vector<uint32_t>flags,data_container *container)
+void USB_STM::data_pack(uint16_t velo,uint16_t ang,data_container *container)
 {
-    unsigned char pom[4];
-    uint32_to_char_tab(velo,pom);
 
+    union u16to8
+    {
+        uint8_t u8[2];
+        uint16_t  u16;
+    };
+
+    u16to8 unia;
+
+    //fill timecode
     for(int i=0;i<4;i++)
     {
-        container->data[i] = pom[i];
-    }
-    uint32_to_char_tab(ang,pom);
-
-    for(int i=0;i<4;i++)
-    {
-        container->data[i+4] = pom[i];
-    }
-    unsigned char char_flags[4]; //convert uint32_flags to unsigned char
-    for(int i=0;i<4;i++)
-    {
-        char_flags[i]=flags[i];
+        container->data[i] = 0;
     }
 
-    //flags from vision
-    container->data[8] = 0;
-    container->data[9] = char_flags[0];
-    container->data[10] = char_flags[1];
-    container->data[11]= 0;
 
-    for(int i=0;i<4;i++){
-        container->data[i+12] = 0;
-    }
+    unia.u16 = ang;
+
+    container->data[4] = unia.u8[0] ;
+    container->data[5] = unia.u8[1] ;
+
+    //fill dfi
+    container->data[6] = 0;
+    container->data[7] = 0;
+
+    unia.u16 = velo;
+
+    container->data[8] = unia.u8[0];
+    container->data[9] = unia.u8[1];
+
+    //fill other
+    container->data[10] = 0;
+    container->data[11] = 0;
+    container->data[12] = 0;
+    container->data[13] = 0;
 
 }

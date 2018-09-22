@@ -8,12 +8,12 @@ const int right_slider_max = 640;
 int left_slider[5] = {2000,0,283,284,285};
 int right_slider[5]= {360,360,360,360,360};
 
-const int max_num = 50;
+const int max_num = 100;
 const int max_off = 200;
 const int max_derive = LIDAR_MAT_HEIGHT;
 const int max_pixel = 100;
 
-int rect_slider[5]={35,10,20,LIDAR_MAT_HEIGHT,0};
+int rect_slider[5]={72,39,20,LIDAR_MAT_HEIGHT,0};
 
 
 void left_trackbar( int, void* )
@@ -95,10 +95,10 @@ void points_preview(vector<Point>points,Mat& frame,const Scalar& col){
     for (int i=0;i<(int)points.size();i++){
         Vec3b color;
         Point pom;
-        for(int j=0;j<10;j++){
+        for(int j=0;j<10;j++)
+	{
             pom.y = points[i].y;
             pom.x = points[i].x;
-
 
 
             color = frame.at<Vec3b>(pom);

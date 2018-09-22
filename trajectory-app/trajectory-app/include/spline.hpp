@@ -24,6 +24,6 @@ public:
     void fit_vector(int points_num);
     void set_point_value(int num,double x, double y);
 
-    void set_spline(std::vector<Point> vec); //wektor musi być posortowany po x
+    void set_spline(std::vector<Point> vec, bool qubic); //wektor musi być posortowany po x
     void draw(cv::Mat& frame,const cv::Scalar& col);
 };
