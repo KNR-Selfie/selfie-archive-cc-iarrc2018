@@ -66,7 +66,7 @@ int main(int argc, char** argv)
     uint16_t velocity_to_send;
     uint16_t angle;
 
-    USB_COM.init();//init
+    //USB_COM.init();//init
 
     init_trackbars();
 
@@ -202,10 +202,10 @@ while(1)
 
     angle_to_send = angle;
         //pack data
-    USB_COM.data_pack(velocity_to_send,angle_to_send,&to_send);
+    //USB_COM.data_pack(velocity_to_send,angle_to_send,&to_send);
 
     //send data to stm
-    USB_COM.send_buf(to_send);
+    //USB_COM.send_buf(to_send);
     #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////

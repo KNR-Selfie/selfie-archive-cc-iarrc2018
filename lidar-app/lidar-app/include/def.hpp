@@ -1,12 +1,12 @@
 #pragma once
 
-#define DEBUG_MODE
+//#define DEBUG_MODE
 //#define VERBOSE_MODE
 //#define SHM_TEST
 #define FPS_COUNT
 
 #define FRAME_TIME 1
-#define FPS_AMOUNT 5000
+#define FPS_AMOUNT 250
 
 #define WIDTH 1600
 #define HEIGHT 1800
