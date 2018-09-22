@@ -25,6 +25,9 @@
 #define DEBUG_MODE //data display
 //#define TEST_MODE //load data from file
 
+#define FPS_COUNT
+#define FPS_AMOUNT 250
+
 #define LIDAR_MAT_HEIGHT 900
 #define LIDAR_MAT_WIDTH 1600
 

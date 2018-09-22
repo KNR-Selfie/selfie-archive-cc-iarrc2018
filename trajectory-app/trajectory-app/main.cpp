@@ -83,6 +83,14 @@ int main(int argc, char** argv)
     float ang_div;
     float far_tg_fac;
 
+    #ifdef FPS_COUNT
+    // FPS
+    struct timespec start, end;
+    unsigned int frame_count = 0;
+    float seconds = 0;
+    float fps = 0;
+    #endif
+
     left_lidar_vec.push_back(Point(300,800));
     left_lidar_vec.push_back(Point(350,700));
     left_lidar_vec.push_back(Point(200,600));
@@ -94,6 +102,14 @@ int main(int argc, char** argv)
 ////////////////////////////////////////////WHILE///////////////////////////////////////////////////
 while(1)
 {
+    #ifdef FPS_COUNT
+        // FPS
+        if(frame_count == 0)
+        {
+            clock_gettime(CLOCK_MONOTONIC, &start);
+        }
+    #endif
+
     #if defined(TEST_MODE) || defined(DEBUG_MODE)
         number_of_rec_cols = rect_slider[0];
         number_of_rec_raws = rect_slider[1];
@@ -240,6 +256,23 @@ while(1)
 
         if(waitKey(30)=='q')
             break;
+    #endif
+
+    #ifdef FPS_COUNT
+        // FPS
+        if(frame_count > FPS_AMOUNT)
+        {
+            frame_count = 0;
+            clock_gettime(CLOCK_MONOTONIC, &end);
+            seconds = (end.tv_sec - start.tv_sec);
+            fps  =  1 / (seconds / FPS_AMOUNT);
+
+            std::cout <<"FPS: " << fps << std::endl;
+        }
+        else
+        {
+            frame_count++;
+        }
     #endif
 }//end of while(1)
 
