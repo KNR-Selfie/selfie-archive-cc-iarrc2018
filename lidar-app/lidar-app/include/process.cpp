@@ -6,29 +6,34 @@ Process::Process()
     gap_pos_right = cv::Point(200, 200);
 }
 
-void Process::simplify_data(std::vector<cv::Point> &points)
+void Process::simplify_data(LidarReading &points)
 {
     cv::Point tmp, last;
-    std::vector<cv::Point> tmp_vec;
+    std::vector<cv::Point> tmp_vec_pos;
+    std::vector<double> tmp_vec_angle;
 
-    tmp_vec.push_back(points[0]);
-    last = points[0];
+    tmp_vec_pos.push_back(points.pos[0]);
+    tmp_vec_angle.push_back(points.angle[0]);
+    last = points.pos[0];
 
-    for(uint32_t i = 1; i < points.size() - 1; i++)
+    for(uint32_t i = 1; i < points.pos.size() - 1; i++)
     {
-        tmp = points[i] - last;
+        tmp = points.pos[i] - last;
         if(sqrt(tmp.x*tmp.x + tmp.y*tmp.y) > thresh_simplify)
         {
-            tmp_vec.push_back(points[i]);
-            last = points[i];
+            tmp_vec_pos.push_back(points.pos[i]);
+            tmp_vec_angle.push_back(points.angle[i]);
+            last = points.pos[i];
         }
     }
 
-    points.clear();
-    points = tmp_vec;
+    points.pos.clear();
+    points.angle.clear();
+    points.pos = tmp_vec_pos;
+    points.angle = tmp_vec_angle;
 }
 
-void Process::split_poins(std::vector<cv::Point> &points)
+void Process::split_poins(LidarReading &points)
 {
     left_points.clear();
     right_points.clear();
@@ -37,24 +42,24 @@ void Process::split_poins(std::vector<cv::Point> &points)
     uint32_t i;
     uint32_t j;
 
-    if(points.size() >= 4)
+    if(points.pos.size() >= 4)
     {
-        left_points.push_back(points[points.size()-1]);
+        left_points.push_back(points.pos[points.pos.size()-1]);
 
-        for(i = points.size()-2; i > 0; i--)
+        for(i = points.pos.size()-2; i > 0; i--)
         {
-            if(sqrt((points[i].x - points[i+1].x)*(points[i].x - points[i+1].x) + (points[i].y - points[i+1].y)*(points[i].y - points[i+1].y)) < max_dist)
-                left_points.push_back(points[i]);
+            if(sqrt((points.pos[i].x - points.pos[i+1].x)*(points.pos[i].x - points.pos[i+1].x) + (points.pos[i].y - points.pos[i+1].y)*(points.pos[i].y - points.pos[i+1].y)) < max_dist)
+                left_points.push_back(points.pos[i]);
             else
                 break;
         }
 
-        right_points.push_back(points[0]);
+        right_points.push_back(points.pos[0]);
 
-        for(j = 1; j < points.size(); j++)
+        for(j = 1; j < points.pos.size(); j++)
         {
-            if(sqrt((points[j].x - points[j-1].x)*(points[j].x - points[j-1].x) + (points[j].y - points[j-1].y)*(points[j].y - points[j-1].y)) < max_dist)
-                right_points.push_back(points[j]);
+            if(sqrt((points.pos[j].x - points.pos[j-1].x)*(points.pos[j].x - points.pos[j-1].x) + (points.pos[j].y - points.pos[j-1].y)*(points.pos[j].y - points.pos[j-1].y)) < max_dist)
+                right_points.push_back(points.pos[j]);
             else
                 break;
         }
@@ -65,49 +70,67 @@ void Process::split_poins(std::vector<cv::Point> &points)
         if(i_int - j_int >= 0)
         {
             for(uint32_t k = j; k <= i; k++)
-                rejected_points.push_back(points[k]);
+                rejected_points.push_back(points.pos[k]);
         }
     }
 
 }
 
-void Process::split_poins_equally(std::vector<cv::Point> &points)
+void Process::split_poins_equally(LidarReading &points)
 {
     left_points.clear();
     right_points.clear();
     rejected_points.clear();
 
-    uint32_t i;
-    uint32_t j;
+    uint32_t i = 0;
+    uint32_t j = points.pos.size();
 
     bool left_continous = true;
     bool right_continous = true;
 
-    if(points.size() >= 4)
+    if(points.pos.size() >= 4)
     {
-        left_points.push_back(points[points.size()-1]);
-        right_points.push_back(points[0]);
+        if(points.pos[points.pos.size()-1].y > HEIGHT/2 - 50)
+        {
+            left_points.push_back(points.pos[points.pos.size()-1]);
+        }
+        else
+        {
+            left_continous = false;
+        }
 
-        for(i = 1; i < points.size()-1; i++)
+        if(points.pos[0].y > HEIGHT/2 - 50)
+        {
+            right_points.push_back(points.pos[0]);
+        }
+        else
+        {
+            right_continous = false;
+        }
+
+        std::cout << "Left:  " << points.angle[0] << std::endl;
+        std::cout << "Right: " << points.angle[points.angle.size()-1] << std::endl;
+
+        for(i = 1; i < points.pos.size()-1; i++)
         {
             if(right_continous)
             {
-                if(sqrt((points[i].x - points[i-1].x)*(points[i].x - points[i-1].x) + (points[i].y - points[i-1].y)*(points[i].y - points[i-1].y)) < max_dist)
-                    right_points.push_back(points[i]);
+                if(sqrt((points.pos[i].x - points.pos[i-1].x)*(points.pos[i].x - points.pos[i-1].x) + (points.pos[i].y - points.pos[i-1].y)*(points.pos[i].y - points.pos[i-1].y)) < max_dist)
+                    right_points.push_back(points.pos[i]);
                 else
                     right_continous = false;
             }
 
             if(left_continous)
             {
-                j = points.size()-1-i;
-                if(sqrt((points[j].x - points[j+1].x)*(points[j].x - points[j+1].x) + (points[j].y - points[j+1].y)*(points[j].y - points[j+1].y)) < max_dist)
-                    left_points.push_back(points[j]);
+                j = points.pos.size()-1-i;
+                if(sqrt((points.pos[j].x - points.pos[j+1].x)*(points.pos[j].x - points.pos[j+1].x) + (points.pos[j].y - points.pos[j+1].y)*(points.pos[j].y - points.pos[j+1].y)) < max_dist)
+                    left_points.push_back(points.pos[j]);
                 else
                     left_continous = false;
             }
 
-            if(points.size()-1-i < i || (!left_continous && !right_continous))
+            if(points.pos.size()-1-i < i || (!left_continous && !right_continous))
                 break;
         }
 
@@ -117,7 +140,7 @@ void Process::split_poins_equally(std::vector<cv::Point> &points)
         if(j_int - i_int >= 0)
         {
             for(uint32_t k = i; k <= j; k++)
-                rejected_points.push_back(points[k]);
+                rejected_points.push_back(points.pos[k]);
         }
     }
 
@@ -125,8 +148,22 @@ void Process::split_poins_equally(std::vector<cv::Point> &points)
 
 void Process::search_gap()
 {
-    gap_pos_left = left_points[left_points.size()-1];
-    gap_pos_right = right_points[right_points.size()-1];
+    if(left_points.size() > 0)
+    {
+        gap_pos_left = left_points[left_points.size()-1];
+    }
+    else
+    {
+        gap_pos_left = cv::Point(WIDTH/2 - 100, HEIGHT/2 - 100);
+    }
+    if(right_points.size() > 0)
+    {
+        gap_pos_right = right_points[right_points.size()-1];
+    }
+    else
+    {
+        gap_pos_right = cv::Point(WIDTH/2 + 100, HEIGHT/2 - 100);
+    }
 }
 
 void Process::filter_enemies()

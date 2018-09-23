@@ -26,9 +26,9 @@ public:
 
 public:
     Process();
-    void simplify_data(std::vector<cv::Point> &points);
-    void split_poins(std::vector<cv::Point> &points);
-    void split_poins_equally(std::vector<cv::Point> &points);
+    void simplify_data(LidarReading &points);
+    void split_poins(LidarReading &points);
+    void split_poins_equally(LidarReading &points);
     void search_gap();
     void filter_enemies();
     void draw_data(cv::Mat &out);

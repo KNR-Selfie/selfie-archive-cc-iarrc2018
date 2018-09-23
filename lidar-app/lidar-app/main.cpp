@@ -100,8 +100,8 @@ int main()
         urg.filter_Y(urg.filtered_data[0], urg.filtered_data[1]);
 
         // Process data
-        process.simplify_data(urg.filtered_data[1].pos);
-        process.split_poins_equally(urg.filtered_data[1].pos);
+        process.simplify_data(urg.filtered_data[1]);
+        process.split_poins_equally(urg.filtered_data[1]);
         process.search_gap();
         process.filter_enemies();
 
