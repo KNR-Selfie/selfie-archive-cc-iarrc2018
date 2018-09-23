@@ -30,6 +30,14 @@ int main()
         return -1;
     }
 
+#ifdef FPS_COUNT
+    // FPS
+    struct timespec start, end;
+    unsigned int frame_count = 0;
+    float seconds = 0;
+    float fps = 0;
+#endif
+
 #ifdef DEBUG_MODE
     // OpenCV Mat's
     cv::Mat frame_raw(HEIGHT, WIDTH, CV_8UC3);
@@ -71,6 +79,13 @@ int main()
     // Main loop
     while(true)
     {
+#ifdef FPS_COUNT
+        // FPS
+        if(frame_count == 0)
+        {
+            clock_gettime(CLOCK_MONOTONIC, &start);
+        }
+#endif
         // Read new data from Lidar
         if(urg.read() < 0)
         {
@@ -134,6 +149,23 @@ int main()
         frame_l = cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC3);
         frame_r = cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC3);
 #endif
+#endif
+
+#ifdef FPS_COUNT
+        // FPS
+        if(frame_count > FPS_AMOUNT)
+        {
+            frame_count = 0;
+            clock_gettime(CLOCK_MONOTONIC, &end);
+            seconds = (end.tv_sec - start.tv_sec);
+            fps  =  1 / (seconds / FPS_AMOUNT);
+
+            std::cout <<"FPS: " << fps << std::endl;
+        }
+        else
+        {
+            frame_count++;
+        }
 #endif
     }
 
