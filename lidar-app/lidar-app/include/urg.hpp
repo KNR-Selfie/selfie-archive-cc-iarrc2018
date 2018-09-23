@@ -11,14 +11,6 @@
 
 #include <include/def.hpp>
 
-struct LidarReading
-{
-    long *data;
-    std::vector<cv::Point> pos;
-    std::vector<double> angle;
-};
-
-
 class URG
 {
     // Handler for lidar operations
@@ -33,7 +25,7 @@ public:
     int cut_left = 0;
     int cut_right = 450;
     int closest = 90;
-    int farthest = 3000;
+    int farthest = 2000;
     int x_left = 0;
     int x_right = WIDTH;
     int y_up = 0;

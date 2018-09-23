@@ -14,3 +14,15 @@
 #ifndef DEBUG_MODE
 #undef VERBOSE_MODE
 #endif
+
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
+struct LidarReading
+{
+    long *data;
+    std::vector<cv::Point> pos;
+    std::vector<double> angle;
+};
+
